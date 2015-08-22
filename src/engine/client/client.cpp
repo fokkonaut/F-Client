@@ -2756,12 +2756,14 @@ void CClient::DemoRecorder_HandleAutoStart()
 	if(Config()->m_ClAutoDemoRecord)
 	{
 		DemoRecorder_Stop();
-		DemoRecorder_Start("auto/autorecord", true);
+		char aBuf[512];
+		str_format(aBuf, sizeof(aBuf), "auto/%s", m_aCurrentMap);
+		DemoRecorder_Start(aBuf, true);
 		if(Config()->m_ClAutoDemoMax)
 		{
 			// clean up auto recorded demos
 			CFileCollection AutoDemos;
-			AutoDemos.Init(Storage(), "demos/auto", "autorecord", ".demo", Config()->m_ClAutoDemoMax);
+			AutoDemos.Init(Storage(), "demos/auto", "" /* empty for wild card */, ".demo", Config()->m_ClAutoDemoMax);
 		}
 	}
 }

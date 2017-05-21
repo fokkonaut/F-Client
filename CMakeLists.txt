@@ -1289,6 +1289,7 @@ set_src(ENGINE_INTERFACE GLOB src/engine
   sound.h
   storage.h
   textrender.h
+  uuid.h
 )
 set_src(ENGINE_SHARED GLOB src/engine/shared
   compression.cpp
@@ -1307,6 +1308,7 @@ set_src(ENGINE_SHARED GLOB src/engine/shared
   engine.cpp
   filecollection.cpp
   filecollection.h
+  global_uuid_manager.cpp
   huffman.cpp
   huffman.h
   jobs.cpp
@@ -1336,12 +1338,17 @@ set_src(ENGINE_SHARED GLOB src/engine/shared
   packer.cpp
   packer.h
   protocol.h
+  protocol_ex.cpp
+  protocol_ex.h
+  protocol_ex_msgs.h
   ringbuffer.cpp
   ringbuffer.h
   serverbrowser.cpp
   snapshot.cpp
   snapshot.h
   storage.cpp
+  uuid_manager.cpp
+  uuid_manager.h
 )
 set(ENGINE_GENERATED_SHARED src/generated/protocol.cpp src/generated/protocol.h)
 set_src(GAME_SHARED GLOB src/game
@@ -1676,6 +1683,7 @@ set_src(TOOLS GLOB src/tools
   map_resave.cpp
   map_version.cpp
   packetgen.cpp
+  uuid.cpp
 )
 foreach(ABS_T ${TOOLS})
   file(RELATIVE_PATH T "${PROJECT_SOURCE_DIR}/src/tools/" ${ABS_T})
@@ -1704,6 +1712,7 @@ add_custom_target(everything DEPENDS ${TARGETS_OWN})
 
 if(GTEST_FOUND OR DOWNLOAD_GTEST)
   set_src(TESTS GLOB src/test
+    ex.cpp
     fs.cpp
     git_revision.cpp
     hash.cpp

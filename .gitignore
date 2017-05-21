@@ -32,6 +32,7 @@ teeworlds*
 !teeworlds.rc
 teeworlds_srv*
 testrunner
+uuid*
 versionsrv*
 
 # IDE project files

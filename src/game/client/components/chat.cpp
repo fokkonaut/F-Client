@@ -568,11 +568,12 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 		if(ClientID < 0 || !m_pClient->m_aClients[ClientID].m_Active || TargetID < 0 || !m_pClient->m_aClients[TargetID].m_Active)
 			return;
 		// should be sender or receiver
-		if(ClientID != m_pClient->m_LocalClientID[Config()->m_ClDummy] && TargetID != m_pClient->m_LocalClientID[Config()->m_ClDummy])
+		if(ClientID != m_pClient->m_LocalClientID[CLIENT_MAIN] && TargetID != m_pClient->m_LocalClientID[CLIENT_MAIN]
+			&& ClientID != m_pClient->m_LocalClientID[CLIENT_DUMMY] && TargetID != m_pClient->m_LocalClientID[CLIENT_DUMMY])
 			return;
 		// ignore and chat filter
 		if(m_pClient->m_aClients[TargetID].m_ChatIgnore || Config()->m_ClFilterchat == 2 ||
-			(m_pClient->m_LocalClientID[Config()->m_ClDummy] != TargetID && Config()->m_ClFilterchat == 1 && !m_pClient->m_aClients[TargetID].m_Friend))
+			(m_pClient->m_LocalClientID[CLIENT_MAIN] != TargetID && m_pClient->m_LocalClientID[CLIENT_DUMMY] != TargetID && Config()->m_ClFilterchat == 1 && !m_pClient->m_aClients[TargetID].m_Friend))
 			return;
 	}
 
@@ -632,18 +633,23 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 		// do not highlight our own messages, whispers and system messages
 		if(Mode != CHAT_WHISPER && ClientID >= 0 && ClientID != m_pClient->m_LocalClientID[Config()->m_ClDummy])
 		{
-			const char *pHL = str_find_nocase(pLine, m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_aName);
-			if(pHL)
+			// check for main and dummy
+			for (int i = 0; i < NUM_CLIENTS; i++)
 			{
-				int Length = str_length(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_aName);
-				if((pLine == pHL || pHL[-1] == ' ')) // "" or " " before
+				const char* pHL = str_find_nocase(pLine, m_pClient->m_aClients[m_pClient->m_LocalClientID[i]].m_aName);
+				if (pHL)
 				{
-					if((pHL[Length] == 0 || pHL[Length] == ' ')) // "" or " " after
-						Highlighted = true;
-					if(pHL[Length] == ':' && (pHL[Length+1] == 0 || pHL[Length+1] == ' ')) // ":" or ": " after
-						Highlighted = true;
+					int Length = str_length(m_pClient->m_aClients[m_pClient->m_LocalClientID[i]].m_aName);
+					if ((pLine == pHL || pHL[-1] == ' ')) // "" or " " before
+					{
+						if ((pHL[Length] == 0 || pHL[Length] == ' ')) // "" or " " after
+							Highlighted = true;
+						if (pHL[Length] == ':' && (pHL[Length + 1] == 0 || pHL[Length + 1] == ' ')) // ":" or ": " after
+							Highlighted = true;
+					}
+					m_CompletionFav = ClientID;
+					break;
 				}
-				m_CompletionFav = ClientID;
 			}
 		}
 
@@ -1225,10 +1231,11 @@ void CChat::OnRender()
 			Graphics()->QuadsBegin();
 
 			// image orientation
-			const int LocalCID = m_pClient->m_LocalClientID[Config()->m_ClDummy];
-			if(pLine->m_ClientID == LocalCID && pLine->m_TargetID >= 0)
+			const int LocalCID = m_pClient->m_LocalClientID[CLIENT_MAIN];
+			const int LocalCID2 = m_pClient->m_LocalClientID[CLIENT_DUMMY];
+			if((pLine->m_ClientID == LocalCID || pLine->m_ClientID == LocalCID2) && pLine->m_TargetID >= 0)
 				Graphics()->QuadsSetSubset(1, 0, 0, 1); // To
-			else if(pLine->m_TargetID == LocalCID)
+			else if(pLine->m_TargetID == LocalCID || pLine->m_TargetID == LocalCID2)
 				Graphics()->QuadsSetSubset(0, 0, 1, 1); // From
 			else
 				dbg_break();

@@ -857,6 +857,13 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 
 	if (IsDummy)
 	{
+		if (MsgId == NETMSGTYPE_SV_CHAT)
+		{
+			// also receive whisper messages to the dummy
+			CNetMsg_Sv_Chat *pMsg = (CNetMsg_Sv_Chat *)pRawMsg;
+			if (pMsg->m_Mode == CHAT_WHISPER)
+				m_pChat->OnMessage(MsgId, pRawMsg);
+		}
 		return; // no need of all that stuff for the dummy
 	}
 

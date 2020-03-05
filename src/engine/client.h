@@ -8,6 +8,13 @@
 #include "graphics.h"
 #include <engine/shared/config.h>
 
+enum
+{
+	CLIENT_MAIN,
+	CLIENT_DUMMY,
+	NUM_CLIENTS,
+};
+
 class IClient : public IInterface
 {
 	MACRO_INTERFACE("client", 0)
@@ -16,16 +23,16 @@ protected:
 	int m_State;
 
 	// quick access to time variables
-	int m_PrevGameTick[2];
-	int m_CurGameTick[2];
-	float m_GameIntraTick[2];
-	float m_GameTickTime[2];
+	int m_PrevGameTick[NUM_CLIENTS];
+	int m_CurGameTick[NUM_CLIENTS];
+	float m_GameIntraTick[NUM_CLIENTS];
+	float m_GameTickTime[NUM_CLIENTS];
 
 	int m_CurMenuTick;
 	int64 m_MenuStartTime;
 
-	int m_PredTick[2];
-	float m_PredIntraTick[2];
+	int m_PredTick[NUM_CLIENTS];
+	float m_PredIntraTick[NUM_CLIENTS];
 
 	float m_LocalTime;
 	float m_RenderFrameTime;
@@ -97,13 +104,6 @@ public:
 	virtual void ServerBrowserUpdate() = 0;
 
 	// dummy
-	enum
-	{
-		CLIENT_MAIN,
-		CLIENT_DUMMY,
-		NUM_CLIENTS,
-	};
-
 	virtual void DummyDisconnect(const char *pReason) = 0;
 	virtual void DummyConnect() = 0;
 	virtual bool DummyConnected() = 0;
@@ -155,7 +155,7 @@ public:
 
 	virtual void SnapSetStaticsize(int ItemType, int Size) = 0;
 
-	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int NetClient = 0/*CLIENT_MAIN*/) = 0;
+	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int NetClient = -1) = 0;
 
 	template<class T>
 	int SendPackMsg(T *pMsg, int Flags, int NetClient = -1)

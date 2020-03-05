@@ -11,6 +11,7 @@
 #include <engine/shared/protocol.h>
 #include <generated/protocol.h>
 #include <engine/shared/config.h>
+#include <engine/client.h>
 
 
 class CTuneParam
@@ -139,7 +140,7 @@ public:
 		mem_zero(m_apCharacters, sizeof(m_apCharacters));
 	}
 
-	CTuningParams m_Tuning[2];
+	CTuningParams m_Tuning[NUM_CLIENTS];
 	class CCharacterCore *m_apCharacters[MAX_CLIENTS];
 };
 

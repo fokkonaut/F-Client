@@ -257,10 +257,10 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_AutoStatScreenshotRecycle = false;
 	m_EditorActive = false;
 
-	m_AckGameTick[0] = -1;
-	m_AckGameTick[1] = -1;
-	m_CurrentRecvTick[0] = 0;
-	m_CurrentRecvTick[1] = 0;
+	m_AckGameTick[CLIENT_MAIN] = -1;
+	m_AckGameTick[CLIENT_DUMMY] = -1;
+	m_CurrentRecvTick[CLIENT_MAIN] = 0;
+	m_CurrentRecvTick[CLIENT_DUMMY] = 0;
 	m_RconAuthed = 0;
 
 	// version-checking
@@ -289,25 +289,26 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_MapdownloadAmount = -1;
 	m_MapdownloadTotalsize = -1;
 
-	m_CurrentInput[0] = 0;
-	m_CurrentInput[1] = 0;
+	m_CurrentInput[CLIENT_MAIN] = 0;
+	m_CurrentInput[CLIENT_DUMMY] = 0;
 
 	m_State = IClient::STATE_OFFLINE;
 	m_aServerAddressStr[0] = 0;
 	m_aServerPassword[0] = 0;
 
 	mem_zero(m_aSnapshots, sizeof(m_aSnapshots));
-	m_SnapshotStorage[0].Init();
-	m_SnapshotStorage[1].Init();
-	m_ReceivedSnapshots[0] = 0;
-	m_ReceivedSnapshots[1] = 0;
+	m_SnapshotStorage[CLIENT_MAIN].Init();
+	m_SnapshotStorage[CLIENT_DUMMY].Init();
+	m_ReceivedSnapshots[CLIENT_MAIN] = 0;
+	m_ReceivedSnapshots[CLIENT_DUMMY] = 0;
 
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
 
 	m_LastDummy = 0;
 	m_LastDummy2 = 0;
 
-	m_LastDummyConnectTime = 0;
+	//if (Config()->m_ClDummy == 0)
+		m_LastDummyConnectTime = 0;
 }
 
 // ----- send functions -----
@@ -331,7 +332,7 @@ int CClient::SendMsg(CMsgPacker *pMsg, int Flags, int NetClient)
 	if(Flags&MSGFLAG_FLUSH)
 		Packet.m_Flags |= NETSENDFLAG_FLUSH;
 
-	if(NetClient == 0 && Flags&MSGFLAG_RECORD)
+	if(NetClient == CLIENT_MAIN && Flags&MSGFLAG_RECORD)
 	{
 		if(m_DemoRecorder.IsRecording())
 			m_DemoRecorder.RecordMessage(Packet.m_pData, Packet.m_DataSize);
@@ -500,11 +501,11 @@ void CClient::OnEnterGame()
 	int i;
 	for(i = 0; i < 200; i++)
 	{
-		m_aInputs[0][i].m_Tick = -1;
-		m_aInputs[1][i].m_Tick = -1;
+		m_aInputs[CLIENT_MAIN][i].m_Tick = -1;
+		m_aInputs[CLIENT_DUMMY][i].m_Tick = -1;
 	}
-	m_CurrentInput[0] = 0;
-	m_CurrentInput[1] = 0;
+	m_CurrentInput[CLIENT_MAIN] = 0;
+	m_CurrentInput[CLIENT_DUMMY] = 0;
 
 	// reset snapshots
 	m_aSnapshots[Config()->m_ClDummy][SNAP_CURRENT] = 0;
@@ -2237,8 +2238,8 @@ bool CClient::LimitFps()
 void CClient::Run()
 {
 	m_LocalStartTime = time_get();
-	m_SnapshotParts[0] = 0;
-	m_SnapshotParts[1] = 0;
+	m_SnapshotParts[CLIENT_MAIN] = 0;
+	m_SnapshotParts[CLIENT_DUMMY] = 0;
 
 	// init SDL
 	{

@@ -104,7 +104,7 @@ public:
 	bool m_SuppressEvents;
 
 	// TODO: move this
-	CTuningParams m_Tuning[2];
+	CTuningParams m_Tuning[NUM_CLIENTS];
 
 	enum
 	{
@@ -208,12 +208,12 @@ public:
 	};
 
 	CClientData m_aClients[MAX_CLIENTS];
-	int m_LocalClientID[2];
-	int m_TeamCooldownTick[2];
+	int m_LocalClientID[NUM_CLIENTS];
+	int m_TeamCooldownTick[NUM_CLIENTS];
 	bool m_MuteServerBroadcast;
-	float m_TeamChangeTime[2];
+	float m_TeamChangeTime[NUM_CLIENTS];
 	bool m_IsXmasDay;
-	float m_LastSkinChangeTime[2];
+	float m_LastSkinChangeTime[NUM_CLIENTS];
 	bool m_IsEasterDay;
 
 	struct CGameInfo

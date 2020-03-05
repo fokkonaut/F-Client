@@ -495,7 +495,7 @@ void CGameContext::OnTick()
 	CheckPureTuning();
 
 	// copy tuning
-	m_World.m_Core.m_Tuning[0] = m_Tuning;
+	m_World.m_Core.m_Tuning[CLIENT_MAIN] = m_Tuning;
 	m_World.Tick();
 
 	//if(world.paused) // make sure that the game object always updates

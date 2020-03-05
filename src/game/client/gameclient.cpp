@@ -560,19 +560,19 @@ void CGameClient::OnReset()
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnReset();
 
-	m_LocalClientID[0] = -1;
-	m_LocalClientID[1] = -1;
-	m_TeamCooldownTick[0] = 0;
-	m_TeamCooldownTick[1] = 0;
-	m_TeamChangeTime[0] = 0.0f;
-	m_TeamChangeTime[1] = 0.0f;
-	m_LastSkinChangeTime[0] = Client()->LocalTime();
-	m_LastSkinChangeTime[1] = Client()->LocalTime();
+	m_LocalClientID[CLIENT_MAIN] = -1;
+	m_LocalClientID[CLIENT_DUMMY] = -1;
+	m_TeamCooldownTick[CLIENT_MAIN] = 0;
+	m_TeamCooldownTick[CLIENT_DUMMY] = 0;
+	m_TeamChangeTime[CLIENT_MAIN] = 0.0f;
+	m_TeamChangeTime[CLIENT_DUMMY] = 0.0f;
+	m_LastSkinChangeTime[CLIENT_MAIN] = Client()->LocalTime();
+	m_LastSkinChangeTime[CLIENT_DUMMY] = Client()->LocalTime();
 	mem_zero(&m_GameInfo, sizeof(m_GameInfo));
 	m_DemoSpecMode = SPEC_FREEVIEW;
 	m_DemoSpecID = -1;
-	m_Tuning[0] = CTuningParams();
-	m_Tuning[1] = CTuningParams();
+	m_Tuning[CLIENT_MAIN] = CTuningParams();
+	m_Tuning[CLIENT_DUMMY] = CTuningParams();
 	m_MuteServerBroadcast = false;
 	m_LastGameStartTick = -1;
 	m_LastFlagCarrierRed = FLAG_MISSING;

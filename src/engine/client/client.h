@@ -83,7 +83,7 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	char m_aServerAddressStr[256];
 	char m_aServerPassword[128];
 
-	unsigned m_SnapshotParts[2];
+	unsigned m_SnapshotParts[NUM_CLIENTS];
 	int64 m_LocalStartTime;
 
 	int64 m_LastRenderTime;
@@ -103,8 +103,8 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	bool m_ResortServerBrowser;
 	bool m_RecordGameMessage;
 
-	int m_AckGameTick[2];
-	int m_CurrentRecvTick[2];
+	int m_AckGameTick[NUM_CLIENTS];
+	int m_CurrentRecvTick[NUM_CLIENTS];
 	int m_RconAuthed;
 	int m_UseTempRconCommands;
 
@@ -137,7 +137,7 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	int m_MapdownloadTotalsize;
 
 	// time
-	CSmoothTime m_GameTime[2];
+	CSmoothTime m_GameTime[NUM_CLIENTS];
 	CSmoothTime m_PredictedTime;
 
 	// input
@@ -147,9 +147,9 @@ class CClient : public IClient, public CDemoPlayer::IListener
 		int m_Tick; // the tick that the input is for
 		int64 m_PredictedTime; // prediction latency when we sent this input
 		int64 m_Time;
-	} m_aInputs[2][200];
+	} m_aInputs[NUM_CLIENTS][200];
 
-	int m_CurrentInput[2];
+	int m_CurrentInput[NUM_CLIENTS];
 	bool m_LastDummy;
 	bool m_LastDummy2;
 	bool m_DummySendConnInfo;
@@ -160,10 +160,10 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	CGraph m_FpsGraph;
 
 	// the game snapshots are modifiable by the game
-	class CSnapshotStorage m_SnapshotStorage[2];
-	CSnapshotStorage::CHolder *m_aSnapshots[2][NUM_SNAPSHOT_TYPES];
+	class CSnapshotStorage m_SnapshotStorage[NUM_CLIENTS];
+	CSnapshotStorage::CHolder *m_aSnapshots[NUM_CLIENTS][NUM_SNAPSHOT_TYPES];
 
-	int m_ReceivedSnapshots[2];
+	int m_ReceivedSnapshots[NUM_CLIENTS];
 	char m_aSnapshotIncomingData[CSnapshot::MAX_SIZE];
 
 	class CSnapshotStorage::CHolder m_aDemorecSnapshotHolders[NUM_SNAPSHOT_TYPES];

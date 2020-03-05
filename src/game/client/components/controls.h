@@ -8,13 +8,13 @@
 class CControls : public CComponent
 {
 public:
-	vec2 m_MousePos[2];
-	vec2 m_TargetPos[2];
+	vec2 m_MousePos[NUM_CLIENTS];
+	vec2 m_TargetPos[NUM_CLIENTS];
 
-	CNetObj_PlayerInput m_InputData[2];
-	CNetObj_PlayerInput m_LastData[2];
-	int m_InputDirectionLeft[2];
-	int m_InputDirectionRight[2];
+	CNetObj_PlayerInput m_InputData[NUM_CLIENTS];
+	CNetObj_PlayerInput m_LastData[NUM_CLIENTS];
+	int m_InputDirectionLeft[NUM_CLIENTS];
+	int m_InputDirectionRight[NUM_CLIENTS];
 	int m_LastDummy;
 	int m_OtherFire;
 
@@ -30,7 +30,7 @@ public:
 
 	int SnapInput(int *pData);
 	void ClampMousePos();
-	void ResetInput(int Dummy);
+	void ResetInput(int NetClient);
 
 	class CGameClient *GameClient() const { return m_pClient; }
 };

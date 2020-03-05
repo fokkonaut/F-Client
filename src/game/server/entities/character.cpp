@@ -67,7 +67,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_Pos = Pos;
 
 	m_Core.Reset();
-	m_Core.Init(&GameWorld()->m_Core, GameServer()->Collision());
+	m_Core.Init(&GameWorld()->m_Core, GameServer()->Collision(), Config());
 	m_Core.m_Pos = m_Pos;
 	GameWorld()->m_Core.m_apCharacters[m_pPlayer->GetCID()] = &m_Core;
 
@@ -550,7 +550,7 @@ void CCharacter::TickDefered()
 	// advance the dummy
 	{
 		CWorldCore TempWorld;
-		m_ReckoningCore.Init(&TempWorld, GameServer()->Collision());
+		m_ReckoningCore.Init(&TempWorld, GameServer()->Collision(), Config());
 		m_ReckoningCore.Tick(false);
 		m_ReckoningCore.Move();
 		m_ReckoningCore.Quantize();

@@ -124,7 +124,7 @@ void CHud::RenderStartCountdown()
 
 void CHud::RenderDeadNotification()
 {
-	if(m_pClient->m_Snap.m_pGameData->m_GameStateFlags == 0 && m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS &&
+	if(m_pClient->m_Snap.m_pGameData->m_GameStateFlags == 0 && m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != TEAM_SPECTATORS &&
 		m_pClient->m_Snap.m_pLocalInfo && (m_pClient->m_Snap.m_pLocalInfo->m_PlayerFlags&PLAYERFLAG_DEAD))
 	{
 		const char *pText = Localize("Wait for next round");
@@ -245,19 +245,19 @@ void CHud::RenderScoreHud()
 				if(m_pClient->m_aClients[m_pClient->m_Snap.m_aInfoByScore[i].m_ClientID].m_Team != TEAM_SPECTATORS)
 				{
 					aPlayerInfo[t] = m_pClient->m_Snap.m_aInfoByScore[i];
-					if(aPlayerInfo[t].m_ClientID == m_pClient->m_LocalClientID)
+					if(aPlayerInfo[t].m_ClientID == m_pClient->m_LocalClientID[Config()->m_ClDummy])
 						Local = t;
 					++t;
 				}
 			}
 			// search local player info if not a spectator, nor within top2 scores
-			if(Local == -1 && m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS)
+			if(Local == -1 && m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != TEAM_SPECTATORS)
 			{
 				for(; i < MAX_CLIENTS && m_pClient->m_Snap.m_aInfoByScore[i].m_pPlayerInfo; ++i)
 				{
 					if(m_pClient->m_aClients[m_pClient->m_Snap.m_aInfoByScore[i].m_ClientID].m_Team != TEAM_SPECTATORS)
 						++aPos[1];
-					if(m_pClient->m_Snap.m_aInfoByScore[i].m_ClientID == m_pClient->m_LocalClientID)
+					if(m_pClient->m_Snap.m_aInfoByScore[i].m_ClientID == m_pClient->m_LocalClientID[Config()->m_ClDummy])
 					{
 						aPlayerInfo[1] = m_pClient->m_Snap.m_aInfoByScore[i];
 						Local = 1;
@@ -502,7 +502,7 @@ void CHud::RenderCursor()
 	// render cursor
 	RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS].m_pSpriteCursor);
 	float CursorSize = 64;
-	RenderTools()->DrawSprite(m_pClient->m_pControls->m_TargetPos.x, m_pClient->m_pControls->m_TargetPos.y, CursorSize);
+	RenderTools()->DrawSprite(m_pClient->m_pControls->m_TargetPos[Config()->m_ClDummy].x, m_pClient->m_pControls->m_TargetPos[Config()->m_ClDummy].y, CursorSize);
 	Graphics()->QuadsEnd();
 }
 
@@ -692,8 +692,8 @@ void CHud::RenderSpectatorHud()
 
 void CHud::RenderSpectatorNotification()
 {
-	if(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team == TEAM_SPECTATORS &&
-		m_pClient->m_TeamChangeTime + 5.0f >= Client()->LocalTime())
+	if(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team == TEAM_SPECTATORS &&
+		m_pClient->m_TeamChangeTime[Config()->m_ClDummy] + 5.0f >= Client()->LocalTime())
 	{
 		// count non spectators
 		int NumPlayers = 0;
@@ -713,7 +713,7 @@ void CHud::RenderSpectatorNotification()
 
 void CHud::RenderReadyUpNotification()
 {
-	if(!(m_pClient->m_Snap.m_paPlayerInfos[m_pClient->m_LocalClientID]->m_PlayerFlags&PLAYERFLAG_READY))
+	if(!(m_pClient->m_Snap.m_paPlayerInfos[m_pClient->m_LocalClientID[Config()->m_ClDummy]]->m_PlayerFlags&PLAYERFLAG_READY))
 	{
 		char aKey[64], aText[128];
 		m_pClient->m_pBinds->GetKey("ready_change", aKey, sizeof(aKey));
@@ -789,7 +789,7 @@ void CHud::OnMessage(int MsgType, void *pRawMsg)
 	{
 		// reset checkpoint time on death
 		CNetMsg_Sv_KillMsg *pMsg = (CNetMsg_Sv_KillMsg *)pRawMsg;
-		if(pMsg->m_Victim == m_pClient->m_LocalClientID)
+		if(pMsg->m_Victim == m_pClient->m_LocalClientID[Config()->m_ClDummy])
 			m_CheckpointTime = 0;
 	}
 }
@@ -816,7 +816,7 @@ void CHud::OnRender()
 			RenderHealthAndAmmo(m_pClient->m_Snap.m_pLocalCharacter);
 			if(Race)
 			{
-				RenderRaceTime(m_pClient->m_Snap.m_paPlayerInfosRace[m_pClient->m_LocalClientID]);
+				RenderRaceTime(m_pClient->m_Snap.m_paPlayerInfosRace[m_pClient->m_LocalClientID[Config()->m_ClDummy]]);
 				RenderCheckpoint();
 			}
 		}

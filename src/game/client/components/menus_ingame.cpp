@@ -26,7 +26,7 @@
 void CMenus::GetSwitchTeamInfo(CSwitchTeamInfo *pInfo)
 {
 	pInfo->m_aNotification[0] = 0;
-	int TeamMod = m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS ? -1 : 0;
+	int TeamMod = m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != TEAM_SPECTATORS ? -1 : 0;
 	pInfo->m_AllowSpec = true;
 	pInfo->m_TimeLeft = 0;
 
@@ -39,9 +39,9 @@ void CMenus::GetSwitchTeamInfo(CSwitchTeamInfo *pInfo)
 	{
 		str_format(pInfo->m_aNotification, sizeof(pInfo->m_aNotification), Localize("Only %d active players are allowed"), m_pClient->m_ServerSettings.m_PlayerSlots);
 	}
-	else if(m_pClient->m_TeamCooldownTick + 1 >= Client()->GameTick())
+	else if(m_pClient->m_TeamCooldownTick[Config()->m_ClDummy] + 1 >= Client()->GameTick())
 	{
-		pInfo->m_TimeLeft = (m_pClient->m_TeamCooldownTick - Client()->GameTick()) / Client()->GameTickSpeed() + 1;
+		pInfo->m_TimeLeft = (m_pClient->m_TeamCooldownTick[Config()->m_ClDummy] - Client()->GameTick()) / Client()->GameTickSpeed() + 1;
 		str_format(pInfo->m_aNotification, sizeof(pInfo->m_aNotification), Localize("Teams are locked. Time to wait before changing team: %02d:%02d"), pInfo->m_TimeLeft / 60, pInfo->m_TimeLeft % 60);
 		pInfo->m_AllowSpec = false;
 	}
@@ -49,13 +49,14 @@ void CMenus::GetSwitchTeamInfo(CSwitchTeamInfo *pInfo)
 
 void CMenus::RenderGame(CUIRect MainView)
 {
-	if(m_pClient->m_LocalClientID == -1)
+	if(m_pClient->m_LocalClientID[Config()->m_ClDummy] == -1)
 		return;
 
 	char aBuf[128];
 	CSwitchTeamInfo Info = {{0}};
 	GetSwitchTeamInfo(&Info);
 	CUIRect Button, ButtonRow, Label;
+	bool DummyConnecting = m_pClient->Client()->DummyConnecting();
 
 	float Spacing = 3.0f;
 	float ButtonWidth = (MainView.w/6.0f)-(Spacing*5.0)/6.0f;
@@ -88,7 +89,7 @@ void CMenus::RenderGame(CUIRect MainView)
 		ButtonRow.VMargin(Spacing, &ButtonRow);
 
 		// specator button
-		int Team = m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team;
+		int Team = m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team;
 		if(!Info.m_AllowSpec && Team != TEAM_SPECTATORS)
 		{
 			if(Info.m_TimeLeft)
@@ -102,7 +103,7 @@ void CMenus::RenderGame(CUIRect MainView)
 		ButtonRow.VSplitLeft(ButtonWidth, &Button, &ButtonRow);
 		ButtonRow.VSplitLeft(Spacing, 0, &ButtonRow);
 		static CButtonContainer s_SpectateButton;
-		if(DoButton_Menu(&s_SpectateButton, aBuf, Team == TEAM_SPECTATORS, &Button) && Team != TEAM_SPECTATORS && Info.m_AllowSpec)
+		if(!DummyConnecting && DoButton_Menu(&s_SpectateButton, aBuf, Team == TEAM_SPECTATORS, &Button) && Team != TEAM_SPECTATORS && Info.m_AllowSpec)
 		{
 			m_pClient->SendSwitchTeam(TEAM_SPECTATORS);
 			SetActive(false);
@@ -131,7 +132,7 @@ void CMenus::RenderGame(CUIRect MainView)
 			ButtonRow.VSplitLeft(ButtonWidth, &Button, &ButtonRow);
 			ButtonRow.VSplitLeft(Spacing, 0, &ButtonRow);
 			static CButtonContainer s_RedButton;
-			if(DoButton_Menu(&s_RedButton, aBuf, Team == TEAM_RED, &Button, 0, CUI::CORNER_ALL, 5.0f, 0.0f, vec4(0.975f, 0.17f, 0.17f, 0.75f), false) && Team != TEAM_RED && !(Info.m_aNotification[0]) && !BlockRed)
+			if(!DummyConnecting && DoButton_Menu(&s_RedButton, aBuf, Team == TEAM_RED, &Button, 0, CUI::CORNER_ALL, 5.0f, 0.0f, vec4(0.975f, 0.17f, 0.17f, 0.75f), false) && Team != TEAM_RED && !(Info.m_aNotification[0]) && !BlockRed)
 			{
 				m_pClient->SendSwitchTeam(TEAM_RED);
 				SetActive(false);
@@ -157,7 +158,7 @@ void CMenus::RenderGame(CUIRect MainView)
 			ButtonRow.VSplitLeft(ButtonWidth, &Button, &ButtonRow);
 			ButtonRow.VSplitLeft(Spacing, 0, &ButtonRow);
 			static CButtonContainer s_BlueButton;
-			if(DoButton_Menu(&s_BlueButton, aBuf, Team == TEAM_BLUE, &Button, 0, CUI::CORNER_ALL, 5.0f, 0.0f, vec4(0.17f, 0.46f, 0.975f, 0.75f), false) && Team != TEAM_BLUE && !(Info.m_aNotification[0]) && !BlockBlue)
+			if(!DummyConnecting && DoButton_Menu(&s_BlueButton, aBuf, Team == TEAM_BLUE, &Button, 0, CUI::CORNER_ALL, 5.0f, 0.0f, vec4(0.17f, 0.46f, 0.975f, 0.75f), false) && Team != TEAM_BLUE && !(Info.m_aNotification[0]) && !BlockBlue)
 			{
 				m_pClient->SendSwitchTeam(TEAM_BLUE);
 				SetActive(false);
@@ -201,6 +202,26 @@ void CMenus::RenderGame(CUIRect MainView)
 				Client()->DemoRecorder_Start("demo", true);
 			else
 				Client()->DemoRecorder_Stop();
+		}
+
+		ButtonRow.VSplitLeft(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS ? 3.0f : 10.0f, 0, &ButtonRow);
+		ButtonRow.VSplitLeft(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS ? ButtonWidth : ButtonWidth + 20.0f, &Button, &ButtonRow);
+
+		static CButtonContainer s_DummyButton;
+		if(DummyConnecting)
+		{
+			DoButton_Menu(&s_DummyButton, Localize("Connecting dummy"), 1, &Button);
+		}
+		else if(DoButton_Menu(&s_DummyButton, Localize(Client()->DummyConnected() ? "Disconnect dummy" : "Connect dummy"), 0, &Button))
+		{
+			if(!Client()->DummyConnected())
+			{
+				Client()->DummyConnect();
+			}
+			else
+			{
+				Client()->DummyDisconnect(0);
+			}
 		}
 	}
 }
@@ -275,7 +296,7 @@ void CMenus::RenderPlayers(CUIRect MainView)
 	{
 		for(int i = 0; i < MAX_CLIENTS; ++i)
 		{
-			if(i == m_pClient->m_LocalClientID || !m_pClient->m_aClients[i].m_Active || m_pClient->m_aClients[i].m_Team != Teams[Team])
+			if(i == m_pClient->m_LocalClientID[Config()->m_ClDummy] || !m_pClient->m_aClients[i].m_Active || m_pClient->m_aClients[i].m_Team != Teams[Team])
 				continue;
 
 			MainView.HSplitTop(ButtonHeight, &Row, &MainView);
@@ -535,7 +556,7 @@ void CMenus::RenderServerControlKick(CUIRect MainView, bool FilterSpectators)
 	{
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
-			if(i == m_pClient->m_LocalClientID || !m_pClient->m_aClients[i].m_Active || m_pClient->m_aClients[i].m_Team != Teams[Team] ||
+			if(i == m_pClient->m_LocalClientID[Config()->m_ClDummy] || !m_pClient->m_aClients[i].m_Active || m_pClient->m_aClients[i].m_Team != Teams[Team] ||
 				(FilterSpectators && m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS) ||
 				(!FilterSpectators && m_pClient->m_Snap.m_paPlayerInfos[i] && (m_pClient->m_Snap.m_paPlayerInfos[i]->m_PlayerFlags&PLAYERFLAG_ADMIN)))
 				continue;
@@ -638,7 +659,7 @@ void CMenus::HandleCallvote(int Page, bool Force)
 
 void CMenus::RenderServerControl(CUIRect MainView)
 {
-	if(m_pClient->m_LocalClientID == -1)
+	if(m_pClient->m_LocalClientID[Config()->m_ClDummy] == -1)
 		return;
 
 	static int s_ControlPage = 0;
@@ -717,7 +738,7 @@ void CMenus::RenderServerControl(CUIRect MainView)
 		return;
 	}
 
-	if(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team == TEAM_SPECTATORS)
+	if(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team == TEAM_SPECTATORS)
 		pNotification = Localize("Spectators aren't allowed to start a vote.");
 
 	// render background
@@ -728,7 +749,7 @@ void CMenus::RenderServerControl(CUIRect MainView)
 	// render page
 	if(s_ControlPage == 0)
 		// double click triggers vote if not spectating
-		doCallVote = RenderServerControlServer(MainView) && m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS; 
+		doCallVote = RenderServerControlServer(MainView) && m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != TEAM_SPECTATORS;
 	else if(s_ControlPage == 1)
 		RenderServerControlKick(MainView, false);
 	else if(s_ControlPage == 2)
@@ -739,7 +760,7 @@ void CMenus::RenderServerControl(CUIRect MainView)
 	Extended.HSplitTop(20.0f, &Note, &Extended);
 	Extended.HSplitTop(20.0f, &Bottom, &Extended);
 	{
-		if(Authed || m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS)
+		if(Authed || m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != TEAM_SPECTATORS)
 		{
 			CUIRect Reason, Search, ClearButton, Label;
 			// render search

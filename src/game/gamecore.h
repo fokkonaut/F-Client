@@ -10,6 +10,7 @@
 #include "collision.h"
 #include <engine/shared/protocol.h>
 #include <generated/protocol.h>
+#include <engine/shared/config.h>
 
 
 class CTuneParam
@@ -138,7 +139,7 @@ public:
 		mem_zero(m_apCharacters, sizeof(m_apCharacters));
 	}
 
-	CTuningParams m_Tuning;
+	CTuningParams m_Tuning[2];
 	class CCharacterCore *m_apCharacters[MAX_CLIENTS];
 };
 
@@ -167,7 +168,7 @@ public:
 
 	int m_TriggeredEvents;
 
-	void Init(CWorldCore *pWorld, CCollision *pCollision);
+	void Init(CWorldCore *pWorld, CCollision *pCollision, CConfig *pConfig);
 	void Reset();
 	void Tick(bool UseInput);
 	void Move();
@@ -175,6 +176,9 @@ public:
 	void Read(const CNetObj_CharacterCore *pObjCore);
 	void Write(CNetObj_CharacterCore *pObjCore);
 	void Quantize();
+
+	class CConfig *m_pConfig;
+	class CConfig *Config() const { return m_pConfig; }
 };
 
 #endif

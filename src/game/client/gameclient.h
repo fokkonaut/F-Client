@@ -70,6 +70,9 @@ class CGameClient : public IGameClient
 	static void ConchainBlacklistUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainXmasHatUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
+	static void ConchainSkinChangeDummy(IConsole::IResult* pResult, void* pUserData, IConsole::FCommandCallback pfnCallback, void* pCallbackUserData);
+	static void ConchainSpecialDummy(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+
 	void EvolveCharacter(CNetObj_Character *pCharacter, int Tick);
 
 public:
@@ -101,7 +104,7 @@ public:
 	bool m_SuppressEvents;
 
 	// TODO: move this
-	CTuningParams m_Tuning;
+	CTuningParams m_Tuning[2];
 
 	enum
 	{
@@ -205,12 +208,12 @@ public:
 	};
 
 	CClientData m_aClients[MAX_CLIENTS];
-	int m_LocalClientID;
-	int m_TeamCooldownTick;
+	int m_LocalClientID[2];
+	int m_TeamCooldownTick[2];
 	bool m_MuteServerBroadcast;
-	float m_TeamChangeTime;
+	float m_TeamChangeTime[2];
 	bool m_IsXmasDay;
-	float m_LastSkinChangeTime;
+	float m_LastSkinChangeTime[2];
 	bool m_IsEasterDay;
 
 	struct CGameInfo
@@ -249,17 +252,19 @@ public:
 	virtual void OnInit();
 	virtual void OnConsoleInit();
 	virtual void OnStateChange(int NewState, int OldState);
-	virtual void OnMessage(int MsgId, CUnpacker *pUnpacker);
+	virtual void OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy = false);
 	virtual void OnNewSnapshot();
 	virtual void OnDemoRecSnap();
 	virtual void OnPredict();
 	virtual void OnActivateEditor();
-	virtual int OnSnapInput(int *pData);
+	virtual int OnSnapInput(int *pData, bool Dummy, bool Force);
 	virtual void OnShutdown();
 	virtual void OnEnterGame();
 	virtual void OnRconLine(const char *pLine);
 	virtual void OnGameOver();
 	virtual void OnStartGame();
+	virtual void OnDummySwap();
+	virtual void OnDummyDisconnect();
 
 	virtual const char *GetItemName(int Type) const;
 	virtual const char *Version() const;
@@ -287,6 +292,8 @@ public:
 	void SendKill();
 	void SendReadyChange();
 	void SendSkinChange();
+	void SendSkinChangeDummy();
+	virtual void SendDummyStartInfo();
 
 	// pointers to all systems
 	class CGameConsole *m_pGameConsole;
@@ -311,6 +318,10 @@ public:
 	class CItems *m_pItems;
 	class CMapLayers *m_pMapLayersBackGround;
 	class CMapLayers *m_pMapLayersForeGround;
+
+	CNetObj_PlayerInput m_DummyInput;
+	CNetObj_PlayerInput m_HammerInput;
+	int m_DummyFire;
 };
 
 

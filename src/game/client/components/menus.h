@@ -346,6 +346,7 @@ private:
 	bool m_SkinModified;
 	bool m_KeyReaderWasActive;
 	bool m_KeyReaderIsActive;
+	bool m_SkinModifiedDummy;
 
 	// images
 	struct CMenuImage
@@ -804,5 +805,7 @@ public:
 	virtual void OnRender();
 	virtual bool OnInput(IInput::CEvent Event);
 	virtual bool OnMouseMove(float x, float y);
+
+	bool m_Dummy;
 };
 #endif

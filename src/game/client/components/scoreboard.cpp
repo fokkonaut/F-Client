@@ -403,7 +403,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		RenderScoreIDs[MAX_IDS-1] = -1;
 		HoleSizes[0] = m_pClient->m_GameInfo.m_aTeamSize[Team] - (MAX_IDS-1);
 
-		if(m_pClient->m_LocalClientID != -1 && (m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team == Team || m_pClient->m_Snap.m_SpecInfo.m_Active))
+		if(m_pClient->m_LocalClientID[Config()->m_ClDummy] != -1 && (m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team == Team || m_pClient->m_Snap.m_SpecInfo.m_Active))
 		{
 			int Classment = -1;
 			int TeamScoreIDs[MAX_CLIENTS];
@@ -417,7 +417,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 						(RenderDead && !(pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_DEAD)))
 						continue;
 
-					if(m_pClient->m_LocalClientID == pInfo->m_ClientID || (m_pClient->m_Snap.m_SpecInfo.m_Active && pInfo->m_ClientID == m_pClient->m_Snap.m_SpecInfo.m_SpectatorID))
+					if(m_pClient->m_LocalClientID[Config()->m_ClDummy] == pInfo->m_ClientID || (m_pClient->m_Snap.m_SpecInfo.m_Active && pInfo->m_ClientID == m_pClient->m_Snap.m_SpecInfo.m_SpectatorID))
 						Classment = j;
 
 					TeamScoreIDs[j] = i;
@@ -492,7 +492,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 			// color for text
 			vec3 TextColor = vec3(1.0f, 1.0f, 1.0f);
 			vec4 OutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
-			const bool HighlightedLine = m_pClient->m_LocalClientID == pInfo->m_ClientID || (Snap.m_SpecInfo.m_Active && pInfo->m_ClientID == Snap.m_SpecInfo.m_SpectatorID);
+			const bool HighlightedLine = m_pClient->m_LocalClientID[Config()->m_ClDummy] == pInfo->m_ClientID || (Snap.m_SpecInfo.m_Active && pInfo->m_ClientID == Snap.m_SpecInfo.m_SpectatorID);
 
 			// background so it's easy to find the local player or the followed one in spectator mode
 			if(HighlightedLine)
@@ -780,7 +780,7 @@ bool CScoreboard::IsActive() const
 	if(m_Active)
 		return true;
 
-	if(m_pClient->m_LocalClientID != -1 && m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != TEAM_SPECTATORS)
+	if(m_pClient->m_LocalClientID[Config()->m_ClDummy] != -1 && m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != TEAM_SPECTATORS)
 	{
 		// we are not a spectator, check if we are dead, don't follow a player and the game isn't paused
 		if(!m_pClient->m_Snap.m_pLocalCharacter && !m_pClient->m_Snap.m_SpecInfo.m_Active &&

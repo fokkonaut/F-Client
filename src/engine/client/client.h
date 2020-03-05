@@ -71,7 +71,7 @@ class CClient : public IClient, public CDemoPlayer::IListener
 		PREDICTION_MARGIN=1000/50/2, // magic network prediction value
 	};
 
-	class CNetClient m_NetClient;
+	class CNetClient m_NetClient[NUM_CLIENTS];
 	class CNetClient m_ContactClient;
 	class CDemoPlayer m_DemoPlayer;
 	class CDemoRecorder m_DemoRecorder;
@@ -83,7 +83,7 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	char m_aServerAddressStr[256];
 	char m_aServerPassword[128];
 
-	unsigned m_SnapshotParts;
+	unsigned m_SnapshotParts[2];
 	int64 m_LocalStartTime;
 
 	int64 m_LastRenderTime;
@@ -103,8 +103,8 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	bool m_ResortServerBrowser;
 	bool m_RecordGameMessage;
 
-	int m_AckGameTick;
-	int m_CurrentRecvTick;
+	int m_AckGameTick[2];
+	int m_CurrentRecvTick[2];
 	int m_RconAuthed;
 	int m_UseTempRconCommands;
 
@@ -137,7 +137,7 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	int m_MapdownloadTotalsize;
 
 	// time
-	CSmoothTime m_GameTime;
+	CSmoothTime m_GameTime[2];
 	CSmoothTime m_PredictedTime;
 
 	// input
@@ -147,9 +147,12 @@ class CClient : public IClient, public CDemoPlayer::IListener
 		int m_Tick; // the tick that the input is for
 		int64 m_PredictedTime; // prediction latency when we sent this input
 		int64 m_Time;
-	} m_aInputs[200];
+	} m_aInputs[2][200];
 
-	int m_CurrentInput;
+	int m_CurrentInput[2];
+	bool m_LastDummy;
+	bool m_LastDummy2;
+	bool m_DummySendConnInfo;
 
 	// graphs
 	CGraph m_InputtimeMarginGraph;
@@ -157,10 +160,10 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	CGraph m_FpsGraph;
 
 	// the game snapshots are modifiable by the game
-	class CSnapshotStorage m_SnapshotStorage;
-	CSnapshotStorage::CHolder *m_aSnapshots[NUM_SNAPSHOT_TYPES];
+	class CSnapshotStorage m_SnapshotStorage[2];
+	CSnapshotStorage::CHolder *m_aSnapshots[2][NUM_SNAPSHOT_TYPES];
 
-	int m_ReceivedSnapshots;
+	int m_ReceivedSnapshots[2];
 	char m_aSnapshotIncomingData[CSnapshot::MAX_SIZE];
 
 	class CSnapshotStorage::CHolder m_aDemorecSnapshotHolders[NUM_SNAPSHOT_TYPES];
@@ -204,7 +207,7 @@ public:
 	CClient();
 
 	// ----- send functions -----
-	virtual int SendMsg(CMsgPacker *pMsg, int Flags);
+	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int NetClient = -1);
 
 	void SendInfo();
 	void SendEnterGame();
@@ -215,14 +218,14 @@ public:
 	void RconAuth(const char *pName, const char *pPassword);
 	virtual void Rcon(const char *pCmd);
 
-	virtual bool ConnectionProblems() const;
+	virtual bool ConnectionProblems();
 
 	virtual bool SoundInitFailed() const { return m_SoundInitFailed; }
 
 	void SendInput();
 
 	// TODO: OPT: do this alot smarter!
-	virtual const int *GetInput(int Tick) const;
+	virtual const int *GetInput(int Tick);
 
 	const char *LatestVersion() const;
 	void VersionUpdate();
@@ -239,15 +242,21 @@ public:
 	void DisconnectWithReason(const char *pReason);
 	virtual void Disconnect();
 
+	virtual void DummyDisconnect(const char *pReason);
+	virtual void DummyConnect();
+	virtual bool DummyConnected();
+	virtual bool DummyConnecting();
+	int m_DummyConnected;
+	int m_LastDummyConnectTime;
 
 	virtual void GetServerInfo(CServerInfo *pServerInfo);
 
 	// ---
 
-	const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem) const;
+	const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem);
 	void SnapInvalidateItem(int SnapID, int Index);
-	const void *SnapFindItem(int SnapID, int Type, int ID) const;
-	int SnapNumItems(int SnapID) const;
+	const void *SnapFindItem(int SnapID, int Type, int ID);
+	int SnapNumItems(int SnapID);
 	void *SnapNewItem(int Type, int ID, int Size);
 	void SnapSetStaticsize(int ItemType, int Size);
 
@@ -264,6 +273,7 @@ public:
 	int UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken);
 	void ProcessConnlessPacket(CNetChunk *pPacket);
 	void ProcessServerPacket(CNetChunk *pPacket);
+	void ProcessServerPacketDummy(CNetChunk *pPacket);
 
 	const char *GetCurrentMapName() const { return m_aCurrentMap; }
 	const char *GetCurrentMapPath() const { return m_aCurrentMapPath; }
@@ -286,6 +296,9 @@ public:
 
 	void ConnectOnStart(const char *pAddress);
 	void DoVersionSpecificActions();
+
+	static void Con_DummyConnect(IConsole::IResult *pResult, void *pUserData);
+	static void Con_DummyDisconnect(IConsole::IResult *pResult, void *pUserData);
 
 	static void Con_Connect(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Disconnect(IConsole::IResult *pResult, void *pUserData);

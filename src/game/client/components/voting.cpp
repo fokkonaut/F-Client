@@ -208,7 +208,7 @@ void CVoting::OnMessage(int MsgType, void *pRawMsg)
 						m_pClient->m_pChat->AddLine(aBuf);
 					}
 				}
-				if(pMsg->m_ClientID == m_pClient->m_LocalClientID)
+				if(pMsg->m_ClientID == m_pClient->m_LocalClientID[Config()->m_ClDummy])
 					m_CallvoteBlockTick = Client()->GameTick()+Client()->GameTickSpeed()*VOTE_COOLDOWN;
 			}
 		}

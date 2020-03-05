@@ -23,6 +23,10 @@ char *CSkins::ms_apSkinVariables[NUM_SKINPARTS] = {0};
 int *CSkins::ms_apUCCVariables[NUM_SKINPARTS] = {0};
 int *CSkins::ms_apColorVariables[NUM_SKINPARTS] = {0};
 
+char *CSkins::ms_apSkinVariablesDummy[NUM_SKINPARTS] = {0};
+int *CSkins::ms_apUCCVariablesDummy[NUM_SKINPARTS] = {0};
+int *CSkins::ms_apColorVariablesDummy[NUM_SKINPARTS] = {0};
+
 const float MIN_EYE_BODY_COLOR_DIST = 80.f; // between body and eyes (LAB color space)
 
 int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
@@ -235,6 +239,25 @@ void CSkins::OnInit()
 	ms_apColorVariables[SKINPART_HANDS] = &Config()->m_PlayerColorHands;
 	ms_apColorVariables[SKINPART_FEET] = &Config()->m_PlayerColorFeet;
 	ms_apColorVariables[SKINPART_EYES] = &Config()->m_PlayerColorEyes;
+
+	ms_apSkinVariablesDummy[SKINPART_BODY] = Config()->m_DummySkinBody;
+	ms_apSkinVariablesDummy[SKINPART_MARKING] = Config()->m_DummySkinMarking;
+	ms_apSkinVariablesDummy[SKINPART_DECORATION] = Config()->m_DummySkinDecoration;
+	ms_apSkinVariablesDummy[SKINPART_HANDS] = Config()->m_DummySkinHands;
+	ms_apSkinVariablesDummy[SKINPART_FEET] = Config()->m_DummySkinFeet;
+	ms_apSkinVariablesDummy[SKINPART_EYES] = Config()->m_DummySkinEyes;
+	ms_apUCCVariablesDummy[SKINPART_BODY] = &Config()->m_DummyUseCustomColorBody;
+	ms_apUCCVariablesDummy[SKINPART_MARKING] = &Config()->m_DummyUseCustomColorMarking;
+	ms_apUCCVariablesDummy[SKINPART_DECORATION] = &Config()->m_DummyUseCustomColorDecoration;
+	ms_apUCCVariablesDummy[SKINPART_HANDS] = &Config()->m_DummyUseCustomColorHands;
+	ms_apUCCVariablesDummy[SKINPART_FEET] = &Config()->m_DummyUseCustomColorFeet;
+	ms_apUCCVariablesDummy[SKINPART_EYES] = &Config()->m_DummyUseCustomColorEyes;
+	ms_apColorVariablesDummy[SKINPART_BODY] = &Config()->m_DummyColorBody;
+	ms_apColorVariablesDummy[SKINPART_MARKING] = &Config()->m_DummyColorMarking;
+	ms_apColorVariablesDummy[SKINPART_DECORATION] = &Config()->m_DummyColorDecoration;
+	ms_apColorVariablesDummy[SKINPART_HANDS] = &Config()->m_DummyColorHands;
+	ms_apColorVariablesDummy[SKINPART_FEET] = &Config()->m_DummyColorFeet;
+	ms_apColorVariablesDummy[SKINPART_EYES] = &Config()->m_DummyColorEyes;
 
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{

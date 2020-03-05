@@ -98,6 +98,9 @@ CMenus::CMenus()
 	m_aFilterString[0] = 0;
 
 	m_ActiveListBox = ACTLB_NONE;
+
+	m_SkinModifiedDummy = false;
+	m_Dummy = false;
 }
 
 float CMenus::ButtonFade(CButtonContainer *pBC, float Seconds, int Checked)
@@ -2264,10 +2267,19 @@ void CMenus::SetActive(bool Active)
 		if(Client()->State() == IClient::STATE_ONLINE)
 		{
 			m_pClient->OnRelease();
-			if(Client()->State() == IClient::STATE_ONLINE && m_SkinModified)
+			if(Client()->State() == IClient::STATE_ONLINE)
 			{
-				m_SkinModified = false;
-				m_pClient->SendSkinChange();
+				if (m_SkinModified)
+				{
+					m_SkinModified = false;
+					m_pClient->SendSkinChange();
+				}
+
+				if (m_SkinModifiedDummy)
+				{
+					m_SkinModifiedDummy = false;
+					m_pClient->SendSkinChangeDummy();
+				}
 			}
 		}
 	}

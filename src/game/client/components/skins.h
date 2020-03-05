@@ -52,6 +52,11 @@ public:
 	static char *ms_apSkinVariables[NUM_SKINPARTS];
 	static int *ms_apUCCVariables[NUM_SKINPARTS]; // use custom color
 	static int *ms_apColorVariables[NUM_SKINPARTS];
+
+	static char *ms_apSkinVariablesDummy[NUM_SKINPARTS];
+	static int *ms_apUCCVariablesDummy[NUM_SKINPARTS]; // use custom color
+	static int *ms_apColorVariablesDummy[NUM_SKINPARTS];
+
 	IGraphics::CTextureHandle m_XmasHatTexture;
 	IGraphics::CTextureHandle m_BotTexture;
 

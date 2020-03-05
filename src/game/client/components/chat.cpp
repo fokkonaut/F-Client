@@ -140,7 +140,7 @@ void CChat::ConWhisper(IConsole::IResult *pResult, void *pUserData)
 	CChat *pChat = (CChat *)pUserData;
 
 	int Target = pResult->GetInteger(0);
-	if(Target < 0 || Target >= MAX_CLIENTS || !pChat->m_pClient->m_aClients[Target].m_Active || pChat->m_pClient->m_LocalClientID == Target)
+	if(Target < 0 || Target >= MAX_CLIENTS || !pChat->m_pClient->m_aClients[Target].m_Active || pChat->m_pClient->m_LocalClientID[pChat->Config()->m_ClDummy] == Target)
 		pChat->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "please enter a valid ClientID");
 	else
 	{
@@ -169,14 +169,14 @@ void CChat::ConChat(IConsole::IResult *pResult, void *pUserData)
 			for(int i = 0; i < MAX_CLIENTS; i++)
 			{
 				int ClientID = (Target + i) % MAX_CLIENTS;
-				if(pChat->m_pClient->m_aClients[ClientID].m_Active && pChat->m_pClient->m_LocalClientID != ClientID)
+				if(pChat->m_pClient->m_aClients[ClientID].m_Active && pChat->m_pClient->m_LocalClientID[pChat->Config()->m_ClDummy] != ClientID)
 				{
 					Target = ClientID;
 					break;
 				}
 			}
 		}
-		if(Target < 0 || Target >= MAX_CLIENTS || !pChat->m_pClient->m_aClients[Target].m_Active || pChat->m_pClient->m_LocalClientID == Target)
+		if(Target < 0 || Target >= MAX_CLIENTS || !pChat->m_pClient->m_aClients[Target].m_Active || pChat->m_pClient->m_LocalClientID[pChat->Config()->m_ClDummy] == Target)
 		{
 			if(pResult->NumArguments() == 2)
 				pChat->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "please enter a valid ClientID");
@@ -306,7 +306,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 					ClientID = (m_WhisperTarget + MAX_CLIENTS - i) % MAX_CLIENTS; // pick previous player as target
 				else
 					ClientID = (m_WhisperTarget + i) % MAX_CLIENTS; // pick next player as target
-				if (m_pClient->m_aClients[ClientID].m_Active && m_WhisperTarget != ClientID && m_pClient->m_LocalClientID != ClientID)
+				if (m_pClient->m_aClients[ClientID].m_Active && m_WhisperTarget != ClientID && m_pClient->m_LocalClientID[Config()->m_ClDummy] != ClientID)
 				{
 					m_WhisperTarget = ClientID;
 					break;
@@ -559,7 +559,7 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 	if(*pLine == 0 || (ClientID >= 0 && (!Config()->m_ClShowsocial || !m_pClient->m_aClients[ClientID].m_Active || // unknown client
 		m_pClient->m_aClients[ClientID].m_ChatIgnore ||
 		Config()->m_ClFilterchat == 2 ||
-		(m_pClient->m_LocalClientID != ClientID && Config()->m_ClFilterchat == 1 && !m_pClient->m_aClients[ClientID].m_Friend))))
+		(m_pClient->m_LocalClientID[Config()->m_ClDummy] != ClientID && Config()->m_ClFilterchat == 1 && !m_pClient->m_aClients[ClientID].m_Friend))))
 		return;
 
 	if(Mode == CHAT_WHISPER)
@@ -568,11 +568,11 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 		if(ClientID < 0 || !m_pClient->m_aClients[ClientID].m_Active || TargetID < 0 || !m_pClient->m_aClients[TargetID].m_Active)
 			return;
 		// should be sender or receiver
-		if(ClientID != m_pClient->m_LocalClientID && TargetID != m_pClient->m_LocalClientID)
+		if(ClientID != m_pClient->m_LocalClientID[Config()->m_ClDummy] && TargetID != m_pClient->m_LocalClientID[Config()->m_ClDummy])
 			return;
 		// ignore and chat filter
 		if(m_pClient->m_aClients[TargetID].m_ChatIgnore || Config()->m_ClFilterchat == 2 ||
-			(m_pClient->m_LocalClientID != TargetID && Config()->m_ClFilterchat == 1 && !m_pClient->m_aClients[TargetID].m_Friend))
+			(m_pClient->m_LocalClientID[Config()->m_ClDummy] != TargetID && Config()->m_ClFilterchat == 1 && !m_pClient->m_aClients[TargetID].m_Friend))
 			return;
 	}
 
@@ -630,12 +630,12 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 		// check for highlighted name
 		Highlighted = false;
 		// do not highlight our own messages, whispers and system messages
-		if(Mode != CHAT_WHISPER && ClientID >= 0 && ClientID != m_pClient->m_LocalClientID)
+		if(Mode != CHAT_WHISPER && ClientID >= 0 && ClientID != m_pClient->m_LocalClientID[Config()->m_ClDummy])
 		{
-			const char *pHL = str_find_nocase(pLine, m_pClient->m_aClients[m_pClient->m_LocalClientID].m_aName);
+			const char *pHL = str_find_nocase(pLine, m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_aName);
 			if(pHL)
 			{
-				int Length = str_length(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_aName);
+				int Length = str_length(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_aName);
 				if((pLine == pHL || pHL[-1] == ' ')) // "" or " " before
 				{
 					if((pHL[Length] == 0 || pHL[Length] == ' ')) // "" or " " after
@@ -647,10 +647,10 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 			}
 		}
 
-		pCurLine->m_Highlighted =  Highlighted;
+		pCurLine->m_Highlighted = Highlighted;
 
 		int NameCID = ClientID;
-		if(Mode == CHAT_WHISPER && ClientID == m_pClient->m_LocalClientID && TargetID >= 0)
+		if(Mode == CHAT_WHISPER && ClientID == m_pClient->m_LocalClientID[Config()->m_ClDummy] && TargetID >= 0)
 			NameCID = TargetID;
 
 		if(ClientID == SERVER_MSG)
@@ -693,7 +693,7 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, aBufMode, aBuf, Highlighted || Mode == CHAT_WHISPER);
 	}
 
-	if(Mode == CHAT_WHISPER && m_pClient->m_LocalClientID != ClientID)
+	if(Mode == CHAT_WHISPER && m_pClient->m_LocalClientID[Config()->m_ClDummy] != ClientID)
 		m_LastWhisperFrom = ClientID; // we received a a whisper
 
 	// play sound
@@ -794,7 +794,7 @@ void CChat::OnRender()
 				str_copy(aCatText, Localize("All"), sizeof(aCatText));
 			else if(ChatMode == CHAT_TEAM)
 			{
-				const int LocalCID = m_pClient->m_LocalClientID;
+				const int LocalCID = m_pClient->m_LocalClientID[Config()->m_ClDummy];
 				const CGameClient::CClientData& LocalClient = m_pClient->m_aClients[LocalCID];
 				const int LocalTteam = LocalClient.m_Team;
 
@@ -1225,7 +1225,7 @@ void CChat::OnRender()
 			Graphics()->QuadsBegin();
 
 			// image orientation
-			const int LocalCID = m_pClient->m_LocalClientID;
+			const int LocalCID = m_pClient->m_LocalClientID[Config()->m_ClDummy];
 			if(pLine->m_ClientID == LocalCID && pLine->m_TargetID >= 0)
 				Graphics()->QuadsSetSubset(1, 0, 0, 1); // To
 			else if(pLine->m_TargetID == LocalCID)
@@ -1269,7 +1269,7 @@ void CChat::OnRender()
 		if(pLine->m_ClientID >= 0)
 		{
 			int NameCID = pLine->m_ClientID;
-			if(pLine->m_Mode == CHAT_WHISPER && pLine->m_ClientID == m_pClient->m_LocalClientID && pLine->m_TargetID >= 0)
+			if(pLine->m_Mode == CHAT_WHISPER && pLine->m_ClientID == m_pClient->m_LocalClientID[Config()->m_ClDummy] && pLine->m_TargetID >= 0)
 				NameCID = pLine->m_TargetID;
 
 			vec4 IdTextColor = vec4(0.1f*Blend, 0.1f*Blend, 0.1f*Blend, 1.0f*Blend);

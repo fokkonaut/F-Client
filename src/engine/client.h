@@ -6,6 +6,7 @@
 
 #include "message.h"
 #include "graphics.h"
+#include <engine/shared/config.h>
 
 class IClient : public IInterface
 {
@@ -15,21 +16,24 @@ protected:
 	int m_State;
 
 	// quick access to time variables
-	int m_PrevGameTick;
-	int m_CurGameTick;
-	float m_GameIntraTick;
-	float m_GameTickTime;
+	int m_PrevGameTick[2];
+	int m_CurGameTick[2];
+	float m_GameIntraTick[2];
+	float m_GameTickTime[2];
 
 	int m_CurMenuTick;
 	int64 m_MenuStartTime;
 
-	int m_PredTick;
-	float m_PredIntraTick;
+	int m_PredTick[2];
+	float m_PredIntraTick[2];
 
 	float m_LocalTime;
 	float m_RenderFrameTime;
 
 	int m_GameTickSpeed;
+
+	class CConfig *m_pConfig;
+
 public:
 
 	class CSnapItem
@@ -62,14 +66,17 @@ public:
 	//
 	inline int State() const { return m_State; }
 
+	void InitConfig(CConfig *pConfig) { m_pConfig = pConfig; }
+
 	// tick time access
-	inline int PrevGameTick() const { return m_PrevGameTick; }
-	inline int GameTick() const { return m_CurGameTick; }
+	int PrevGameTick() { return m_PrevGameTick[m_pConfig->m_ClDummy]; }
+	int GameTick() { return m_CurGameTick[m_pConfig->m_ClDummy]; }
+	int PredGameTick() { return m_PredTick[m_pConfig->m_ClDummy]; }
+	float IntraGameTick() { return m_GameIntraTick[m_pConfig->m_ClDummy]; }
+	float PredIntraGameTick() { return m_PredIntraTick[m_pConfig->m_ClDummy]; }
+	float GameTickTime() { return m_GameTickTime[m_pConfig->m_ClDummy]; }
+
 	inline int MenuTick() const { return m_CurMenuTick; }
-	inline int PredGameTick() const { return m_PredTick; }
-	inline float IntraGameTick() const { return m_GameIntraTick; }
-	inline float PredIntraGameTick() const { return m_PredIntraTick; }
-	inline float GameTickTime() const { return m_GameTickTime; }
 	inline int GameTickSpeed() const { return m_GameTickSpeed; }
 
 	// other time access
@@ -88,6 +95,19 @@ public:
 	virtual void AutoStatScreenshot_Start() = 0;
 	virtual void AutoScreenshot_Start() = 0;
 	virtual void ServerBrowserUpdate() = 0;
+
+	// dummy
+	enum
+	{
+		CLIENT_MAIN,
+		CLIENT_DUMMY,
+		NUM_CLIENTS,
+	};
+
+	virtual void DummyDisconnect(const char *pReason) = 0;
+	virtual void DummyConnect() = 0;
+	virtual bool DummyConnected() = 0;
+	virtual bool DummyConnecting() = 0;
 	
 	// gfx
 	virtual void SwitchWindowScreen(int Index) = 0;
@@ -106,7 +126,7 @@ public:
 	virtual int MapDownloadTotalsize() const = 0;
 
 	// input
-	virtual const int *GetInput(int Tick) const = 0;
+	virtual const int *GetInput(int Tick) = 0;
 
 	// remote console
 	virtual void RconAuth(const char *pUsername, const char *pPassword) = 0;
@@ -126,30 +146,30 @@ public:
 	};
 
 	// TODO: Refactor: should redo this a bit i think, too many virtual calls
-	virtual int SnapNumItems(int SnapID) const = 0;
-	virtual const void *SnapFindItem(int SnapID, int Type, int ID) const = 0;
-	virtual const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem) const = 0;
+	virtual int SnapNumItems(int SnapID) = 0;
+	virtual const void *SnapFindItem(int SnapID, int Type, int ID) = 0;
+	virtual const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem) = 0;
 	virtual void SnapInvalidateItem(int SnapID, int Index) = 0;
 	
 	virtual void *SnapNewItem(int Type, int ID, int Size) = 0;
 
 	virtual void SnapSetStaticsize(int ItemType, int Size) = 0;
 
-	virtual int SendMsg(CMsgPacker *pMsg, int Flags) = 0;
+	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int NetClient = 0/*CLIENT_MAIN*/) = 0;
 
 	template<class T>
-	int SendPackMsg(T *pMsg, int Flags)
+	int SendPackMsg(T *pMsg, int Flags, int NetClient = -1)
 	{
 		CMsgPacker Packer(pMsg->MsgID(), false);
 		if(pMsg->Pack(&Packer))
 			return -1;
-		return SendMsg(&Packer, Flags);
+		return SendMsg(&Packer, Flags, NetClient);
 	}
 
 	//
 	virtual const char *ErrorString() const = 0;
 	virtual const char *LatestVersion() const = 0;
-	virtual bool ConnectionProblems() const = 0;
+	virtual bool ConnectionProblems() = 0;
 
 	virtual bool SoundInitFailed() const = 0;
 };
@@ -171,11 +191,14 @@ public:
 	virtual void OnUpdate() = 0;
 	virtual void OnStateChange(int NewState, int OldState) = 0;
 	virtual void OnConnected() = 0;
-	virtual void OnMessage(int MsgID, CUnpacker *pUnpacker) = 0;
+	virtual void OnMessage(int MsgID, CUnpacker *pUnpacker, bool IsDummy = false) = 0;
 	virtual void OnPredict() = 0;
 	virtual void OnActivateEditor() = 0;
 
-	virtual int OnSnapInput(int *pData) = 0;
+	virtual int OnSnapInput(int *pData, bool Dummy, bool Force) = 0;
+	virtual void OnDummySwap() = 0;
+	virtual void OnDummyDisconnect() = 0;
+	virtual void SendDummyStartInfo() = 0;
 
 	virtual const char *GetItemName(int Type) const = 0;
 	virtual const char *Version() const = 0;

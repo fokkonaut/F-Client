@@ -24,11 +24,11 @@ void CNamePlates::RenderNameplate(
 
 	float FontSize = 18.0f + 20.0f * Config()->m_ClNameplatesSize / 100.0f;
 	// render name plate
-	if(m_pClient->m_LocalClientID != ClientID)
+	if(m_pClient->m_LocalClientID[Config()->m_ClDummy] != ClientID)
 	{
 		float a = 1;
 		if(Config()->m_ClNameplatesAlways == 0)
-			a = clamp(1-powf(distance(m_pClient->m_pControls->m_TargetPos, Position)/200.0f,16.0f), 0.0f, 1.0f);
+			a = clamp(1-powf(distance(m_pClient->m_pControls->m_TargetPos[Config()->m_ClDummy], Position)/200.0f,16.0f), 0.0f, 1.0f);
 
 
 		char aName[64];

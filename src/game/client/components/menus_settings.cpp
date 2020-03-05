@@ -2079,7 +2079,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 	MainView.HSplitBottom(32.0f, 0, &MainView);
 
 	// reset warning
-	bool NeedReconnect = (m_NeedRestartPlayer || (m_SkinModified && m_pClient->m_LastSkinChangeTime + 6.0f > Client()->LocalTime())) && this->Client()->State() == IClient::STATE_ONLINE;
+	bool NeedReconnect = (m_NeedRestartPlayer || (m_SkinModified && m_pClient->m_LastSkinChangeTime[(int)m_Dummy] + 6.0f > Client()->LocalTime())) && this->Client()->State() == IClient::STATE_ONLINE;
 	// backwards compatibility
 	CServerInfo CurrentServerInfo;
 	Client()->GetServerInfo(&CurrentServerInfo);
@@ -2106,7 +2106,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 			else if(m_SkinModified)
 			{
 				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), Localize("You have to wait %1.0f seconds to change identity."), m_pClient->m_LastSkinChangeTime+6.5f - Client()->LocalTime());
+				str_format(aBuf, sizeof(aBuf), Localize("You have to wait %1.0f seconds to change identity."), m_pClient->m_LastSkinChangeTime[(int)m_Dummy]+6.5f - Client()->LocalTime());
 				UI()->DoLabel(&RestartWarning, aBuf, RestartWarning.h*ms_FontmodHeight*0.75f, CUI::ALIGN_CENTER);
 			}
 		}

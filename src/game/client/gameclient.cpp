@@ -1426,7 +1426,7 @@ void CGameClient::OnNewSnapshot()
 	}
 
 	// setup local pointers
-	if(m_LocalClientID >= 0)
+	if(m_LocalClientID[Config()->m_ClDummy] >= 0)
 	{
 		CSnapState::CCharacterInfo *c = &m_Snap.m_aCharacters[m_LocalClientID[Config()->m_ClDummy]];
 		if(c->m_Active)

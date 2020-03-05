@@ -98,20 +98,20 @@ static void ConKeyInputNextPrevWeapon(IConsole::IResult *pResult, void *pUserDat
 void CControls::OnConsoleInit()
 {
 	// game commands
-	{ static CInputState s_State = {this, &m_InputDirectionLeft[CLIENT_MAIN], &m_InputDirectionLeft[CLIENT_DUMMY]}; Console()->Register("+left", "", CFGFLAG_CLIENT, ConKeyInputState, (void *)&s_State, "Move left"); }
-	{ static CInputState s_State = {this, &m_InputDirectionRight[CLIENT_MAIN], &m_InputDirectionRight[CLIENT_DUMMY]}; Console()->Register("+right", "", CFGFLAG_CLIENT, ConKeyInputState, (void *)&s_State, "Move right"); }
-	{ static CInputState s_State = {this, &m_InputData[CLIENT_MAIN].m_Jump, &m_InputData[CLIENT_DUMMY].m_Jump}; Console()->Register("+jump", "", CFGFLAG_CLIENT, ConKeyInputState, (void *)&s_State, "Jump"); }
-	{ static CInputState s_State = {this, &m_InputData[CLIENT_MAIN].m_Hook, &m_InputData[CLIENT_DUMMY].m_Hook}; Console()->Register("+hook", "", CFGFLAG_CLIENT, ConKeyInputState, (void *)&s_State, "Hook"); }
-	{ static CInputState s_State = {this, &m_InputData[CLIENT_MAIN].m_Fire, &m_InputData[CLIENT_DUMMY].m_Fire}; Console()->Register("+fire", "", CFGFLAG_CLIENT, ConKeyInputCounter, (void *)&s_State, "Fire"); }
+	{ static CInputState s_State = {this, {&m_InputDirectionLeft[CLIENT_MAIN], &m_InputDirectionLeft[CLIENT_DUMMY]}}; Console()->Register("+left", "", CFGFLAG_CLIENT, ConKeyInputState, (void*)&s_State, "Move left"); }
+	{ static CInputState s_State = {this, {&m_InputDirectionRight[CLIENT_MAIN], &m_InputDirectionRight[CLIENT_DUMMY]}}; Console()->Register("+right", "", CFGFLAG_CLIENT, ConKeyInputState, (void*)&s_State, "Move right"); }
+	{ static CInputState s_State = {this, {&m_InputData[CLIENT_MAIN].m_Jump, &m_InputData[CLIENT_DUMMY].m_Jump}}; Console()->Register("+jump", "", CFGFLAG_CLIENT, ConKeyInputState, (void*)&s_State, "Jump"); }
+	{ static CInputState s_State = {this, {&m_InputData[CLIENT_MAIN].m_Hook, &m_InputData[CLIENT_DUMMY].m_Hook}}; Console()->Register("+hook", "", CFGFLAG_CLIENT, ConKeyInputState, (void*)&s_State, "Hook"); }
+	{ static CInputState s_State = {this, {&m_InputData[CLIENT_MAIN].m_Fire, &m_InputData[CLIENT_DUMMY].m_Fire}}; Console()->Register("+fire", "", CFGFLAG_CLIENT, ConKeyInputCounter, (void*)&s_State, "Fire"); }
 
-	{ static CInputSet s_Set = {this, &m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon, 1}; Console()->Register("+weapon1", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to hammer"); }
-	{ static CInputSet s_Set = {this, &m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon, 2}; Console()->Register("+weapon2", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to gun"); }
-	{ static CInputSet s_Set = {this, &m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon, 3}; Console()->Register("+weapon3", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to shotgun"); }
-	{ static CInputSet s_Set = {this, &m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon, 4}; Console()->Register("+weapon4", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to grenade"); }
-	{ static CInputSet s_Set = {this, &m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon, 5}; Console()->Register("+weapon5", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to laser"); }
+	{ static CInputSet s_Set = {this, {&m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon}, 1}; Console()->Register("+weapon1", "", CFGFLAG_CLIENT, ConKeyInputSet, (void*)&s_Set, "Switch to hammer"); }
+	{ static CInputSet s_Set = {this, {&m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon}, 2}; Console()->Register("+weapon2", "", CFGFLAG_CLIENT, ConKeyInputSet, (void*)&s_Set, "Switch to gun"); }
+	{ static CInputSet s_Set = {this, {&m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon}, 3}; Console()->Register("+weapon3", "", CFGFLAG_CLIENT, ConKeyInputSet, (void*)&s_Set, "Switch to shotgun"); }
+	{ static CInputSet s_Set = {this, {&m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon}, 4}; Console()->Register("+weapon4", "", CFGFLAG_CLIENT, ConKeyInputSet, (void*)&s_Set, "Switch to grenade"); }
+	{ static CInputSet s_Set = {this, {&m_InputData[CLIENT_MAIN].m_WantedWeapon, &m_InputData[CLIENT_DUMMY].m_WantedWeapon}, 5}; Console()->Register("+weapon5", "", CFGFLAG_CLIENT, ConKeyInputSet, (void*)&s_Set, "Switch to laser"); }
 
-	{ static CInputSet s_Set = {this, &m_InputData[CLIENT_MAIN].m_NextWeapon, &m_InputData[CLIENT_DUMMY].m_NextWeapon, 0}; Console()->Register("+nextweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to next weapon"); }
-	{ static CInputSet s_Set = {this, &m_InputData[CLIENT_MAIN].m_PrevWeapon, &m_InputData[CLIENT_DUMMY].m_PrevWeapon, 0}; Console()->Register("+prevweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void *)&s_Set, "Switch to previous weapon"); }
+	{ static CInputSet s_Set = {this, {&m_InputData[CLIENT_MAIN].m_NextWeapon, &m_InputData[CLIENT_DUMMY].m_NextWeapon}, 0}; Console()->Register("+nextweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void*)&s_Set, "Switch to next weapon"); }
+	{ static CInputSet s_Set = {this, {&m_InputData[CLIENT_MAIN].m_PrevWeapon, &m_InputData[CLIENT_DUMMY].m_PrevWeapon}, 0}; Console()->Register("+prevweapon", "", CFGFLAG_CLIENT, ConKeyInputNextPrevWeapon, (void*)&s_Set, "Switch to previous weapon"); }
 }
 
 void CControls::OnMessage(int Msg, void *pRawMsg)

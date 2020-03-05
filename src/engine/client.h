@@ -76,12 +76,12 @@ public:
 	void InitConfig(CConfig *pConfig) { m_pConfig = pConfig; }
 
 	// tick time access
-	int PrevGameTick() { return m_PrevGameTick[m_pConfig->m_ClDummy]; }
-	int GameTick() { return m_CurGameTick[m_pConfig->m_ClDummy]; }
-	int PredGameTick() { return m_PredTick[m_pConfig->m_ClDummy]; }
-	float IntraGameTick() { return m_GameIntraTick[m_pConfig->m_ClDummy]; }
-	float PredIntraGameTick() { return m_PredIntraTick[m_pConfig->m_ClDummy]; }
-	float GameTickTime() { return m_GameTickTime[m_pConfig->m_ClDummy]; }
+	inline int PrevGameTick() { return m_PrevGameTick[m_pConfig->m_ClDummy]; }
+	inline int GameTick() { return m_CurGameTick[m_pConfig->m_ClDummy]; }
+	inline int PredGameTick() { return m_PredTick[m_pConfig->m_ClDummy]; }
+	inline float IntraGameTick() { return m_GameIntraTick[m_pConfig->m_ClDummy]; }
+	inline float PredIntraGameTick() { return m_PredIntraTick[m_pConfig->m_ClDummy]; }
+	inline float GameTickTime() { return m_GameTickTime[m_pConfig->m_ClDummy]; }
 
 	inline int MenuTick() const { return m_CurMenuTick; }
 	inline int GameTickSpeed() const { return m_GameTickSpeed; }

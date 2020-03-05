@@ -261,7 +261,9 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_AckGameTick[CLIENT_DUMMY] = -1;
 	m_CurrentRecvTick[CLIENT_MAIN] = 0;
 	m_CurrentRecvTick[CLIENT_DUMMY] = 0;
-	m_RconAuthed = 0;
+	m_RconAuthed[CLIENT_MAIN] = 0;
+	m_RconAuthed[CLIENT_DUMMY] = 0;
+	m_RconPassword[0] = 0;
 
 	// version-checking
 	m_aVersionStr[0] = '0';
@@ -375,6 +377,9 @@ void CClient::RconAuth(const char *pName, const char *pPassword)
 {
 	if(RconAuthed())
 		return;
+
+	if(pPassword != m_RconPassword)
+		str_copy(m_RconPassword, pPassword, sizeof(m_RconPassword));
 
 	CMsgPacker Msg(NETMSG_RCON_AUTH, true);
 	Msg.AddString(pPassword, 32);
@@ -570,7 +575,7 @@ void CClient::Connect(const char *pAddress)
 		net_host_lookup("localhost", &m_ServerAddress, m_NetClient[CLIENT_MAIN].NetType());
 	}
 
-	m_RconAuthed = 0;
+	m_RconAuthed[CLIENT_MAIN] = 0;
 	m_UseTempRconCommands = 0;
 	if(m_ServerAddress.port == 0)
 		m_ServerAddress.port = Port;
@@ -603,7 +608,7 @@ void CClient::DisconnectWithReason(const char *pReason)
 	}
 
 	//
-	m_RconAuthed = 0;
+	m_RconAuthed[CLIENT_MAIN] = 0;
 	m_UseTempRconCommands = 0;
 	m_pConsole->DeregisterTempAll();
 	m_NetClient[CLIENT_MAIN].Disconnect(pReason);
@@ -663,6 +668,8 @@ void CClient::DummyConnect()
 
 	m_LastDummyConnectTime = GameTick();
 
+	m_RconAuthed[CLIENT_DUMMY] = 0;
+
 	m_DummySendConnInfo = true;
 
 	Config()->m_ClDummyCopyMoves = 0;
@@ -679,6 +686,7 @@ void CClient::DummyDisconnect(const char *pReason)
 
 	m_NetClient[CLIENT_DUMMY].Disconnect(pReason);
 	Config()->m_ClDummy = 0;
+	m_RconAuthed[CLIENT_DUMMY] = 0;
 	m_DummyConnected = false;
 	GameClient()->OnDummyDisconnect();
 }
@@ -1368,12 +1376,12 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_AUTH_ON)
 		{
-			m_RconAuthed = 1;
+			m_RconAuthed[Config()->m_ClDummy] = 1;
 			m_UseTempRconCommands = 1;
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_AUTH_OFF)
 		{
-			m_RconAuthed = 0;
+			m_RconAuthed[Config()->m_ClDummy] = 0;
 			if(m_UseTempRconCommands)
 				m_pConsole->DeregisterTempAll();
 			m_UseTempRconCommands = 0;
@@ -1634,8 +1642,8 @@ void CClient::ProcessServerPacketDummy(CNetChunk *pPacket)
 		{
 			m_DummyConnected = true;
 			Config()->m_ClDummy = 1;
-			if (m_RconAuthed)
-				RconAuth("", m_aServerPassword);
+			if (m_RconAuthed[CLIENT_MAIN])
+				RconAuth("", m_RconPassword);
 		}
 		else if(Msg == NETMSG_SNAP || Msg == NETMSG_SNAPSINGLE || Msg == NETMSG_SNAPEMPTY)
 		{

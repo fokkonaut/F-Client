@@ -169,11 +169,12 @@ void CEmoticon::OnRender()
 	Client()->GetServerInfo(&Info);
 	if(IsRace(&Info) && Config()->m_ClEyeWheel)
 	{
-		Graphics()->TextureClear();
+		// broken alpha on this one...
+		/*Graphics()->TextureClear();
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(1.0,1.0,1.0,0.3f);
 		DrawCircle(Screen.w/2, Screen.h/2, 100.0f, 64);
-		Graphics()->QuadsEnd();
+		Graphics()->QuadsEnd();*/
 
 		CTeeRenderInfo *pTeeInfo = &m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_RenderInfo;
 

@@ -1921,7 +1921,7 @@ void CGameClient::SendSkinChange()
 		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[p];
 	}
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NORECORD|MSGFLAG_FLUSH);
-	m_LastSkinChangeTime[0] = Client()->LocalTime();
+	m_LastSkinChangeTime[CLIENT_MAIN] = Client()->LocalTime();
 }
 
 void CGameClient::SendSkinChangeDummy()
@@ -1934,7 +1934,7 @@ void CGameClient::SendSkinChangeDummy()
 		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariablesDummy[p];
 	}
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NORECORD|MSGFLAG_FLUSH);
-	m_LastSkinChangeTime[1] = Client()->LocalTime();
+	m_LastSkinChangeTime[CLIENT_DUMMY] = Client()->LocalTime();
 }
 
 int CGameClient::GetClientID(const char *pName)

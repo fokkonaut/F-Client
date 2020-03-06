@@ -72,7 +72,8 @@ CMenus::CMenus()
 	m_SeekBarActivatedTime = 0;
 	m_SeekBarActive = true;
 	m_UseMouseButtons = true;
-	m_SkinModified = false;
+	m_SkinModified[CLIENT_MAIN] = false;
+	m_SkinModified[CLIENT_DUMMY] = false;
 	m_KeyReaderWasActive = false;
 	m_KeyReaderIsActive = false;
 
@@ -99,8 +100,7 @@ CMenus::CMenus()
 
 	m_ActiveListBox = ACTLB_NONE;
 
-	m_SkinModifiedDummy = false;
-	m_Dummy = false;
+	m_Dummy = 0;
 }
 
 float CMenus::ButtonFade(CButtonContainer *pBC, float Seconds, int Checked)
@@ -2269,15 +2269,15 @@ void CMenus::SetActive(bool Active)
 			m_pClient->OnRelease();
 			if(Client()->State() == IClient::STATE_ONLINE)
 			{
-				if (m_SkinModified)
+				if (m_SkinModified[CLIENT_MAIN])
 				{
-					m_SkinModified = false;
+					m_SkinModified[CLIENT_MAIN] = false;
 					m_pClient->SendSkinChange();
 				}
 
-				if (m_SkinModifiedDummy)
+				if (m_SkinModified[CLIENT_DUMMY])
 				{
-					m_SkinModifiedDummy = false;
+					m_SkinModified[CLIENT_DUMMY] = false;
 					m_pClient->SendSkinChangeDummy();
 				}
 			}
@@ -2285,7 +2285,8 @@ void CMenus::SetActive(bool Active)
 	}
 	else
 	{
-		m_SkinModified = false;
+		m_SkinModified[CLIENT_MAIN] = false;
+		m_SkinModified[CLIENT_DUMMY] = false;
 		if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		{
 			m_pClient->OnRelease();

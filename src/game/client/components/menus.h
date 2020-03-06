@@ -343,10 +343,9 @@ private:
 	bool m_PrevCursorActive;
 	bool m_PopupActive;
 	int m_ActiveListBox;
-	bool m_SkinModified;
+	bool m_SkinModified[NUM_CLIENTS];
 	bool m_KeyReaderWasActive;
 	bool m_KeyReaderIsActive;
-	bool m_SkinModifiedDummy;
 
 	// images
 	struct CMenuImage
@@ -806,6 +805,6 @@ public:
 	virtual bool OnInput(IInput::CEvent Event);
 	virtual bool OnMouseMove(float x, float y);
 
-	bool m_Dummy;
+	int m_Dummy;
 };
 #endif

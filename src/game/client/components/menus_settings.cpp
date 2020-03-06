@@ -95,7 +95,7 @@ void CMenus::RenderHSLPicker(CUIRect MainView)
 	if(DoButton_CheckBox(&s_CustomColors, Localize("Custom colors"), *CSkins::ms_apUCCVariables[m_TeePartSelected], &Button))
 	{
 		*CSkins::ms_apUCCVariables[m_TeePartSelected] ^= 1;
-		m_SkinModified = true;
+		m_SkinModified[m_Dummy] = true;
 	}
 
 	if(!(*CSkins::ms_apUCCVariables[m_TeePartSelected]))
@@ -330,7 +330,7 @@ void CMenus::RenderHSLPicker(CUIRect MainView)
 		}
 		if(UseAlpha)
 			Config()->m_PlayerColorMarking = (Alp << 24) + NewVal;
-		m_SkinModified = true;
+		m_SkinModified[m_Dummy] = true;
 	}
 }
 
@@ -405,7 +405,7 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 			*CSkins::ms_apUCCVariables[p] = m_pSelectedSkin->m_aUseCustomColors[p];
 			*CSkins::ms_apColorVariables[p] = m_pSelectedSkin->m_aPartColors[p];
 		}
-		m_SkinModified = true;
+		m_SkinModified[m_Dummy] = true;
 	}
 	OldSelected = NewSelected;
 }
@@ -489,7 +489,7 @@ void CMenus::RenderSkinPartSelection(CUIRect MainView)
 		const CSkins::CSkinPart *s = s_paList[m_TeePartSelected][NewSelected];
 		mem_copy(CSkins::ms_apSkinVariables[m_TeePartSelected], s->m_aName, 24);
 		Config()->m_PlayerSkin[0] = 0;
-		m_SkinModified = true;
+		m_SkinModified[m_Dummy] = true;
 	}
 	OldSelected = NewSelected;
 }
@@ -1083,15 +1083,20 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 void CMenus::RenderSettingsPlayer(CUIRect MainView)
 {
-	static int s_PlayerCountry = Config()->m_PlayerCountry;
-	static char s_aPlayerName[256] = {0};
-	static char s_aPlayerClan[256] = {0};
-	if(!s_aPlayerName[0])
-		str_copy(s_aPlayerName, Config()->m_PlayerName, sizeof(s_aPlayerName));
-	if(!s_aPlayerClan[0])
-		str_copy(s_aPlayerClan, Config()->m_PlayerClan, sizeof(s_aPlayerClan));
+	static int s_PlayerCountry[2] = { Config()->m_PlayerCountry, Config()->m_DummyCountry };
+	static char s_aPlayerName[2][256] = { {0}, {0} };
+	static char s_aPlayerClan[2][256] = { {0}, {0} };
+	if(!s_aPlayerName[CLIENT_MAIN][0])
+		str_copy(s_aPlayerName[CLIENT_MAIN], Config()->m_PlayerName, sizeof(s_aPlayerName[CLIENT_MAIN]));
+	if(!s_aPlayerClan[CLIENT_MAIN][0])
+		str_copy(s_aPlayerClan[CLIENT_MAIN], Config()->m_PlayerClan, sizeof(s_aPlayerClan[CLIENT_MAIN]));
+	if(!s_aPlayerName[CLIENT_DUMMY][0])
+		str_copy(s_aPlayerName[CLIENT_DUMMY], Config()->m_DummyName, sizeof(s_aPlayerName[CLIENT_MAIN]));
+	if(!s_aPlayerClan[CLIENT_DUMMY][0])
+		str_copy(s_aPlayerClan[CLIENT_DUMMY], Config()->m_DummyClan, sizeof(s_aPlayerClan[CLIENT_MAIN]));
+	int *Country = m_Dummy ? &Config()->m_DummyCountry : &Config()->m_PlayerCountry;
 
-	CUIRect Button, Left, Right, TopView, Label, Background;
+	CUIRect Button, Left, Right, TopView, Label, Background, Dummy;
 
 	// render game menu backgrounds
 	float ButtonHeight = 20.0f;
@@ -1105,13 +1110,19 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 		MainView.HSplitTop(20.0f, 0, &Background);
 	RenderTools()->DrawUIRect(&Background, vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), Client()->State() == IClient::STATE_OFFLINE ? CUI::CORNER_ALL : CUI::CORNER_B, 5.0f);
 	MainView.HSplitTop(20.0f, 0, &MainView);
-	MainView.HSplitTop(BackgroundHeight, &TopView, &MainView);
+	MainView.HSplitTop(BackgroundHeight+ButtonHeight, &TopView, &MainView);
 	RenderTools()->DrawUIRect(&TopView, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
 	// render game menu
 	TopView.HSplitTop(ButtonHeight, &Label, &TopView);
 	Label.y += 2.0f;
 	UI()->DoLabel(&Label, Localize("Personal"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+
+	TopView.HSplitTop(ButtonHeight, &Dummy, &TopView);
+	if(DoButton_CheckBox(&m_Dummy, Localize("Dummy settings"), m_Dummy, &Dummy))
+	{
+		m_Dummy ^= 1;
+	}
 
 	// split menu
 	TopView.HSplitTop(Spacing, 0, &TopView);
@@ -1120,15 +1131,15 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 	// left menu
 	Left.HSplitTop(ButtonHeight, &Button, &Left);
 	static float s_OffsetName = 0.0f;
-	DoEditBoxOption(Config()->m_PlayerName, Config()->m_PlayerName, sizeof(Config()->m_PlayerName), &Button, Localize("Name"),  100.0f, &s_OffsetName);
+	DoEditBoxOption(Config()->m_PlayerName, s_aPlayerName[m_Dummy], sizeof(Config()->m_PlayerName), &Button, Localize("Name"), 100.0f, &s_OffsetName);
 
 	// right menu
 	Right.HSplitTop(ButtonHeight, &Button, &Right);
 	static float s_OffsetClan = 0.0f;
-	DoEditBoxOption(Config()->m_PlayerClan, Config()->m_PlayerClan, sizeof(Config()->m_PlayerClan), &Button, Localize("Clan"),  100.0f, &s_OffsetClan);
-
+	DoEditBoxOption(Config()->m_DummyClan, s_aPlayerClan[m_Dummy], sizeof(Config()->m_DummyClan), &Button, Localize("Clan"),  100.0f, &s_OffsetClan);
+	
 	// country flag selector
-	MainView.HSplitTop(10.0f, 0, &MainView);
+	MainView.HSplitTop(20.0f, 0, &MainView);
 	static CListBox s_ListBox;
 	int OldSelected = -1;
 	s_ListBox.DoHeader(&MainView, Localize("Country"), GetListHeaderHeight());
@@ -1139,7 +1150,7 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 		const CCountryFlags::CCountryFlag *pEntry = m_pClient->m_pCountryFlags->GetByIndex(i);
 		if(pEntry->m_Blocked)
 			continue;
-		if(pEntry->m_CountryCode == Config()->m_PlayerCountry)
+		if(pEntry->m_CountryCode == *Country)
 			OldSelected = i;
 
 		CListboxItem Item = s_ListBox.DoNextItem(pEntry, OldSelected == i);
@@ -1172,15 +1183,20 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 
 	const int NewSelected = s_ListBox.DoEnd();
 	if(OldSelected != NewSelected)
-		Config()->m_PlayerCountry = m_pClient->m_pCountryFlags->GetByIndex(NewSelected, true)->m_CountryCode;
+		*Country = m_pClient->m_pCountryFlags->GetByIndex(NewSelected, true)->m_CountryCode;
 
 
 	// check if the new settings require a server reload
 	m_NeedRestartPlayer = !(
-		s_PlayerCountry == Config()->m_PlayerCountry &&
-		!str_comp(s_aPlayerClan, Config()->m_PlayerClan) &&
-		!str_comp(s_aPlayerName, Config()->m_PlayerName)
+		s_PlayerCountry[CLIENT_MAIN] == Config()->m_PlayerCountry &&
+		!str_comp(s_aPlayerClan[CLIENT_MAIN], Config()->m_PlayerClan) &&
+		!str_comp(s_aPlayerName[CLIENT_MAIN], Config()->m_PlayerName)
 		);
+	m_NeedRestartPlayer = m_NeedRestartPlayer || (Client()->DummyConnected() && !(
+		s_PlayerCountry[CLIENT_DUMMY] == Config()->m_DummyCountry &&
+		!str_comp(s_aPlayerClan[CLIENT_DUMMY], Config()->m_DummyClan) &&
+		!str_comp(s_aPlayerName[CLIENT_DUMMY], Config()->m_DummyName)
+		));
 }
 
 void CMenus::RenderSettingsTeeBasic(CUIRect MainView)
@@ -2079,7 +2095,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 	MainView.HSplitBottom(32.0f, 0, &MainView);
 
 	// reset warning
-	bool NeedReconnect = (m_NeedRestartPlayer || (m_SkinModified && m_pClient->m_LastSkinChangeTime[(int)m_Dummy] + 6.0f > Client()->LocalTime())) && this->Client()->State() == IClient::STATE_ONLINE;
+	bool NeedReconnect = (m_NeedRestartPlayer || (m_SkinModified && m_pClient->m_LastSkinChangeTime[m_Dummy] + 6.0f > Client()->LocalTime())) && this->Client()->State() == IClient::STATE_ONLINE;
 	// backwards compatibility
 	CServerInfo CurrentServerInfo;
 	Client()->GetServerInfo(&CurrentServerInfo);
@@ -2106,7 +2122,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 			else if(m_SkinModified)
 			{
 				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), Localize("You have to wait %1.0f seconds to change identity."), m_pClient->m_LastSkinChangeTime[(int)m_Dummy]+6.5f - Client()->LocalTime());
+				str_format(aBuf, sizeof(aBuf), Localize("You have to wait %1.0f seconds to change identity."), m_pClient->m_LastSkinChangeTime[m_Dummy]+6.5f - Client()->LocalTime());
 				UI()->DoLabel(&RestartWarning, aBuf, RestartWarning.h*ms_FontmodHeight*0.75f, CUI::ALIGN_CENTER);
 			}
 		}

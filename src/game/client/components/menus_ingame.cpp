@@ -177,6 +177,7 @@ void CMenus::RenderGame(CUIRect MainView)
 				str_copy(aBuf, Localize(Team != TEAM_RED ? "Join" : "Joined"), sizeof(aBuf)); //Localize("Join");Localize("Joined");
 
 			ButtonRow.VSplitLeft(ButtonWidth, &Button, &ButtonRow);
+			ButtonRow.VSplitLeft(Spacing, 0, &ButtonRow);
 			static CButtonContainer s_JoinButton;
 			if(DoButton_Menu(&s_JoinButton, aBuf, Team == TEAM_RED, &Button) && Team != TEAM_RED && !(Info.m_aNotification[0]))
 			{
@@ -191,21 +192,9 @@ void CMenus::RenderGame(CUIRect MainView)
 		if(DoButton_Menu(&s_DisconnectButton, Localize("Disconnect"), 0, &Button))
 			Client()->Disconnect();
 
-		// Record button
-		ButtonRow.VSplitRight(50.0f, &ButtonRow, 0);
-		ButtonRow.VSplitRight(ButtonWidth, &ButtonRow, &Button);
-		static CButtonContainer s_DemoButton;
-		bool Recording = DemoRecorder()->IsRecording();
-		if(DoButton_Menu(&s_DemoButton, Localize(Recording ? "Stop record" : "Record"), Recording, &Button))	// Localize("Stop record");Localize("Record");
-		{
-			if(!Recording)
-				Client()->DemoRecorder_Start("demo", true);
-			else
-				Client()->DemoRecorder_Stop();
-		}
-
-		ButtonRow.VSplitLeft(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS ? 3.0f : 10.0f, 0, &ButtonRow);
-		ButtonRow.VSplitLeft(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS ? ButtonWidth : ButtonWidth + 20.0f, &Button, &ButtonRow);
+		// dummy button
+		ButtonRow.VSplitLeft(ButtonWidth, &Button, &ButtonRow);
+		ButtonRow.VSplitLeft(Spacing, 0, &ButtonRow);
 
 		static CButtonContainer s_DummyButton;
 		if(DummyConnecting)
@@ -222,6 +211,27 @@ void CMenus::RenderGame(CUIRect MainView)
 			{
 				Client()->DummyDisconnect(0);
 			}
+		}
+
+		// Record button
+		if (m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
+		{
+			ButtonRow.VSplitLeft(ButtonWidth, &Button, &ButtonRow);
+			ButtonRow.VSplitLeft(Spacing, 0, &ButtonRow);
+		}
+		else
+		{
+			ButtonRow.VSplitRight(50.0f, &ButtonRow, 0);
+			ButtonRow.VSplitRight(ButtonWidth, &ButtonRow, &Button);
+		}
+		static CButtonContainer s_DemoButton;
+		bool Recording = DemoRecorder()->IsRecording();
+		if(DoButton_Menu(&s_DemoButton, Localize(Recording ? "Stop record" : "Record"), Recording, &Button))	// Localize("Stop record");Localize("Record");
+		{
+			if(!Recording)
+				Client()->DemoRecorder_Start("demo", true);
+			else
+				Client()->DemoRecorder_Stop();
 		}
 	}
 }

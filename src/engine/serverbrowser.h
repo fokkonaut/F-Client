@@ -70,6 +70,19 @@ public:
 	CClient m_aClients[MAX_CLIENTS];
 };
 
+bool IsVanilla(const CServerInfo *pInfo);
+bool IsCatch(const CServerInfo *pInfo);
+bool IsInsta(const CServerInfo *pInfo);
+bool IsFNG(const CServerInfo *pInfo);
+bool IsRace(const CServerInfo *pInfo);
+bool IsFastCap(const CServerInfo *pInfo);
+bool IsDDRace(const CServerInfo *pInfo);
+bool IsDDNet(const CServerInfo *pInfo);
+bool IsBlockWorlds(const CServerInfo *pInfo);
+
+bool Is64Player(const CServerInfo *pInfo);
+bool IsPlus(const CServerInfo *pInfo);
+
 class CServerFilterInfo
 {
 public:

@@ -1858,6 +1858,9 @@ void CGameClient::SendSwitchTeam(int Team)
 	CNetMsg_Cl_SetTeam Msg;
 	Msg.m_Team = Team;
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+
+	if(Team != TEAM_SPECTATORS)
+		m_pCamera->OnReset();
 }
 
 void CGameClient::SendStartInfo()

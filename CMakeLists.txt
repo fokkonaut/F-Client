@@ -1337,6 +1337,7 @@ set_src(ENGINE_SHARED GLOB src/engine/shared
   protocol.h
   ringbuffer.cpp
   ringbuffer.h
+  serverbrowser.cpp
   snapshot.cpp
   snapshot.h
   storage.cpp

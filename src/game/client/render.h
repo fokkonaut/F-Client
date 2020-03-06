@@ -48,7 +48,6 @@ class CTextCursor;
 
 class CRenderTools
 {
-	void DrawRoundRectExt(float x, float y, float w, float h, float r, int Corners);
 	void DrawRoundRectExt4(float x, float y, float w, float h, vec4 ColorTopLeft, vec4 ColorTopRight, vec4 ColorBottomLeft, vec4 ColorBottomRight, float r, int Corners);
 
 
@@ -72,6 +71,9 @@ public:
 
 	void DrawUIRect(const CUIRect *pRect, vec4 Color, int Corners, float Rounding);
 	void DrawUIRect4(const CUIRect *pRect, vec4 ColorTopLeft, vec4 ColorTopRight, vec4 ColorBottomLeft, vec4 ColorBottomRight, int Corners, float Rounding);
+
+	// made public for 64p scoreboard
+	void DrawRoundRectExt(float x, float y, float w, float h, float r, int Corners);
 
 	// object render methods (gc_render_obj.cpp)
 	void RenderTee(class CAnimState *pAnim, const CTeeRenderInfo *pInfo, int Emote, vec2 Dir, vec2 Pos);

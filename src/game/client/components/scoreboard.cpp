@@ -456,7 +456,6 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 	int RenderScoreIDs[MAX_CLIENTS];
 	int NumRenderScoreIDs = 0;
-	int HoleSizes[2];
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 		RenderScoreIDs[i] = -1;
 
@@ -639,20 +638,6 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 			Cursor.m_LineWidth = ScoreLength;
 			TextRender()->TextEx(&Cursor, aBuf, -1);
 
-			y += LineHeight;
-		}
-		else
-		{
-			int HoleSize = HoleSizes[-1-RenderScoreIDs[i]];
-
-			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-			TextRender()->SetCursor(&Cursor, NameOffset+TeeLength, y+Spacing, FontSize, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
-			Cursor.m_LineWidth = NameLength;
-			char aBuf[64], aBuf2[64];
-			str_format(aBuf, sizeof(aBuf), Localize("%d other players"), HoleSize);
-			str_format(aBuf2, sizeof(aBuf2), "\xe2\x8b\x85\xe2\x8b\x85\xe2\x8b\x85 %s", aBuf);
-			TextRender()->TextEx(&Cursor, aBuf2, -1);
 			y += LineHeight;
 		}
 

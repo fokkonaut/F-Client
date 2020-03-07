@@ -716,7 +716,7 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 	{
 		if(Now-m_aLastSoundPlayed[CHAT_HIGHLIGHT] >= time_freq()*3/10)
 		{
-			m_pClient->m_pSounds->Play(CSounds::CHN_GUI, SOUND_CHAT_HIGHLIGHT, 0);
+			m_pClient->m_pSounds->Play(CSounds::CHN_GUI, Config()->m_ClOldChatSounds ? SOUND_CHAT_CLIENT : SOUND_CHAT_HIGHLIGHT, 0);
 			m_aLastSoundPlayed[CHAT_HIGHLIGHT] = Now;
 		}
 	}
@@ -724,7 +724,7 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 	{
 		if(Now-m_aLastSoundPlayed[CHAT_CLIENT] >= time_freq()*3/10)
 		{
-			m_pClient->m_pSounds->Play(CSounds::CHN_GUI, SOUND_CHAT_CLIENT, 0);
+			m_pClient->m_pSounds->Play(CSounds::CHN_GUI, Config()->m_ClOldChatSounds ? SOUND_CHAT_HIGHLIGHT : SOUND_CHAT_CLIENT, 0);
 			m_aLastSoundPlayed[CHAT_CLIENT] = Now;
 		}
 	}

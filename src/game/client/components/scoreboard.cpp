@@ -156,17 +156,26 @@ float CScoreboard::RenderSpectators(float x, float y, float w)
 
 		if(Multiple)
 			TextRender()->TextEx(&Cursor, ", ", -1);
+
 		if(Config()->m_ClShowUserId && Cursor.m_LineCount <= Cursor.m_MaxLines)
 		{
 			RenderTools()->DrawClientID(TextRender(), &Cursor, i);
 		}
+
 		if(m_pClient->m_aClients[i].m_aClan[0])
 		{
 			str_format(aBuf, sizeof(aBuf), "%s ", m_pClient->m_aClients[i].m_aClan);
 			TextRender()->TextColor(1.0f, 1.0f, (pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING) ? 0.0f : 1.0f, 0.7f);
 			TextRender()->TextEx(&Cursor, aBuf, -1);
 		}
-		TextRender()->TextColor(1.0f, 1.0f, (pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING) ? 0.0f :	 1.0f, 1.0f);
+
+		if(pInfo->m_PlayerFlags&PLAYERFLAG_ADMIN)
+		{
+			vec4 Color = m_pClient->m_pSkins->GetColorV4(Config()->m_ClAuthedPlayerColor, false);
+			TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
+		}
+		else
+			TextRender()->TextColor(1.0f, 1.0f, (pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING) ? 0.0f :	 1.0f, 1.0f);
 		TextRender()->TextEx(&Cursor, m_pClient->m_aClients[i].m_aName, -1);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 		Multiple = true;
@@ -582,6 +591,11 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 			// name
 			TextRender()->SetCursor(&Cursor, NameOffset+TeeLength, y+Spacing, FontSize, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
+			if(pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_ADMIN)
+			{
+				vec4 Color = m_pClient->m_pSkins->GetColorV4(Config()->m_ClAuthedPlayerColor, false);
+				TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
+			}
 			Cursor.m_LineWidth = NameLength-TeeLength;
 			TextRender()->TextEx(&Cursor, m_pClient->m_aClients[pInfo->m_ClientID].m_aName, str_length(m_pClient->m_aClients[pInfo->m_ClientID].m_aName));
 			// ready / watching
@@ -599,8 +613,18 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 			// clan
 			tw = TextRender()->TextWidth(0, FontSize, m_pClient->m_aClients[pInfo->m_ClientID].m_aClan, -1, -1.0f);
 			TextRender()->SetCursor(&Cursor, ClanOffset+ClanLength/2-tw/2, y+Spacing, FontSize, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
+			if (str_comp(m_pClient->m_aClients[pInfo->m_ClientID].m_aClan,
+				m_pClient->m_aClients[GameClient()->m_LocalClientID[Config()->m_ClDummy]].m_aClan) == 0)
+			{
+				vec4 Color = m_pClient->m_pSkins->GetColorV4(Config()->m_ClSameClanColor, false);
+				TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
+			}
+			else
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 			Cursor.m_LineWidth = ClanLength;
 			TextRender()->TextEx(&Cursor, m_pClient->m_aClients[pInfo->m_ClientID].m_aClan, -1);
+
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 			if(!Race)
 			{

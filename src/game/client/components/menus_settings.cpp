@@ -1088,9 +1088,9 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 void CMenus::RenderSettingsPlayer(CUIRect MainView)
 {
-	static int s_PlayerCountry[2] = { Config()->m_PlayerCountry, Config()->m_DummyCountry };
-	static char s_aPlayerName[2][256] = { {0}, {0} };
-	static char s_aPlayerClan[2][256] = { {0}, {0} };
+	static int s_PlayerCountry[NUM_CLIENTS] = { Config()->m_PlayerCountry, Config()->m_DummyCountry };
+	static char s_aPlayerName[NUM_CLIENTS][256] = { {0}, {0} };
+	static char s_aPlayerClan[NUM_CLIENTS][256] = { {0}, {0} };
 	if(!s_aPlayerName[CLIENT_MAIN][0])
 		str_copy(s_aPlayerName[CLIENT_MAIN], Config()->m_PlayerName, sizeof(s_aPlayerName[CLIENT_MAIN]));
 	if(!s_aPlayerClan[CLIENT_MAIN][0])
@@ -1136,12 +1136,12 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 	// left menu
 	Left.HSplitTop(ButtonHeight, &Button, &Left);
 	static float s_OffsetName = 0.0f;
-	DoEditBoxOption(Config()->m_PlayerName, s_aPlayerName[m_Dummy], sizeof(Config()->m_PlayerName), &Button, Localize("Name"), 100.0f, &s_OffsetName);
+	DoEditBoxOption(Config()->m_PlayerName, m_Dummy ? Config()->m_DummyName : Config()->m_PlayerName, sizeof(Config()->m_PlayerName), &Button, Localize("Name"), 100.0f, &s_OffsetName);
 
 	// right menu
 	Right.HSplitTop(ButtonHeight, &Button, &Right);
 	static float s_OffsetClan = 0.0f;
-	DoEditBoxOption(Config()->m_DummyClan, s_aPlayerClan[m_Dummy], sizeof(Config()->m_DummyClan), &Button, Localize("Clan"),  100.0f, &s_OffsetClan);
+	DoEditBoxOption(Config()->m_PlayerClan, m_Dummy ? Config()->m_DummyClan : Config()->m_PlayerClan, sizeof(Config()->m_PlayerClan), &Button, Localize("Clan"),  100.0f, &s_OffsetClan);
 
 	// country flag selector
 	MainView.HSplitTop(20.0f, 0, &MainView);
@@ -1256,7 +1256,7 @@ void CMenus::RenderSettingsTeeCustom(CUIRect MainView)
 void CMenus::RenderSettingsTee(CUIRect MainView)
 {
 	static bool s_CustomSkinMenu = false;
-	static char s_aPlayerSkin[2][256] = { {0}, {0} };
+	static char s_aPlayerSkin[NUM_CLIENTS][256] = { {0}, {0} };
 	if(!s_aPlayerSkin[CLIENT_MAIN][0])
 		str_copy(s_aPlayerSkin[CLIENT_MAIN], Config()->m_PlayerSkin, sizeof(s_aPlayerSkin[CLIENT_MAIN]));
 	if(!s_aPlayerSkin[CLIENT_DUMMY][0])
@@ -2097,6 +2097,76 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 	}
 }
 
+void CMenus::RenderSettingsFClient(CUIRect MainView)
+{
+	CUIRect Label, Button, Game, BottomView, Background;
+
+	// cut view
+	MainView.HSplitBottom(80.0f, &MainView, &BottomView);
+	BottomView.HSplitTop(20.f, 0, &BottomView);
+
+	// render game menu backgrounds
+	int NumOptions = 2;
+	float ButtonHeight = 20.0f;
+	float Spacing = 2.0f;
+	float BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
+
+	if(this->Client()->State() == IClient::STATE_ONLINE)
+		Background = MainView;
+	else
+		MainView.HSplitTop(20.0f, 0, &Background);
+	RenderTools()->DrawUIRect(&Background, vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), this->Client()->State() == IClient::STATE_OFFLINE ? CUI::CORNER_ALL : CUI::CORNER_B, 5.0f);
+	MainView.HSplitTop(20.0f, 0, &MainView);
+	MainView.HSplitTop(BackgroundHeight, &Game, &MainView);
+	RenderTools()->DrawUIRect(&Game, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+
+	// render client menu background
+	NumOptions = 4;
+	if(Config()->m_ClAutoDemoRecord) NumOptions += 1;
+	if(Config()->m_ClAutoScreenshot) NumOptions += 1;
+	BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
+
+	CUIRect GameLeft, GameRight;
+	// render game menu
+	Game.HSplitTop(ButtonHeight, &Label, &Game);
+	Label.y += 2.0f;
+	UI()->DoLabel(&Label, Localize("F-Client"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+
+	// split
+	Game.VSplitMid(&GameLeft, &GameRight);
+	GameLeft.VSplitRight(Spacing * 0.5f, &GameLeft, 0);
+	GameRight.VSplitLeft(Spacing * 0.5f, 0, &GameRight);
+
+	// left side
+	GameLeft.HSplitTop(Spacing, 0, &GameLeft);
+	GameLeft.HSplitTop(ButtonHeight, &Button, &GameLeft);
+	static int s_OldGunPos = 0;
+	if(DoButton_CheckBox(&s_OldGunPos, Localize("Old gun position"), Config()->m_ClOldGunPosition, &Button))
+		Config()->m_ClOldGunPosition ^= 1;
+
+	GameLeft.HSplitTop(Spacing, 0, &GameLeft);
+	GameLeft.HSplitTop(ButtonHeight, &Button, &GameLeft);
+	static int s_OldChatSounds = 0;
+	if(DoButton_CheckBox(&s_OldChatSounds, Localize("Old chat sounds"), Config()->m_ClOldChatSounds, &Button))
+		Config()->m_ClOldChatSounds ^= 1;
+
+	// reset button
+	Spacing = 3.0f;
+	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
+
+	BottomView.VSplitRight(ButtonWidth, 0, &BottomView);
+	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
+
+	BottomView.HSplitTop(25.0f, &BottomView, 0);
+	Button = BottomView;
+	static CButtonContainer s_ResetButton;
+	if(DoButton_Menu(&s_ResetButton, Localize("Reset"), 0, &Button))
+	{
+		Config()->m_ClOldGunPosition = 0;
+		Config()->m_ClOldChatSounds = 0;
+	}
+}
+
 void CMenus::RenderSettings(CUIRect MainView)
 {
 	// handle which page should be rendered
@@ -2112,6 +2182,8 @@ void CMenus::RenderSettings(CUIRect MainView)
 		RenderSettingsGraphics(MainView);
 	else if(Config()->m_UiSettingsPage == SETTINGS_SOUND)
 		RenderSettingsSound(MainView);
+	else if(Config()->m_UiSettingsPage == SETTINGS_FCLIENT)
+		RenderSettingsFClient(MainView);
 
 	MainView.HSplitBottom(32.0f, 0, &MainView);
 

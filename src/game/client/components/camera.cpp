@@ -31,6 +31,7 @@ CCamera::CCamera()
 	m_Positions[POS_SETTINGS_CONTROLS] = vec2(800.0f, 1000.0f);
 	m_Positions[POS_SETTINGS_GRAPHICS] = vec2(900.0f, 1000.0f);
 	m_Positions[POS_SETTINGS_SOUND] = vec2(1000.0f, 1000.0f);
+	m_Positions[POS_SETTINGS_FCLIENT] = vec2(1100.0f, 1000.0f);
 
 	m_CurrentPosition = -1;
 	m_MoveTime = 0.0f;

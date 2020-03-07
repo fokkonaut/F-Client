@@ -1145,6 +1145,16 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_SOUND);
 			Config()->m_UiSettingsPage = SETTINGS_SOUND;
 		}
+
+		Box.VSplitLeft(Spacing, 0, &Box); // little space
+		Box.VSplitLeft(ButtonWidth/4, &Button, &Box);
+		static CButtonContainer s_FClientButton;
+		if(DoButton_MenuTabTop(&s_FClientButton, Localize("F"), Client()->State() == IClient::STATE_OFFLINE && Config()->m_UiSettingsPage==SETTINGS_FCLIENT, &Button,
+			Config()->m_UiSettingsPage == SETTINGS_FCLIENT ? 1.0f : NotActiveAlpha, 1.0f, CUI::CORNER_ALL))
+		{
+			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_FCLIENT);
+			Config()->m_UiSettingsPage = SETTINGS_FCLIENT;
+		}
 	}
 	else if((Client()->State() == IClient::STATE_OFFLINE && m_MenuPage >= PAGE_INTERNET && m_MenuPage <= PAGE_LAN) || (Client()->State() == IClient::STATE_ONLINE && m_GamePage >= PAGE_INTERNET && m_GamePage <= PAGE_LAN))
 	{

@@ -146,7 +146,7 @@ int CControls::SnapInput(int *pData)
 	// we freeze the input if chat or menu is activated
 	if(m_pClient->m_pChat->IsActive() || m_pClient->m_pMenus->IsActive())
 	{
-		OnReset();
+		ResetInput(Config()->m_ClDummy);
 
 		mem_copy(pData, &m_InputData[Config()->m_ClDummy], sizeof(m_InputData[CLIENT_MAIN]));
 
@@ -202,7 +202,7 @@ int CControls::SnapInput(int *pData)
 		if(Config()->m_DbgStress)
 		{
 			float t = Client()->LocalTime();
-			mem_zero(&m_InputData[Config()->m_ClDummy], sizeof(m_InputData));
+			mem_zero(&m_InputData[Config()->m_ClDummy], sizeof(m_InputData[CLIENT_MAIN]));
 
 			m_InputData[Config()->m_ClDummy].m_Direction = ((int)t/2)%3-1;
 			m_InputData[Config()->m_ClDummy].m_Jump = ((int)t)&1;

@@ -864,6 +864,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		}
 		if(MsgId == NETMSGTYPE_SV_CLIENTINFO)
 		{
+			// when swapping to main tee while dummy is connecting we dont get the local client id for the dummy, thats why we catch it here
 			CNetMsg_Sv_ClientInfo *pMsg = (CNetMsg_Sv_ClientInfo *)pRawMsg;
 			if(pMsg->m_Local)
 			{

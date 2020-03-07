@@ -862,6 +862,21 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 			if (pMsg->m_Mode == CHAT_WHISPER)
 				m_pChat->OnMessage(MsgId, pRawMsg);
 		}
+		if(MsgId == NETMSGTYPE_SV_CLIENTINFO)
+		{
+			CNetMsg_Sv_ClientInfo *pMsg = (CNetMsg_Sv_ClientInfo *)pRawMsg;
+			if(pMsg->m_Local)
+			{
+				if(m_LocalClientID[CLIENT_DUMMY] != -1)
+				{
+					if(Config()->m_Debug)
+						Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", "invalid local clientinfo");
+					return;
+				}
+				m_LocalClientID[CLIENT_DUMMY] = pMsg->m_ClientID;
+				m_TeamChangeTime[CLIENT_DUMMY] = Client()->LocalTime();
+			}
+		}
 		return; // no need of all that stuff for the dummy
 	}
 

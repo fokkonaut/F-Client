@@ -50,7 +50,7 @@ void CCamera::OnRender()
 			m_ZoomSet = false;
 			m_Zoom = 1.0f;
 		}
-		else if(!m_ZoomSet && Config()->m_ClDefaultZoom != 10)
+		else if(!m_ZoomSet)
 		{
 			m_ZoomSet = true;
 			OnReset();
@@ -96,9 +96,7 @@ void CCamera::OnRender()
 	}
 	else
 	{
-		// dont set the zoom when we connect, otherwise ingame zoom would be 0.7f again if we dont call OnReset() again...
-		if (Client()->State() == IClient::STATE_OFFLINE)
-			m_Zoom = 0.7f;
+		m_Zoom = 0.7f;
 
 		static vec2 Dir = vec2(1.0f, 0.0f);
 
@@ -170,6 +168,9 @@ void CCamera::OnStateChange(int NewState, int OldState)
 		m_MenuCenter = m_Center;
 	else if(NewState != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 		m_Center = m_MenuCenter;
+
+	if (NewState == IClient::STATE_ONLINE)
+		m_ZoomSet = false;
 }
 
 const float ZoomStep = 0.866025f;

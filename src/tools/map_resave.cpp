@@ -6,7 +6,7 @@
 
 int main(int argc, const char **argv)
 {
-	IStorage *pStorage = CreateStorage("F-Client", IStorage::STORAGETYPE_BASIC, argc, argv);
+	IStorage *pStorage = CreateStorage("Teeworlds", IStorage::STORAGETYPE_BASIC, argc, argv);
 	int Index, ID = 0, Type = 0, Size;
 	void *pPtr;
 	char aFileName[1024];

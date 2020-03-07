@@ -73,12 +73,12 @@ void CCharacterCore::Reset()
 	m_HookedPlayer = -1;
 	m_Jumped = 0;
 	m_TriggeredEvents = 0;
-	m_Death = false;
 }
 
 void CCharacterCore::Tick(bool UseInput)
 {
 	float PhysSize = 28.0f;
+	m_MoveRestrictions = m_pCollision->GetMoveRestrictions(UseInput ? IsSwitchActiveCb : 0, this, m_Pos);
 	m_TriggeredEvents = 0;
 
 	// get ground state
@@ -190,7 +190,7 @@ void CCharacterCore::Tick(bool UseInput)
 		int Hit = m_pCollision->IntersectLine(m_HookPos, NewPos, &NewPos, 0);
 		if(Hit)
 		{
-			if(Hit&CCollision::COLFLAG_NOHOOK)
+			if(Hit == TILE_NOHOOK)
 				GoingToRetract = true;
 			else
 				GoingToHitGround = true;
@@ -329,17 +329,81 @@ void CCharacterCore::Tick(bool UseInput)
 					float Accel = m_pWorld->m_Tuning[Config()->m_ClDummy].m_HookDragAccel * (Distance/m_pWorld->m_Tuning[Config()->m_ClDummy].m_HookLength);
 					float DragSpeed = m_pWorld->m_Tuning[Config()->m_ClDummy].m_HookDragSpeed;
 
+					vec2 Temp;
 					// add force to the hooked player
-					pCharCore->m_Vel.x = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.x, Accel*Dir.x*1.5f);
-					pCharCore->m_Vel.y = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.y, Accel*Dir.y*1.5f);
+					Temp.x = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.x, Accel*Dir.x*1.5f);
+					Temp.y = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.y, Accel*Dir.y*1.5f);
+					pCharCore->m_Vel = ClampVel(pCharCore->m_MoveRestrictions, Temp);
 
 					// add a little bit force to the guy who has the grip
-					m_Vel.x = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.x, -Accel*Dir.x*0.25f);
-					m_Vel.y = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.y, -Accel*Dir.y*0.25f);
+					Temp.x = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.x, -Accel*Dir.x*0.25f);
+					Temp.y = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.y, -Accel*Dir.y*0.25f);
+					m_Vel = ClampVel(m_MoveRestrictions, Temp);
 				}
 			}
 		}
 	}
+
+	int Index = m_pCollision->GetPureMapIndex(m_Pos);
+	if(Config()->m_ClPredictDDRace && m_pCollision->IsSpeedup(Index))
+	{
+		vec2 Direction, MaxVel, TempVel = m_Vel;
+		int Force, MaxSpeed = 0;
+		float TeeAngle, SpeederAngle, DiffAngle, SpeedLeft, TeeSpeed;
+		m_pCollision->GetSpeedup(Index, &Direction, &Force, &MaxSpeed);
+		if(Force == 255 && MaxSpeed)
+		{
+			m_Vel = Direction * (MaxSpeed/5);
+		}
+		else
+		{
+			if(MaxSpeed > 0 && MaxSpeed < 5) MaxSpeed = 5;
+			if(MaxSpeed > 0)
+			{
+				if(Direction.x > 0.0000001f)
+					SpeederAngle = -atan(Direction.y / Direction.x);
+				else if(Direction.x < 0.0000001f)
+					SpeederAngle = atan(Direction.y / Direction.x) + 2.0f * asin(1.0f);
+				else if(Direction.y > 0.0000001f)
+					SpeederAngle = asin(1.0f);
+				else
+					SpeederAngle = asin(-1.0f);
+
+				if(SpeederAngle < 0)
+					SpeederAngle = 4.0f * asin(1.0f) + SpeederAngle;
+
+				if(TempVel.x > 0.0000001f)
+					TeeAngle = -atan(TempVel.y / TempVel.x);
+				else if(TempVel.x < 0.0000001f)
+					TeeAngle = atan(TempVel.y / TempVel.x) + 2.0f * asin(1.0f);
+				else if(TempVel.y > 0.0000001f)
+					TeeAngle = asin(1.0f);
+				else
+					TeeAngle = asin(-1.0f);
+
+				if(TeeAngle < 0)
+					TeeAngle = 4.0f * asin(1.0f) + TeeAngle;
+
+				TeeSpeed = sqrt(pow(TempVel.x, 2) + pow(TempVel.y, 2));
+
+				DiffAngle = SpeederAngle - TeeAngle;
+				SpeedLeft = MaxSpeed / 5.0f - cos(DiffAngle) * TeeSpeed;
+				if(abs((int)SpeedLeft) > Force && SpeedLeft > 0.0000001f)
+					TempVel += Direction * Force;
+				else if(abs((int)SpeedLeft) > Force)
+					TempVel += Direction * -Force;
+				else
+					TempVel += Direction * SpeedLeft;
+			}
+			else
+				TempVel += Direction * Force;
+
+			m_Vel = ClampVel(m_MoveRestrictions, TempVel);
+		}
+	}
+
+	if(Config()->m_ClPredictDDRace)
+		m_Vel = ClampVel(m_MoveRestrictions, m_Vel);
 
 	// clamp the velocity to something sane
 	if(length(m_Vel) > 6000)
@@ -357,7 +421,7 @@ void CCharacterCore::Move()
 	m_Vel.x = m_Vel.x*RampValue;
 
 	vec2 NewPos = m_Pos;
-	m_pCollision->MoveBox(&NewPos, &m_Vel, vec2(PhysSize, PhysSize), 0, &m_Death);
+	m_pCollision->MoveBox(&NewPos, &m_Vel, vec2(PhysSize, PhysSize), 0);
 
 	m_Vel.x = m_Vel.x*(1.0f/RampValue);
 
@@ -437,3 +501,21 @@ void CCharacterCore::Quantize()
 	Read(&Core);
 }
 
+bool CCharacterCore::IsSwitchActiveCb(int Number, void *pUser)
+{
+	/*CCharacterCore *pThis = (CCharacterCore *)pUser;
+	if(pThis->m_pCollision->m_pSwitchers)
+		if(pThis->m_pTeams->Team(pThis->m_Id) != TEAM_SUPER)
+			return pThis->m_pCollision->m_pSwitchers[Number].m_Status[pThis->m_pTeams->Team(pThis->m_Id)];*/
+	return false;
+}
+
+vec2 CCharacterCore::LimitVel(vec2 Vel)
+{
+	return ClampVel(m_MoveRestrictions, Vel);
+}
+
+void CCharacterCore::ApplyForce(vec2 Force)
+{
+	m_Vel = LimitVel(m_Vel + Force);
+}

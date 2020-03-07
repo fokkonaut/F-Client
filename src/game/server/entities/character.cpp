@@ -601,7 +601,7 @@ void CCharacter::TickDefered()
 		m_Pos.x = m_Input.m_TargetX;
 		m_Pos.y = m_Input.m_TargetY;
 	}
-	else if(m_Core.m_Death)
+	else if(GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y) == TILE_DEATH)
 	{
 		// handle death-tiles
 		Die(m_pPlayer->GetCID(), WEAPON_WORLD);

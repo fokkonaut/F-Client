@@ -6,12 +6,17 @@
 #include <base/system.h>
 #include <base/math.h>
 
+#include <map>
+#include <vector>
+
 #include <math.h>
 #include "collision.h"
 #include <engine/shared/protocol.h>
 #include <generated/protocol.h>
 #include <engine/shared/config.h>
 #include <engine/client.h>
+
+#include "mapitems.h"
 
 
 class CTuneParam
@@ -163,8 +168,6 @@ public:
 	int m_Direction;
 	int m_Angle;
 
-	bool m_Death;
-
 	CNetObj_PlayerInput m_Input;
 
 	int m_TriggeredEvents;
@@ -180,6 +183,16 @@ public:
 
 	class CConfig *m_pConfig;
 	class CConfig *Config() const { return m_pConfig; }
+
+	// Caps the given velocity according to the current set of stoppers
+	// that the character is affected by.
+	vec2 LimitVel(vec2 Vel);
+	void ApplyForce(vec2 Force);
+
+private:
+
+	int m_MoveRestrictions;
+	static bool IsSwitchActiveCb(int Number, void *pUser);
 };
 
 #endif

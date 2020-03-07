@@ -196,4 +196,6 @@ MACRO_CONFIG_INT(ClOldChatSounds, cl_old_chat_sounds, 0, 0, 1, CFGFLAG_SAVE|CFGF
 
 MACRO_CONFIG_INT(ClAuthedPlayerColor, cl_authed_player_color, 5898183, 0, 0xFFFFFF, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Color of name of authenticated player in scoreboard")
 MACRO_CONFIG_INT(ClSameClanColor, cl_same_clan_color, 5898183, 0, 0xFFFFFF, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Clan Color of players with the same clan as you in scoreboard.")
+
+MACRO_CONFIG_INT(ClClientRecognition, cl_client_recognition, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable custom client recognition (visible in scoreboard)")
 #endif

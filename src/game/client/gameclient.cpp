@@ -543,7 +543,7 @@ void CGameClient::OnConnected()
 	m_ServerMode = SERVERMODE_PURE;
 
 	// send the inital info
-	SendStartInfo();
+	SendStartInfo(CLIENT_MAIN);
 }
 
 void CGameClient::OnReset()
@@ -1879,34 +1879,20 @@ void CGameClient::SendSwitchTeam(int Team)
 		m_pCamera->OnReset();
 }
 
-void CGameClient::SendStartInfo()
+void CGameClient::SendStartInfo(int Dummy)
 {
 	CNetMsg_Cl_StartInfo Msg;
-	Msg.m_pName = Config()->m_PlayerName;
-	Msg.m_pClan = Config()->m_PlayerClan;
-	Msg.m_Country = Config()->m_PlayerCountry;
+	Msg.m_pName = Dummy ? Config()->m_DummyName : Config()->m_PlayerName;
+	Msg.m_pClan = Dummy ? Config()->m_DummyClan : Config()->m_PlayerClan;
+	Msg.m_Country = Dummy ? Config()->m_DummyCountry : Config()->m_PlayerCountry;
+	const char *pClientString = "fclient!" FCLIENT_VERSION;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
-		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[CLIENT_MAIN][p];
-		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[CLIENT_MAIN][p];
-		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[CLIENT_MAIN][p];
+		Msg.m_apSkinPartNames[p] = m_pSkins->IsSkinPartDefault(Dummy, p) ? pClientString : CSkins::ms_apSkinVariables[Dummy][p];
+		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[Dummy][p];
+		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[Dummy][p];
 	}
-	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-}
-
-void CGameClient::SendDummyStartInfo()
-{
-	CNetMsg_Cl_StartInfo Msg;
-	Msg.m_pName = Config()->m_DummyName;
-	Msg.m_pClan = Config()->m_DummyClan;
-	Msg.m_Country = Config()->m_DummyCountry;
-	for(int p = 0; p < NUM_SKINPARTS; p++)
-	{
-		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[CLIENT_DUMMY][p];
-		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[CLIENT_DUMMY][p];
-		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[CLIENT_DUMMY][p];
-	}
-	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, 1);
+	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, Dummy);
 }
 
 void CGameClient::SendKill()

@@ -2365,7 +2365,7 @@ void CClient::Run()
 			SendMsg(&MsgReady, MSGFLAG_VITAL|MSGFLAG_FLUSH, CLIENT_DUMMY);
 
 			// startinfo
-			GameClient()->SendDummyStartInfo();
+			GameClient()->SendStartInfo(CLIENT_DUMMY);
 
 			// send enter game an finish the connection
 			CMsgPacker MsgEnter(NETMSG_ENTERGAME, true);

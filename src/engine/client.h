@@ -198,7 +198,7 @@ public:
 	virtual int OnSnapInput(int *pData, bool Dummy, bool Force) = 0;
 	virtual void OnDummySwap() = 0;
 	virtual void OnDummyDisconnect() = 0;
-	virtual void SendDummyStartInfo() = 0;
+	virtual void SendStartInfo(int Dummy) = 0;
 
 	virtual const char *GetItemName(int Type) const = 0;
 	virtual const char *Version() const = 0;

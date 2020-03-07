@@ -600,3 +600,11 @@ void CSkins::SaveSkinfile(const char *pSaveSkinName, int Dummy)
 	// add new skin to the skin list
 	AddSkin(pSaveSkinName, Dummy);
 }
+
+bool CSkins::IsSkinPartDefault(int Dummy, int Part)
+{
+	const char *pDefault = "standard";
+	if (Part == SKINPART_MARKING || Part == SKINPART_DECORATION)
+		pDefault = "";
+	return !str_comp(ms_apSkinVariables[Dummy][Part], pDefault);
+}

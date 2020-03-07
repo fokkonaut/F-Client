@@ -286,11 +286,10 @@ public:
 	// actions
 	// TODO: move these
 	void SendSwitchTeam(int Team);
-	void SendStartInfo();
+	virtual void SendStartInfo(int Dummy);
 	void SendKill();
 	void SendReadyChange();
 	void SendSkinChange(int Dummy);
-	virtual void SendDummyStartInfo();
 
 	// pointers to all systems
 	class CGameConsole *m_pGameConsole;

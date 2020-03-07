@@ -172,7 +172,7 @@ float CScoreboard::RenderSpectators(float x, float y, float w)
 		if(pInfo->m_PlayerFlags&PLAYERFLAG_ADMIN)
 		{
 			vec4 Color = m_pClient->m_pSkins->GetColorV4(Config()->m_ClAuthedPlayerColor, false);
-			TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
+			TextRender()->TextColor(Color.r, Color.g, (pInfo->m_PlayerFlags & PLAYERFLAG_WATCHING) ? 0.0f : Color.b, Color.a);
 		}
 		else
 			TextRender()->TextColor(1.0f, 1.0f, (pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING) ? 0.0f :	 1.0f, 1.0f);

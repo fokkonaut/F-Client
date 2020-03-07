@@ -289,8 +289,7 @@ public:
 	void SendStartInfo();
 	void SendKill();
 	void SendReadyChange();
-	void SendSkinChange();
-	void SendSkinChangeDummy();
+	void SendSkinChange(int Dummy);
 	virtual void SendDummyStartInfo();
 
 	// pointers to all systems

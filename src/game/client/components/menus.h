@@ -421,7 +421,7 @@ private:
 	char m_aSaveSkinName[24];
 
 	bool m_RefreshSkinSelector;
-	const CSkins::CSkin *m_pSelectedSkin;
+	const CSkins::CSkin *m_pSelectedSkin[NUM_CLIENTS];
 
 	//
 	bool m_EscapePressed;

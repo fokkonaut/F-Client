@@ -67,7 +67,8 @@ CMenus::CMenus()
 	m_TeePartSelected = SKINPART_BODY;
 	m_aSaveSkinName[0] = 0;
 	m_RefreshSkinSelector = true;
-	m_pSelectedSkin = 0;
+	m_pSelectedSkin[CLIENT_MAIN] = 0;
+	m_pSelectedSkin[CLIENT_DUMMY] = 0;
 	m_MenuActive = true;
 	m_SeekBarActivatedTime = 0;
 	m_SeekBarActive = true;
@@ -2175,7 +2176,7 @@ int CMenus::Render()
 				if(m_aSaveSkinName[0] && m_aSaveSkinName[0] != 'x' && m_aSaveSkinName[1] != '_')
 				{
 					m_Popup = POPUP_NONE;
-					m_pClient->m_pSkins->SaveSkinfile(m_aSaveSkinName);
+					m_pClient->m_pSkins->SaveSkinfile(m_aSaveSkinName, m_Dummy);
 					m_aSaveSkinName[0] = 0;
 					m_RefreshSkinSelector = true;
 				}
@@ -2200,15 +2201,15 @@ int CMenus::Render()
 			{
 				m_Popup = POPUP_NONE;
 				// delete demo
-				if(m_pSelectedSkin)
+				if(m_pSelectedSkin[m_Dummy])
 				{
 					char aBuf[512];
-					str_format(aBuf, sizeof(aBuf), "skins/%s.json", m_pSelectedSkin->m_aName);
+					str_format(aBuf, sizeof(aBuf), "skins/%s.json", m_pSelectedSkin[m_Dummy]->m_aName);
 					if(Storage()->RemoveFile(aBuf, IStorage::TYPE_SAVE))
 					{
-						m_pClient->m_pSkins->RemoveSkin(m_pSelectedSkin);
+						m_pClient->m_pSkins->RemoveSkin(m_pSelectedSkin[m_Dummy]);
 						m_RefreshSkinSelector = true;
-						m_pSelectedSkin = 0;
+						m_pSelectedSkin[m_Dummy] = 0;
 					}
 					else
 						PopupMessage(Localize("Error"), Localize("Unable to delete the skin"), Localize("Ok"));
@@ -2269,16 +2270,13 @@ void CMenus::SetActive(bool Active)
 			m_pClient->OnRelease();
 			if(Client()->State() == IClient::STATE_ONLINE)
 			{
-				if (m_SkinModified[CLIENT_MAIN])
+				for (int i = 0; i < NUM_CLIENTS; i++)
 				{
-					m_SkinModified[CLIENT_MAIN] = false;
-					m_pClient->SendSkinChange();
-				}
-
-				if (m_SkinModified[CLIENT_DUMMY])
-				{
-					m_SkinModified[CLIENT_DUMMY] = false;
-					m_pClient->SendSkinChangeDummy();
+					if (m_SkinModified[i])
+					{
+						m_SkinModified[i] = false;
+						m_pClient->SendSkinChange(i);
+					}
 				}
 			}
 		}

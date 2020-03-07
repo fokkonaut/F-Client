@@ -476,7 +476,7 @@ void CGameClient::OnDummySwap()
 
 void CGameClient::OnDummyDisconnect()
 {
-	m_LocalClientID[1] = -1;
+	m_LocalClientID[CLIENT_DUMMY] = -1;
 }
 
 int CGameClient::OnSnapInput(int *pData, bool Dummy, bool Force)
@@ -1871,9 +1871,9 @@ void CGameClient::SendStartInfo()
 	Msg.m_Country = Config()->m_PlayerCountry;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
-		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[p];
-		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[p];
-		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[p];
+		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[CLIENT_MAIN][p];
+		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[CLIENT_MAIN][p];
+		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[CLIENT_MAIN][p];
 	}
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
@@ -1886,9 +1886,9 @@ void CGameClient::SendDummyStartInfo()
 	Msg.m_Country = Config()->m_DummyCountry;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
-		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariablesDummy[p];
-		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariablesDummy[p];
-		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariablesDummy[p];
+		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[CLIENT_DUMMY][p];
+		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[CLIENT_DUMMY][p];
+		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[CLIENT_DUMMY][p];
 	}
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, 1);
 }
@@ -1911,30 +1911,17 @@ void CGameClient::SendReadyChange()
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 }
 
-void CGameClient::SendSkinChange()
+void CGameClient::SendSkinChange(int Dummy)
 {
 	CNetMsg_Cl_SkinChange Msg;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
-		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[p];
-		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[p];
-		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[p];
+		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[Dummy][p];
+		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[Dummy][p];
+		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[Dummy][p];
 	}
-	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NORECORD|MSGFLAG_FLUSH);
-	m_LastSkinChangeTime[CLIENT_MAIN] = Client()->LocalTime();
-}
-
-void CGameClient::SendSkinChangeDummy()
-{
-	CNetMsg_Cl_SkinChange Msg;
-	for(int p = 0; p < NUM_SKINPARTS; p++)
-	{
-		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariablesDummy[p];
-		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariablesDummy[p];
-		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariablesDummy[p];
-	}
-	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NORECORD|MSGFLAG_FLUSH);
-	m_LastSkinChangeTime[CLIENT_DUMMY] = Client()->LocalTime();
+	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_NORECORD|MSGFLAG_FLUSH, Dummy);
+	m_LastSkinChangeTime[Dummy] = Client()->LocalTime();
 }
 
 int CGameClient::GetClientID(const char *pName)
@@ -1996,7 +1983,7 @@ void CGameClient::ConchainSkinChange(IConsole::IResult *pResult, void *pUserData
 	pfnCallback(pResult, pCallbackUserData);
 	CGameClient *pClient = static_cast<CGameClient *>(pUserData);
 	if(pClient->Client()->State() == IClient::STATE_ONLINE && pResult->NumArguments())
-		pClient->SendSkinChange();
+		pClient->SendSkinChange(CLIENT_MAIN);
 }
 
 void CGameClient::ConchainSkinChangeDummy(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
@@ -2004,7 +1991,7 @@ void CGameClient::ConchainSkinChangeDummy(IConsole::IResult *pResult, void *pUse
 	pfnCallback(pResult, pCallbackUserData);
 	CGameClient *pClient = static_cast<CGameClient *>(pUserData);
 	if(pClient->Client()->State() == IClient::STATE_ONLINE && pResult->NumArguments())
-		pClient->SendSkinChangeDummy();
+		pClient->SendSkinChange(CLIENT_DUMMY);
 }
 
 void CGameClient::ConchainFriendUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)

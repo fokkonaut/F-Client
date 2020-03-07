@@ -92,20 +92,20 @@ void CMenus::RenderHSLPicker(CUIRect MainView)
 	float ButtonHeight = 20.0f;
 	MainView.HSplitTop(ButtonHeight, &Button, &MainView);
 	static int s_CustomColors = 0;
-	if(DoButton_CheckBox(&s_CustomColors, Localize("Custom colors"), *CSkins::ms_apUCCVariables[m_TeePartSelected], &Button))
+	if(DoButton_CheckBox(&s_CustomColors, Localize("Custom colors"), *CSkins::ms_apUCCVariables[m_Dummy][m_TeePartSelected], &Button))
 	{
-		*CSkins::ms_apUCCVariables[m_TeePartSelected] ^= 1;
+		*CSkins::ms_apUCCVariables[m_Dummy][m_TeePartSelected] ^= 1;
 		m_SkinModified[m_Dummy] = true;
 	}
 
-	if(!(*CSkins::ms_apUCCVariables[m_TeePartSelected]))
+	if(!(*CSkins::ms_apUCCVariables[m_Dummy][m_TeePartSelected]))
 		return;
 
 	MainView.HSplitTop(Spacing, 0, &MainView);
 
 	bool Modified = false;
 	bool UseAlpha = m_TeePartSelected == SKINPART_MARKING;
-	int Color = *CSkins::ms_apColorVariables[m_TeePartSelected];
+	int Color = *CSkins::ms_apColorVariables[m_Dummy][m_TeePartSelected];
 
 	int Hue, Sat, Lgt, Alp;
 	Hue = (Color>>16)&0xff;
@@ -326,7 +326,7 @@ void CMenus::RenderHSLPicker(CUIRect MainView)
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
 			if(m_TeePartSelected == p)
-				*CSkins::ms_apColorVariables[p] = NewVal;
+				*CSkins::ms_apColorVariables[m_Dummy][p] = NewVal;
 		}
 		if(UseAlpha)
 			Config()->m_PlayerColorMarking = (Alp << 24) + NewVal;
@@ -353,20 +353,22 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 		m_RefreshSkinSelector = false;
 	}
 
-	m_pSelectedSkin = 0;
+	m_pSelectedSkin[m_Dummy] = 0;
 	int OldSelected = -1;
 	s_ListBox.DoHeader(&MainView, Localize("Skins"), GetListHeaderHeight());
 	m_RefreshSkinSelector = s_ListBox.DoFilter();
 	s_ListBox.DoStart(50.0f, s_paSkinList.size(), 10, OldSelected);
+
+	char *Skin = m_Dummy ? Config()->m_DummySkin : Config()->m_PlayerSkin;
 
 	for(int i = 0; i < s_paSkinList.size(); ++i)
 	{
 		const CSkins::CSkin *s = s_paSkinList[i];
 		if(s == 0)
 			continue;
-		if(!str_comp(s->m_aName, Config()->m_PlayerSkin))
+		if(!str_comp(s->m_aName, Skin))
 		{
-			m_pSelectedSkin = s;
+			m_pSelectedSkin[m_Dummy] = s;
 			OldSelected = i;
 		}
 
@@ -397,13 +399,13 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 	const int NewSelected = s_ListBox.DoEnd();
 	if(NewSelected != -1 && NewSelected != OldSelected)
 	{
-		m_pSelectedSkin = s_paSkinList[NewSelected];
-		mem_copy(Config()->m_PlayerSkin, m_pSelectedSkin->m_aName, sizeof(Config()->m_PlayerSkin));
+		m_pSelectedSkin[m_Dummy] = s_paSkinList[NewSelected];
+		mem_copy(Skin, m_pSelectedSkin[m_Dummy]->m_aName, sizeof(Config()->m_PlayerSkin));
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
-			mem_copy(CSkins::ms_apSkinVariables[p], m_pSelectedSkin->m_apParts[p]->m_aName, 24);
-			*CSkins::ms_apUCCVariables[p] = m_pSelectedSkin->m_aUseCustomColors[p];
-			*CSkins::ms_apColorVariables[p] = m_pSelectedSkin->m_aPartColors[p];
+			mem_copy(CSkins::ms_apSkinVariables[m_Dummy][p], m_pSelectedSkin[m_Dummy]->m_apParts[p]->m_aName, 24);
+			*CSkins::ms_apUCCVariables[m_Dummy][p] = m_pSelectedSkin[m_Dummy]->m_aUseCustomColors[p];
+			*CSkins::ms_apColorVariables[m_Dummy][p] = m_pSelectedSkin[m_Dummy]->m_aPartColors[p];
 		}
 		m_SkinModified[m_Dummy] = true;
 	}
@@ -443,7 +445,7 @@ void CMenus::RenderSkinPartSelection(CUIRect MainView)
 		const CSkins::CSkinPart *s = s_paList[m_TeePartSelected][i];
 		if(s == 0)
 			continue;
-		if(!str_comp(s->m_aName, CSkins::ms_apSkinVariables[m_TeePartSelected]))
+		if(!str_comp(s->m_aName, CSkins::ms_apSkinVariables[m_Dummy][m_TeePartSelected]))
 			OldSelected = i;
 
 		CListboxItem Item = s_ListBox.DoNextItem(&s_paList[m_TeePartSelected][i], OldSelected == i);
@@ -452,15 +454,15 @@ void CMenus::RenderSkinPartSelection(CUIRect MainView)
 			CTeeRenderInfo Info;
 			for(int j = 0; j < NUM_SKINPARTS; j++)
 			{
-				int SkinPart = m_pClient->m_pSkins->FindSkinPart(j, CSkins::ms_apSkinVariables[j], false);
+				int SkinPart = m_pClient->m_pSkins->FindSkinPart(j, CSkins::ms_apSkinVariables[m_Dummy][j], false);
 				const CSkins::CSkinPart *pSkinPart = m_pClient->m_pSkins->GetSkinPart(j, SkinPart);
-				if(*CSkins::ms_apUCCVariables[j])
+				if(*CSkins::ms_apUCCVariables[m_Dummy][j])
 				{
 					if(m_TeePartSelected == j)
 						Info.m_aTextures[j] = s->m_ColorTexture;
 					else
 						Info.m_aTextures[j] = pSkinPart->m_ColorTexture;
-					Info.m_aColors[j] = m_pClient->m_pSkins->GetColorV4(*CSkins::ms_apColorVariables[j], j==SKINPART_MARKING);
+					Info.m_aColors[j] = m_pClient->m_pSkins->GetColorV4(*CSkins::ms_apColorVariables[m_Dummy][j], j==SKINPART_MARKING);
 				}
 				else
 				{
@@ -487,8 +489,11 @@ void CMenus::RenderSkinPartSelection(CUIRect MainView)
 	if(NewSelected != -1 && NewSelected != OldSelected)
 	{
 		const CSkins::CSkinPart *s = s_paList[m_TeePartSelected][NewSelected];
-		mem_copy(CSkins::ms_apSkinVariables[m_TeePartSelected], s->m_aName, 24);
-		Config()->m_PlayerSkin[0] = 0;
+		mem_copy(CSkins::ms_apSkinVariables[m_Dummy][m_TeePartSelected], s->m_aName, 24);
+		if (m_Dummy)
+			Config()->m_DummySkin[0] = 0;
+		else
+			Config()->m_PlayerSkin[0] = 0;
 		m_SkinModified[m_Dummy] = true;
 	}
 	OldSelected = NewSelected;
@@ -496,7 +501,7 @@ void CMenus::RenderSkinPartSelection(CUIRect MainView)
 
 void CMenus::RenderSkinPartPalette(CUIRect MainView)
 {
-	if(!*CSkins::ms_apUCCVariables[m_TeePartSelected])
+	if(!*CSkins::ms_apUCCVariables[m_Dummy][m_TeePartSelected])
 		return; // color selection not open
 
 	float ButtonHeight = 20.0f;
@@ -513,13 +518,13 @@ void CMenus::RenderSkinPartPalette(CUIRect MainView)
 		
 		// no palette if color is unused for this skin parts
 		static int s_aColorPalettes[NUM_SKINPARTS];
-		if(*CSkins::ms_apUCCVariables[p])
+		if(*CSkins::ms_apUCCVariables[m_Dummy][p])
 		{
 			float HMargin = (Button.w-(ButtonHeight+2*Margin))/2.0f;
 			Button.VSplitLeft(HMargin, 0, &Button);
 			Button.VSplitRight(HMargin, &Button, 0);
 
-			vec4 PartColor = m_pClient->m_pSkins->GetColorV4(*CSkins::ms_apColorVariables[p], p==SKINPART_MARKING);
+			vec4 PartColor = m_pClient->m_pSkins->GetColorV4(*CSkins::ms_apColorVariables[m_Dummy][p], p==SKINPART_MARKING);
 			
 			bool Hovered = UI()->HotItem() == &s_aColorPalettes[p];
 			bool Clicked = UI()->DoButtonLogic(&s_aColorPalettes[p], &Button);
@@ -534,8 +539,8 @@ void CMenus::RenderSkinPartPalette(CUIRect MainView)
 			RenderTools()->DrawUIRect(&Button, PartColor, CUI::CORNER_ALL, 3.0f);
 			if(Clicked && p != m_TeePartSelected)
 			{
-				int& TeePartSelectedColor = *CSkins::ms_apColorVariables[m_TeePartSelected];
-				TeePartSelectedColor = *CSkins::ms_apColorVariables[p];
+				int& TeePartSelectedColor = *CSkins::ms_apColorVariables[m_Dummy][m_TeePartSelected];
+				TeePartSelectedColor = *CSkins::ms_apColorVariables[m_Dummy][p];
 				TeePartSelectedColor -= ((TeePartSelectedColor>>24)&0xff)<<24; // remove any alpha
 				if(m_TeePartSelected == SKINPART_MARKING)
 					TeePartSelectedColor += 0xff<<24; // force full alpha
@@ -1137,7 +1142,7 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 	Right.HSplitTop(ButtonHeight, &Button, &Right);
 	static float s_OffsetClan = 0.0f;
 	DoEditBoxOption(Config()->m_DummyClan, s_aPlayerClan[m_Dummy], sizeof(Config()->m_DummyClan), &Button, Localize("Clan"),  100.0f, &s_OffsetClan);
-	
+
 	// country flag selector
 	MainView.HSplitTop(20.0f, 0, &MainView);
 	static CListBox s_ListBox;
@@ -1251,11 +1256,13 @@ void CMenus::RenderSettingsTeeCustom(CUIRect MainView)
 void CMenus::RenderSettingsTee(CUIRect MainView)
 {
 	static bool s_CustomSkinMenu = false;
-	static char s_aPlayerSkin[256] = {0};
-	if(!s_aPlayerSkin[0])
-		str_copy(s_aPlayerSkin, Config()->m_PlayerSkin, sizeof(s_aPlayerSkin));
+	static char s_aPlayerSkin[2][256] = { {0}, {0} };
+	if(!s_aPlayerSkin[CLIENT_MAIN][0])
+		str_copy(s_aPlayerSkin[CLIENT_MAIN], Config()->m_PlayerSkin, sizeof(s_aPlayerSkin[CLIENT_MAIN]));
+	if(!s_aPlayerSkin[CLIENT_DUMMY][0])
+		str_copy(s_aPlayerSkin[CLIENT_DUMMY], Config()->m_DummySkin, sizeof(s_aPlayerSkin[CLIENT_MAIN]));
 
-	CUIRect Button, Label, BottomView, Preview, Background;
+	CUIRect Button, Label, BottomView, Preview, Background, Dummy;
 
 	// cut view
 	MainView.HSplitBottom(80.0f, &MainView, &BottomView);
@@ -1276,12 +1283,18 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		MainView.HSplitTop(20.0f, 0, &Background);
 	RenderTools()->DrawUIRect(&Background, vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), Client()->State() == IClient::STATE_OFFLINE ? CUI::CORNER_ALL : CUI::CORNER_B, 5.0f);
 	MainView.HSplitTop(20.0f, 0, &MainView);
-	MainView.HSplitTop(BackgroundHeight, &Preview, &MainView);
+	MainView.HSplitTop(BackgroundHeight+ButtonHeight, &Preview, &MainView);
 	RenderTools()->DrawUIRect(&Preview, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
 	Preview.HSplitTop(ButtonHeight, &Label, &Preview);
 	Label.y += 2.0f;
 	UI()->DoLabel(&Label, Localize("Skin"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+
+	Preview.HSplitTop(ButtonHeight, &Dummy, &Preview);
+	if(DoButton_CheckBox(&m_Dummy, Localize("Dummy settings"), m_Dummy, &Dummy))
+	{
+		m_Dummy ^= 1;
+	}
 
 	// Preview
 	{
@@ -1302,12 +1315,13 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		char* apSkinPartsPtr[NUM_SKINPARTS];
 		int aUCCVars[NUM_SKINPARTS];
 		int aColorVars[NUM_SKINPARTS];
-		for(int p = 0; p < NUM_SKINPARTS; p++)
+
+		for (int p = 0; p < NUM_SKINPARTS; p++)
 		{
-			str_copy(aSkinParts[p], CSkins::ms_apSkinVariables[p], 24);
+			str_copy(aSkinParts[p], CSkins::ms_apSkinVariables[m_Dummy][p], 24);
 			apSkinPartsPtr[p] = aSkinParts[p];
-			aUCCVars[p] = *CSkins::ms_apUCCVariables[p];
-			aColorVars[p] = *CSkins::ms_apColorVariables[p];
+			aUCCVars[p] = *CSkins::ms_apUCCVariables[m_Dummy][p];
+			aColorVars[p] = *CSkins::ms_apColorVariables[m_Dummy][p];
 		}
 
 		m_pClient->m_pSkins->ValidateSkinParts(apSkinPartsPtr, aUCCVars, aColorVars, 0);
@@ -1347,10 +1361,10 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
-			str_copy(aSkinParts[p], CSkins::ms_apSkinVariables[p], 24);
+			str_copy(aSkinParts[p], CSkins::ms_apSkinVariables[m_Dummy][p], 24);
 			apSkinPartsPtr[p] = aSkinParts[p];
-			aUCCVars[p] = *CSkins::ms_apUCCVariables[p];
-			aColorVars[p] = *CSkins::ms_apColorVariables[p];
+			aUCCVars[p] = *CSkins::ms_apUCCVariables[m_Dummy][p];
+			aColorVars[p] = *CSkins::ms_apColorVariables[m_Dummy][p];
 		}
 
 		m_pClient->m_pSkins->ValidateSkinParts(apSkinPartsPtr, aUCCVars, aColorVars, GAMEFLAG_TEAMS);
@@ -1405,7 +1419,8 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		RenderTools()->DrawUIRect(&Preview, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
 		Preview.y += 2.0f;
-		UI()->DoLabel(&Preview, Config()->m_PlayerSkin, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+		char *Skin = m_Dummy ? Config()->m_DummySkin : Config()->m_PlayerSkin;
+		UI()->DoLabel(&Preview, Skin, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 	}
 
 	MainView.HSplitTop(10.0f, 0, &MainView);
@@ -1417,7 +1432,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 
 	// bottom button
 	float ButtonWidth = (BottomView.w/6.0f)-(SpacingW*5.0)/6.0f;
-	float BackgroundWidth = s_CustomSkinMenu||(m_pSelectedSkin && (m_pSelectedSkin->m_Flags&CSkins::SKINFLAG_STANDARD) == 0) ? ButtonWidth*2.0f+SpacingW : ButtonWidth;
+	float BackgroundWidth = s_CustomSkinMenu||(m_pSelectedSkin[m_Dummy] && (m_pSelectedSkin[m_Dummy]->m_Flags&CSkins::SKINFLAG_STANDARD) == 0) ? ButtonWidth*2.0f+SpacingW : ButtonWidth;
 
 	BottomView.VSplitRight(BackgroundWidth, 0, &BottomView);
 	RenderBackgroundShadow(&BottomView, true);
@@ -1431,7 +1446,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 			m_Popup = POPUP_SAVE_SKIN;
 		BottomView.VSplitLeft(SpacingW, 0, &BottomView);
 	}
-	else if(m_pSelectedSkin && (m_pSelectedSkin->m_Flags&CSkins::SKINFLAG_STANDARD) == 0)
+	else if(m_pSelectedSkin[m_Dummy] && (m_pSelectedSkin[m_Dummy]->m_Flags&CSkins::SKINFLAG_STANDARD) == 0)
 	{
 		BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 		static CButtonContainer s_CustomSkinDeleteButton;

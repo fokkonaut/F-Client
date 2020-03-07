@@ -1537,6 +1537,12 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 
 	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
 	s_ScrollRegion.AddRect(LastExpandRect);
+	static int s_FClientDropdown = 0;
+	static bool s_FClientActive = true;
+	Split = DoIndependentDropdownMenu(&s_FClientDropdown, &MainView, Localize("F-Client"), HeaderHeight, &CMenus::RenderSettingsControlsFClient, &s_FClientActive);
+
+	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
+	s_ScrollRegion.AddRect(LastExpandRect);
 
 	s_ScrollRegion.End();
 

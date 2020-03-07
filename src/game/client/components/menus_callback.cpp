@@ -53,6 +53,10 @@ static CKeyInfo gs_aKeys[] =
 	{ "Add demo marker", "add_demomarker", 0, 0},
 	{ "Toggle sounds", "snd_toggle", 0, 0},
 	{ "Toggle dynamic camera", "toggle cl_dynamic_camera 1 0", 0, 0},
+
+	{ "Toggle dummy", "toggle cl_dummy 1 0", 0, 0},
+	{ "Dummy copy", "toggle cl_dummy_copy_moves 0 1", 0, 0 },
+	{ "Hammerfly dummy", "toggle cl_dummy_hammer 0 1", 0, 0 },
 };
 
 /*	This is for scripts/update_localization.py to work, don't remove!
@@ -359,6 +363,24 @@ float CMenus::RenderSettingsControlsMisc(CUIRect View)
 	RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
 
 	UiDoGetButtons(StartOption, StartOption+NumOptions, View, ButtonHeight, Spacing);
+
+	return BackgroundHeight;
+}
+
+float CMenus::RenderSettingsControlsFClient(CUIRect View)
+{
+	UpdateBindKeys(m_pClient->m_pBinds);
+
+	int NumOptions = 3;
+	int StartOption = 32;
+	float ButtonHeight = 20.0f;
+	float Spaceing = 2.0f;
+	float BackgroundHeight = (float)NumOptions*ButtonHeight+(float)NumOptions*Spaceing;
+
+	View.HSplitTop(BackgroundHeight, &View, 0);
+	RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
+
+	UiDoGetButtons(StartOption, StartOption+NumOptions, View, ButtonHeight, Spaceing);
 
 	return BackgroundHeight;
 }

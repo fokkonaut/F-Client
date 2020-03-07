@@ -756,6 +756,7 @@ private:
 	float RenderSettingsControlsScoreboard(CUIRect View);
 	float RenderSettingsControlsStats(CUIRect View);
 	float RenderSettingsControlsMisc(CUIRect View);
+	float RenderSettingsControlsFClient(CUIRect View);
 
 	void DoJoystickAxisPicker(CUIRect View);
 

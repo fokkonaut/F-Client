@@ -31,9 +31,9 @@ endif()
 
 if(POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
-  project(teeworlds VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+  project(F-Client VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 else()
-  project(teeworlds)
+  project(F-Client)
   set(PROJECT_VERSION_MAJOR ${VERSION_MAJOR})
   set(PROJECT_VERSION_MINOR ${VERSION_MINOR})
   set(PROJECT_VERSION_PATCH ${VERSION_PATCH})
@@ -100,7 +100,7 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
 )
 
 set(SERVER_EXECUTABLE teeworlds_srv CACHE STRING "Name of the built server executable")
-set(CLIENT_EXECUTABLE teeworlds CACHE STRING "Name of the build client executable")
+set(CLIENT_EXECUTABLE F-Client CACHE STRING "Name of the build client executable")
 
 ########################################################################
 # Download dependencies
@@ -337,7 +337,7 @@ if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   endif()
 endif()
 
-message(STATUS "******** Teeworlds ********")
+message(STATUS "******** F-Client ********")
 message(STATUS "Target OS: ${TARGET_OS} ${TARGET_BITS}bit")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
@@ -374,10 +374,10 @@ if(NOT(PYTHONINTERP_FOUND))
 endif()
 
 if(CLIENT AND NOT(FREETYPE_FOUND))
-  message(SEND_ERROR "You must install Freetype to compile the Teeworlds client")
+  message(SEND_ERROR "You must install Freetype to compile the F-Client")
 endif()
 if(CLIENT AND NOT(SDL2_FOUND))
-  message(SEND_ERROR "You must install SDL2 to compile the Teeworlds client")
+  message(SEND_ERROR "You must install SDL2 to compile the F-Client")
 endif()
 if(NOT(GTEST_FOUND))
   if(DOWNLOAD_GTEST)
@@ -424,7 +424,7 @@ endif()
 ########################################################################
 
 if(NOT(GTEST_FOUND) AND DOWNLOAD_GTEST)
-  set(TEEWORLDS_GTEST_VERSION release-1.8.1)
+  set(FCLIENT_GTEST_VERSION release-1.8.1)
   configure_file(cmake/Download_GTest_CMakeLists.txt.in googletest-download/CMakeLists.txt)
   execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
     RESULT_VARIABLE result
@@ -1517,9 +1517,9 @@ if(CLIENT)
   if(TARGET_OS STREQUAL "windows")
     set(CLIENT_ICON "other/icons/${CLIENT_EXECUTABLE}.rc")
     if(NOT MINGW)
-      set(CLIENT_MANIFEST "other/manifest/teeworlds.manifest")
+      set(CLIENT_MANIFEST "other/manifest/F-Client.manifest")
     else()
-      set(CLIENT_MANIFEST "other/manifest/teeworlds.rc")
+      set(CLIENT_MANIFEST "other/manifest/F-Client.rc")
     endif()
   else()
     set(CLIENT_ICON)

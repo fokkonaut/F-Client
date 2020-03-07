@@ -382,7 +382,7 @@ void CMenus::InitDefaultFilters()
 	{
 		// put it on top
 		int Pos = m_lFilters.size();
-		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, "Teeworlds", ServerBrowser()));
+		m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, "F-Client", ServerBrowser()));
 		for(; Pos > 0; --Pos)
 			Move(true, Pos);
 	}

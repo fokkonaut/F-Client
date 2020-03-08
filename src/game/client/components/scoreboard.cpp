@@ -792,17 +792,17 @@ void CScoreboard::OnRender()
 			if(m_pClient->m_GameInfo.m_aTeamSize[0] > 48)
 			{
 				ScoreboardHeight = RenderScoreboard(Width/2-w, y, w, -4, 0, -1);
-				RenderScoreboard(Width/2, y, w, -5, 0, 1);
+				RenderScoreboard(Width/2, y, w, -5, 0, -1);
 			}
 			else if(m_pClient->m_GameInfo.m_aTeamSize[0] > 32)
 			{
 				ScoreboardHeight = RenderScoreboard(Width/2-w, y, w, -7, 0, -1);
-				RenderScoreboard(Width/2, y, w, -8, 0, 1);
+				RenderScoreboard(Width/2, y, w, -8, 0, -1);
 			}
 			else if(m_pClient->m_GameInfo.m_aTeamSize[0] > 16)
 			{
 				ScoreboardHeight = RenderScoreboard(Width/2-w, y, w, -6, 0, -1);
-				RenderScoreboard(Width/2, y, w, -3, 0, 1);
+				RenderScoreboard(Width/2, y, w, -3, 0, -1);
 			}
 			else
 			{

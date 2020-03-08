@@ -189,7 +189,7 @@ void CMenus::RenderGame(CUIRect MainView)
 		// disconnect button
 		ButtonRow.VSplitRight(ButtonWidth, &ButtonRow, &Button);
 		static CButtonContainer s_DisconnectButton;
-		if(DoButton_Menu(&s_DisconnectButton, Localize("Disconnect"), 0, &Button))
+		if(!DummyConnecting && DoButton_Menu(&s_DisconnectButton, Localize("Disconnect"), 0, &Button))
 			Client()->Disconnect();
 
 		// dummy button

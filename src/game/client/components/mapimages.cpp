@@ -134,7 +134,7 @@ IGraphics::CTextureHandle CMapImages::GetEntities()
 		
 		if (m_EntitiesTextures.IsValid())
 			Graphics()->UnloadTexture(&m_EntitiesTextures);
-		m_EntitiesTextures = Graphics()->LoadTexture(aPath, IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+		m_EntitiesTextures = Graphics()->LoadTexture(aPath, IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_MULTI_DIMENSION);
 		m_EntitiesIsLoaded = true;
 		m_pEntitiesGameType = pEntities;
 	}

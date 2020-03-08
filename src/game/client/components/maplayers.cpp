@@ -593,7 +593,7 @@ void CMapLayers::OnRender()
 					}
 					else
 					{
-						Graphics()->BlendNormal(); 
+						Graphics()->BlendNormal();
 						RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
 					}
 				}

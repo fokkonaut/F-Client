@@ -226,10 +226,6 @@ int CControls::SnapInput(int *pData)
 		// send at at least 10hz
 		if(time_get() > LastSendTime + time_freq()/25)
 			Send = true;
-
-		// temporary fix for dummy hammer
-		if (Config()->m_ClDummyHammer)
-			Send = true;
 	}
 
 	// copy and return size

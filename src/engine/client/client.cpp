@@ -425,7 +425,7 @@ void CClient::SendInput()
 		int Size = GameClient()->OnSnapInput(m_aInputs[i][m_CurrentInput[i]].m_aData, Dummy, Force);
 
 		if (!Size)
-			return;
+			continue;
 
 		// pack input
 		CMsgPacker Msg(NETMSG_INPUT, true);

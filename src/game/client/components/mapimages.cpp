@@ -118,8 +118,10 @@ IGraphics::CTextureHandle CMapImages::GetEntities()
 	const char *pEntities = "ddnet";
 	if(IsDDNet(&Info))
 		pEntities = "ddnet";
+	// commented out because fokkonaut ported DDNet server to 0.7 and we basically
+	// dont have any old ddrace servers, only the ones that use DDNet entities
 	else if(IsDDRace(&Info))
-		pEntities = "ddrace";
+		pEntities = "ddnet"; // pEntities = "ddrace";
 	else if(IsRace(&Info))
 		pEntities = "race";
 	else if(IsFNG(&Info))

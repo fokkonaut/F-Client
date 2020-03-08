@@ -1547,7 +1547,7 @@ void CGameClient::OnNewSnapshot()
 		m_ServerMode = SERVERMODE_PUREMOD;
 
 	// ex playerinfo
-	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)
+	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != (int)m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)
 	{
 		CMsgPacker Msg(NETMSGTYPE_CL_EXPLAYERINFO, false);
 		Msg.AddInt(m_pControls->m_ShowHookColl[Config()->m_ClDummy]);

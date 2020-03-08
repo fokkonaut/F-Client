@@ -440,7 +440,7 @@ void CMapLayers::OnRender()
 				Render = true;
 			else if(m_Type <= TYPE_BACKGROUND_FORCE)
 			{
-				if(PassedGameLayer)
+				if(PassedGameLayer && (Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK))
 					return;
 				Render = true;
 
@@ -593,7 +593,7 @@ void CMapLayers::OnRender()
 					}
 					else
 					{
-						Graphics()->BlendNormal();
+						Graphics()->BlendNormal(); 
 						RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
 					}
 				}

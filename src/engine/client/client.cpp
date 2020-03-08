@@ -870,7 +870,7 @@ void CClient::Render()
 	}
 	else
 	{
-		/*if (Config()->m_ClOverlayEntities)
+		if (Config()->m_ClOverlayEntities)
 		{
 			vec3 bg = HslToRgb(vec3(Config()->m_ClBackgroundEntitiesHue / 255.0f, Config()->m_ClBackgroundEntitiesSat / 255.0f, Config()->m_ClBackgroundEntitiesLht / 255.0f));
 			Graphics()->Clear(bg.r, bg.g, bg.b);
@@ -879,7 +879,7 @@ void CClient::Render()
 		{
 			vec3 bg = HslToRgb(vec3(Config()->m_ClBackgroundHue / 255.0f, Config()->m_ClBackgroundSat / 255.0f, Config()->m_ClBackgroundLht / 255.0f));
 			Graphics()->Clear(bg.r, bg.g, bg.b);
-		}*/
+		}
 
 		if(Config()->m_GfxClear)
 			Graphics()->Clear(1,1,0);

@@ -1546,18 +1546,18 @@ void CGameClient::OnNewSnapshot()
 	else
 		m_ServerMode = SERVERMODE_PUREMOD;
 
-	static bool s_ShowHookColl[NUM_CLIENTS] = { m_pControls->m_ShowHookColl[CLIENT_MAIN], m_pControls->m_ShowHookColl[CLIENT_DUMMY] };
-	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != s_ShowHookColl[Config()->m_ClDummy])
+	// ex playerinfo
+	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)
 	{
 		CMsgPacker Msg(NETMSGTYPE_CL_EXPLAYERINFO, false);
 		Msg.AddInt(m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
 		Client()->SendMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
-		s_ShowHookColl[Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy];
+		m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim = (bool)m_pControls->m_ShowHookColl[Config()->m_ClDummy];
 
 		if (Config()->m_ClDummyCopyMoves)
 		{
 			Client()->SendMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
-			s_ShowHookColl[!Config()->m_ClDummy] = (m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
+			m_aClients[m_LocalClientID[!Config()->m_ClDummy]].m_Aim = (bool)(m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
 		}
 	}
 }

@@ -193,7 +193,7 @@ void CMenus::RenderGame(CUIRect MainView)
 			Client()->Disconnect();
 
 		// dummy button
-		ButtonRow.VSplitLeft(ButtonWidth, &Button, &ButtonRow);
+		ButtonRow.VSplitLeft(ButtonWidth+20.0f, &Button, &ButtonRow);
 		ButtonRow.VSplitLeft(Spacing, 0, &ButtonRow);
 
 		static CButtonContainer s_DummyButton;
@@ -215,7 +215,7 @@ void CMenus::RenderGame(CUIRect MainView)
 
 		// Record button
 		ButtonRow.VSplitRight(m_pClient->m_GameInfo.m_GameFlags& GAMEFLAG_TEAMS ? Spacing : 50.0f, &ButtonRow, 0);
-		ButtonRow.VSplitRight(m_pClient->m_GameInfo.m_GameFlags& GAMEFLAG_TEAMS ? ButtonWidth - 7.0f : ButtonWidth, &ButtonRow, &Button);
+		ButtonRow.VSplitRight(m_pClient->m_GameInfo.m_GameFlags& GAMEFLAG_TEAMS ? ButtonWidth - 25.0f : ButtonWidth, &ButtonRow, &Button);
 		static CButtonContainer s_DemoButton;
 		bool Recording = DemoRecorder()->IsRecording();
 		if(DoButton_Menu(&s_DemoButton, Localize(Recording ? "Stop record" : "Record"), Recording, &Button))	// Localize("Stop record");Localize("Record");

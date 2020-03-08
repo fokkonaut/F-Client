@@ -1360,6 +1360,7 @@ void CGameClient::OnNewSnapshot()
 				int ClientID = Item.m_ID;
 				if (ClientID < MAX_CLIENTS && m_aClients[ClientID].m_Active)
 				{
+					m_aClients[Item.m_ID].m_Aim = pInfo->m_Flags&EXPLAYERFLAG_AIM;
 					m_aClients[Item.m_ID].m_Afk = pInfo->m_Flags&EXPLAYERFLAG_AFK;
 				}
 			}
@@ -1544,6 +1545,23 @@ void CGameClient::OnNewSnapshot()
 		m_ServerMode = SERVERMODE_PURE;
 	else
 		m_ServerMode = SERVERMODE_PUREMOD;
+
+	static bool s_ShowHookColl[NUM_CLIENTS] = { m_pControls->m_ShowHookColl[CLIENT_MAIN], m_pControls->m_ShowHookColl[CLIENT_DUMMY] };
+	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != s_ShowHookColl[Config()->m_ClDummy])
+	{
+		CMsgPacker Msg(NETMSGTYPE_CL_EXPLAYERINFO, false);
+		Msg.AddInt(m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
+		Client()->SendMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
+		s_ShowHookColl[Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy];
+
+		if (Config()->m_ClDummyCopyMoves)
+		{
+			CMsgPacker Msg(NETMSGTYPE_CL_EXPLAYERINFO, false);
+			Msg.AddInt(m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
+			Client()->SendMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
+			s_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy];
+		}
+	}
 }
 
 void CGameClient::OnDemoRecSnap()
@@ -1829,6 +1847,7 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient, int ClientID)
 	m_Active = false;
 	m_ChatIgnore = false;
 	m_Friend = false;
+	m_Aim = false;
 	m_Afk = false;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{

@@ -139,9 +139,6 @@ int CControls::SnapInput(int *pData)
 	if(m_pClient->m_pScoreboard->IsActive())
 		m_InputData[Config()->m_ClDummy].m_PlayerFlags |= PLAYERFLAG_SCOREBOARD;
 
-	if (m_ShowHookColl[Config()->m_ClDummy])
-		m_InputData[Config()->m_ClDummy].m_PlayerFlags |= PLAYERFLAG_AIM;
-
 	if(m_LastData[Config()->m_ClDummy].m_PlayerFlags != m_InputData[Config()->m_ClDummy].m_PlayerFlags)
 		Send = true;
 

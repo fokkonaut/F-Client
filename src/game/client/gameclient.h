@@ -202,6 +202,7 @@ public:
 		bool m_ChatIgnore;
 		bool m_Friend;
 
+		bool m_Aim;
 		bool m_Afk;
 
 		void UpdateRenderInfo(CGameClient *pGameClient, int ClientID, bool UpdateSkinInfo);

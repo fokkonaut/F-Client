@@ -273,7 +273,7 @@ void CPlayers::RenderPlayer(
 	bool Local = m_pClient->m_LocalClientID[Config()->m_ClDummy] == ClientID;
 
 	// hook collision
-	if(ClientID >= 0 && (Config()->m_ClShowHookCollAlways || (pInfo.m_PlayerFlags&PLAYERFLAG_AIM && ((!Local && Config()->m_ClShowHookCollOther) || (Local && Config()->m_ClShowHookCollOwn)))))
+	if(ClientID >= 0 && (Config()->m_ClShowHookCollAlways || (m_pClient->m_aClients[ClientID].m_Aim && ((!Local && Config()->m_ClShowHookCollOther) || (Local && Config()->m_ClShowHookCollOwn)))))
 	{
 		vec2 ExDirection = Direction;
 
@@ -339,7 +339,7 @@ void CPlayers::RenderPlayer(
 			ExDirection.y = round_to_int(ExDirection.y*256.0f) / 256.0f;
 		} while (!DoBreak);
 
-		if(Config()->m_ClShowHookCollAlways && (pInfo.m_PlayerFlags&PLAYERFLAG_AIM))
+		if(Config()->m_ClShowHookCollAlways && m_pClient->m_aClients[ClientID].m_Aim)
 		{
 			// invert the hook coll colors when using cl_show_hook_coll_always and +showhookcoll is pressed
 			HookCollColor.r = 1.0f - HookCollColor.r;

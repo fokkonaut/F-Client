@@ -477,50 +477,6 @@ void CMapLayers::OnRender()
 				}
 			}
 
-			if((Render || IsGameLayer) && pLayer->m_Type == LAYERTYPE_TILES)
-			{
-				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
-				int DataIndex = 0;
-				unsigned int TileSize = 0;
-				int TileLayerAndOverlayCount = 0;
-				if(IsFrontLayer)
-				{
-					DataIndex = pTMap->m_Front;
-					TileSize = sizeof(CTile);
-					TileLayerAndOverlayCount = 1;
-				}
-				else if(IsSwitchLayer)
-				{
-					DataIndex = pTMap->m_Switch;
-					TileSize = sizeof(CSwitchTile);
-					TileLayerAndOverlayCount = 3;
-				}
-				else if(IsTeleLayer)
-				{
-					DataIndex = pTMap->m_Tele;
-					TileSize = sizeof(CTeleTile);
-					TileLayerAndOverlayCount = 2;
-				}
-				else if(IsSpeedupLayer)
-				{
-					DataIndex = pTMap->m_Speedup;
-					TileSize = sizeof(CSpeedupTile);
-					TileLayerAndOverlayCount = 3;
-				}
-				else if(IsTuneLayer)
-				{
-					DataIndex = pTMap->m_Tune;
-					TileSize = sizeof(CTuneTile);
-					TileLayerAndOverlayCount = 1;
-				}
-				else
-				{
-					DataIndex = pTMap->m_Data;
-					TileSize = sizeof(CTile);
-					TileLayerAndOverlayCount = 1;
-				}
-			}
-
 			// skip rendering if detail layers if not wanted, or is entity layer and we are a background map
 			if((pLayer->m_Flags&LAYERFLAG_DETAIL && !Config()->m_GfxHighDetail && !IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE && IsEntityLayer))
 				continue;

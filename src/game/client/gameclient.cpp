@@ -2107,3 +2107,34 @@ int CGameClient::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2& NewPos2, in
 
 	return ClosestID;
 }
+
+int CGameClient::GetClientIconSprite(int ClientID)
+{
+	for (int Client = 0; Client < 3; Client++)
+	{
+		const char* pClientString = "";
+		int Sprite = -1;
+		switch (Client)
+		{
+		case 0:
+			pClientString = "gamer!";
+			Sprite = SPRITE_GAMERICON;
+			break;
+		case 1:
+			pClientString = "zilly!";
+			Sprite = SPRITE_ZILLYICON;
+			break;
+		case 2:
+			pClientString = "fclient!";
+			Sprite = SPRITE_FCLIENTICON;
+			break;
+		}
+
+		for (int p = 0; p < NUM_SKINPARTS; p++)
+		{
+			if (str_startswith(m_aClients[ClientID].m_aaSkinPartNames[p], pClientString))
+				return Sprite;
+		}
+	}
+	return -1;
+}

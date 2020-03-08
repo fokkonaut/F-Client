@@ -542,44 +542,15 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 			// custom client recognition
 			if(Config()->m_ClClientRecognition)
 			{
-				bool Found = false;
-				for (int Client = 0; Client < 3; Client++)
+				int Sprite = m_pClient->GetClientIconSprite(pInfo->m_ClientID);
+				if (Sprite != -1)
 				{
-					const char* pClientString = "";
-					int Sprite = -1;
-					switch (Client)
-					{
-					case 0:
-						pClientString = "gamer!";
-						Sprite = SPRITE_GAMERICON;
-						break;
-					case 1:
-						pClientString = "zilly!";
-						Sprite = SPRITE_ZILLYICON;
-						break;
-					case 2:
-						pClientString = "fclient!";
-						Sprite = SPRITE_FCLIENTICON;
-						break;
-					}
-
-					for (int p = 0; p < NUM_SKINPARTS; p++)
-					{
-						if (str_find(m_pClient->m_aClients[pInfo->m_ClientID].m_aaSkinPartNames[p], pClientString))
-						{
-							Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CLIENTICONS].m_Id);
-							Graphics()->QuadsBegin();
-							RenderTools()->SelectSprite(Sprite);
-							IGraphics::CQuadItem QuadItem(CountryFlagOffset + 30.0f - 10.0f, y, 10, 10);
-							Graphics()->QuadsDrawTL(&QuadItem, 1);
-							Graphics()->QuadsEnd();
-							Found = true;
-							break;
-						}
-					}
-
-					if (Found)
-						break;
+					Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CLIENTICONS].m_Id);
+					Graphics()->QuadsBegin();
+					RenderTools()->SelectSprite(Sprite);
+					IGraphics::CQuadItem QuadItem(CountryFlagOffset + 30.0f - 10.0f, y, 10, 10);
+					Graphics()->QuadsDrawTL(&QuadItem, 1);
+					Graphics()->QuadsEnd();
 				}
 			}
 

@@ -1557,7 +1557,7 @@ void CGameClient::OnNewSnapshot()
 		if (Config()->m_ClDummyCopyMoves)
 		{
 			Client()->SendMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
-			s_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy];
+			s_ShowHookColl[!Config()->m_ClDummy] = (m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
 		}
 	}
 }

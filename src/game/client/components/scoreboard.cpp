@@ -565,7 +565,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 					for (int p = 0; p < NUM_SKINPARTS; p++)
 					{
-						if (str_startswith(m_pClient->m_aClients[pInfo->m_ClientID].m_aaSkinPartNames[p], pClientString))
+						if (str_find(m_pClient->m_aClients[pInfo->m_ClientID].m_aaSkinPartNames[p], pClientString))
 						{
 							Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CLIENTICONS].m_Id);
 							Graphics()->QuadsBegin();

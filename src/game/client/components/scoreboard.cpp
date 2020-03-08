@@ -169,10 +169,10 @@ float CScoreboard::RenderSpectators(float x, float y, float w)
 			TextRender()->TextEx(&Cursor, aBuf, -1);
 		}
 
-		if(pInfo->m_PlayerFlags&PLAYERFLAG_ADMIN)
+		if(pInfo->m_PlayerFlags&PLAYERFLAG_ADMIN && !(pInfo->m_PlayerFlags & PLAYERFLAG_WATCHING))
 		{
 			vec4 Color = m_pClient->m_pSkins->GetColorV4(Config()->m_ClAuthedPlayerColor, false);
-			TextRender()->TextColor(Color.r, Color.g, (pInfo->m_PlayerFlags & PLAYERFLAG_WATCHING) ? 0.0f : Color.b, Color.a);
+			TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
 		}
 		else
 			TextRender()->TextColor(1.0f, 1.0f, (pInfo->m_PlayerFlags&PLAYERFLAG_WATCHING) ? 0.0f :	 1.0f, 1.0f);
@@ -606,7 +606,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 			// name
 			TextRender()->SetCursor(&Cursor, NameOffset+TeeLength, y+Spacing, FontSize, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
-			if(pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_ADMIN)
+			if(pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_ADMIN && !(pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_WATCHING))
 			{
 				vec4 Color = m_pClient->m_pSkins->GetColorV4(Config()->m_ClAuthedPlayerColor, false);
 				TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);

@@ -2157,6 +2157,12 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 	if(DoButton_CheckBox(&s_ClientRecognition, Localize("Client recognition (scoreboard)"), Config()->m_ClClientRecognition, &Button))
 		Config()->m_ClClientRecognition ^= 1;
 
+	GameRight.HSplitTop(Spacing, 0, &GameRight);
+	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
+	static int s_ShowHookCollAlways = 0;
+	if(DoButton_CheckBox(&s_ShowHookCollAlways, Localize("Show every players' hook collision line"), Config()->m_ClShowHookCollAlways, &Button))
+		Config()->m_ClShowHookCollAlways ^= 1;
+
 	// reset button
 	Spacing = 3.0f;
 	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;

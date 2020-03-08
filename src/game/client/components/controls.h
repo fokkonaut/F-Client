@@ -15,6 +15,7 @@ public:
 	CNetObj_PlayerInput m_LastData[NUM_CLIENTS];
 	int m_InputDirectionLeft[NUM_CLIENTS];
 	int m_InputDirectionRight[NUM_CLIENTS];
+	int m_ShowHookColl[NUM_CLIENTS];
 	int m_LastDummy;
 	int m_OtherFire;
 

@@ -270,6 +270,88 @@ void CPlayers::RenderPlayer(
 		);
 	}
 
+	bool Local = m_pClient->m_LocalClientID[Config()->m_ClDummy] == ClientID;
+
+	// hook collision
+	if(ClientID >= 0 && (Config()->m_ClShowHookCollAlways || (Local && m_pClient->m_pControls->m_ShowHookColl[Config()->m_ClDummy])))
+	{
+		vec2 ExDirection = Direction;
+
+		if(Local && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+			ExDirection = normalize(vec2(m_pClient->m_pControls->m_InputData[Config()->m_ClDummy].m_TargetX, m_pClient->m_pControls->m_InputData[Config()->m_ClDummy].m_TargetY));
+
+		Graphics()->TextureClear();
+		vec2 InitPos = Position;
+		vec2 FinishPos = InitPos + ExDirection * (m_pClient->m_Tuning[Config()->m_ClDummy].m_HookLength-42.0f);
+
+		Graphics()->LinesBegin();
+		vec3 HookCollColor(1.0f, 0.0f, 0.0f);
+
+		float PhysSize = 28.0f;
+
+		vec2 OldPos = InitPos + ExDirection * PhysSize * 1.5f;
+		vec2 NewPos = OldPos;
+
+		bool DoBreak = false;
+		int Hit = 0;
+
+		do {
+			OldPos = NewPos;
+			NewPos = OldPos + ExDirection * m_pClient->m_Tuning[Config()->m_ClDummy].m_HookFireSpeed;
+
+			if(distance(InitPos, NewPos) > m_pClient->m_Tuning[Config()->m_ClDummy].m_HookLength)
+			{
+				NewPos = InitPos + normalize(NewPos-InitPos) * m_pClient->m_Tuning[Config()->m_ClDummy].m_HookLength;
+				DoBreak = true;
+			}
+
+			int TeleNr = 0;
+			Hit = Collision()->IntersectLineTeleHook(OldPos, NewPos, &FinishPos, 0x0, &TeleNr);
+
+			if(!DoBreak && Hit)
+			{
+				if(Hit != TILE_NOHOOK)
+				{
+					HookCollColor.r = 130.0f/255.0f;
+					HookCollColor.g = 232.0f/255.0f;
+					HookCollColor.b = 160.0f/255.0f;
+				}
+			}
+
+			if(m_pClient->IntersectCharacter(OldPos, FinishPos, FinishPos, ClientID) != -1)
+			{
+				HookCollColor.r = 1.0f;
+				HookCollColor.g = 1.0f;
+				HookCollColor.b = 0.0f;
+				break;
+			}
+
+			if(Hit)
+				break;
+
+			NewPos.x = round_to_int(NewPos.x);
+			NewPos.y = round_to_int(NewPos.y);
+
+			if(OldPos == NewPos)
+				break;
+
+			ExDirection.x = round_to_int(ExDirection.x*256.0f) / 256.0f;
+			ExDirection.y = round_to_int(ExDirection.y*256.0f) / 256.0f;
+		} while (!DoBreak);
+
+		if(Local && Config()->m_ClShowHookCollAlways && m_pClient->m_pControls->m_ShowHookColl[Config()->m_ClDummy])
+		{
+			// invert the hook coll colors when using cl_show_hook_coll_always and +showhookcoll is pressed
+			HookCollColor.r = 1.0f - HookCollColor.r;
+			HookCollColor.g = 1.0f - HookCollColor.g;
+			HookCollColor.b = 1.0f - HookCollColor.b;
+		}
+		Graphics()->SetColor(HookCollColor.r, HookCollColor.g, HookCollColor.b, 1.0f);
+		IGraphics::CLineItem LineItem(InitPos.x, InitPos.y, FinishPos.x, FinishPos.y);
+		Graphics()->LinesDraw(&LineItem, 1);
+		Graphics()->LinesEnd();
+	}
+
 	// draw gun
 	{
 		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);

@@ -2036,3 +2036,47 @@ IGameClient *CreateGameClient()
 {
 	return new CGameClient();
 }
+
+int CGameClient::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2& NewPos2, int OwnID)
+{
+	float PhysSize = 28.0f;
+	float Distance = 0.0f;
+	int ClosestID = -1;
+
+	CClientData OwnClientData = m_aClients[OwnID];
+
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if(i == OwnID)
+			continue;
+
+		CClientData cData = m_aClients[i];
+
+		if(!cData.m_Active)
+			continue;
+
+		CNetObj_Character Prev = m_Snap.m_aCharacters[i].m_Prev;
+		CNetObj_Character Player = m_Snap.m_aCharacters[i].m_Cur;
+
+		vec2 Position = mix(vec2(Prev.m_X, Prev.m_Y), vec2(Player.m_X, Player.m_Y), Client()->IntraGameTick());
+
+		/*bool IsOneSuper = cData.m_Super || OwnClientData.m_Super;
+		bool IsOneSolo = cData.m_Solo || OwnClientData.m_Solo;
+
+		if(!IsOneSuper && (!m_Teams.SameTeam(i, OwnID) || IsOneSolo || OwnClientData.m_NoHookHit))
+			continue;*/
+
+		vec2 ClosestPoint = closest_point_on_line(HookPos, NewPos, Position);
+		if(distance(Position, ClosestPoint) < PhysSize + 2.0f)
+		{
+			if(ClosestID == -1 || distance(HookPos, Position) < Distance)
+			{
+				NewPos2 = ClosestPoint;
+				ClosestID = i;
+				Distance = distance(HookPos, Position);
+			}
+		}
+	}
+
+	return ClosestID;
+}

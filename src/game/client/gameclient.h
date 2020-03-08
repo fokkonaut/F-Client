@@ -318,6 +318,8 @@ public:
 	CNetObj_PlayerInput m_DummyInput;
 	CNetObj_PlayerInput m_HammerInput;
 	int m_DummyFire;
+
+	int IntersectCharacter(vec2 Pos0, vec2 Pos1, vec2& NewPos, int OwnID);
 };
 
 

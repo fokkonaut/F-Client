@@ -60,6 +60,7 @@ static CKeyInfo gs_aKeys[] =
 	{ "Zoom in", "zoom+", 0, 0 },
 	{ "Zoom out", "zoom-", 0, 0 },
 	{ "Default zoom", "zoom", 0, 0 },
+	{ "Hook collisions", "+showhookcoll", 0, 0 },
 };
 
 /*	This is for scripts/update_localization.py to work, don't remove!
@@ -374,7 +375,7 @@ float CMenus::RenderSettingsControlsFClient(CUIRect View)
 {
 	UpdateBindKeys(m_pClient->m_pBinds);
 
-	int NumOptions = 6;
+	int NumOptions = 7;
 	int StartOption = 32;
 	float ButtonHeight = 20.0f;
 	float Spaceing = 2.0f;

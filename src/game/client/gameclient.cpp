@@ -1556,8 +1556,6 @@ void CGameClient::OnNewSnapshot()
 
 		if (Config()->m_ClDummyCopyMoves)
 		{
-			CMsgPacker Msg(NETMSGTYPE_CL_EXPLAYERINFO, false);
-			Msg.AddInt(m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
 			Client()->SendMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
 			s_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy];
 		}

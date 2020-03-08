@@ -187,11 +187,15 @@ void CCharacterCore::Tick(bool UseInput)
 		// make sure that the hook doesn't go though the ground
 		bool GoingToHitGround = false;
 		bool GoingToRetract = false;
-		int Hit = m_pCollision->IntersectLine(m_HookPos, NewPos, &NewPos, 0);
+		bool GoingThroughTele = false;
+		int teleNr = 0;
+		int Hit = m_pCollision->IntersectLineTeleHook(m_HookPos, NewPos, &NewPos, 0, &teleNr);
 		if(Hit)
 		{
 			if(Hit == TILE_NOHOOK)
 				GoingToRetract = true;
+			else if (Hit == TILE_TELEINHOOK)
+				GoingThroughTele = true;
 			else
 				GoingToHitGround = true;
 		}

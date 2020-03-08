@@ -9,6 +9,8 @@
 #include <game/mapitems.h>
 #include "ui.h"
 
+#include <engine/textrender.h>
+
 
 // sprite renderings
 enum
@@ -83,7 +85,10 @@ public:
 	// map render methods (gc_render_map.cpp)
 	static void RenderEvalEnvelope(CEnvPoint *pPoints, int NumPoints, int Channels, float Time, float *pResult);
 	void RenderQuads(CQuad *pQuads, int NumQuads, int Flags, ENVELOPE_EVAL pfnEval, void *pUser);
+	void ForceRenderQuads(CQuad *pQuads, int NumQuads, int Flags, ENVELOPE_EVAL pfnEval, void *pUser, float Alpha = 1.0f);
 	void RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 Color, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset);
+
+	void RenderTileRectangle(int RectX, int RectY, int RectW, int RectH, unsigned char IndexIn, unsigned char IndexOut, float Scale, vec4 Color, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset);
 
 	// helpers
 	void MapScreenToWorld(float CenterX, float CenterY, float ParallaxX, float ParallaxY,
@@ -93,6 +98,15 @@ public:
 	void DrawClientID(ITextRender* pTextRender, CTextCursor* pCursor, int ID,
 					  const vec4& BgColor = vec4(1, 1, 1, 0.5f), const vec4& TextColor = vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	float GetClientIdRectSize(float FontSize);
+
+	void RenderTeleOverlay(CTeleTile *pTele, int w, int h, float Scale, float Alpha=1.0f);
+	void RenderSpeedupOverlay(CSpeedupTile *pTele, int w, int h, float Scale, float Alpha=1.0f);
+	void RenderSwitchOverlay(CSwitchTile *pSwitch, int w, int h, float Scale, float Alpha=1.0f);
+	void RenderTuneOverlay(CTuneTile *pTune, int w, int h, float Scale, float Alpha=1.0f);
+	void RenderTelemap(CTeleTile *pTele, int w, int h, float Scale, vec4 Color, int RenderFlags);
+	void RenderSpeedupmap(CSpeedupTile *pTele, int w, int h, float Scale, vec4 Color, int RenderFlags);
+	void RenderSwitchmap(CSwitchTile *pSwitch, int w, int h, float Scale, vec4 Color, int RenderFlags);
+	void RenderTunemap(CTuneTile *pTune, int w, int h, float Scale, vec4 Color, int RenderFlags);
 };
 
 #endif

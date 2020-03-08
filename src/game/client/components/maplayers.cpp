@@ -13,6 +13,7 @@
 #include <game/client/gameclient.h>
 #include <game/client/component.h>
 #include <game/client/render.h>
+#include <game/client/components/mapimages.h>
 
 #include "camera.h"
 #include "mapimages.h"
@@ -407,100 +408,284 @@ void CMapLayers::OnRender()
 			CMapItemLayer *pLayer = pLayers->GetLayer(pGroup->m_StartLayer+l);
 			bool Render = false;
 			bool IsGameLayer = false;
+			bool IsFrontLayer = false;
+			bool IsSwitchLayer = false;
+			bool IsTeleLayer = false;
+			bool IsSpeedupLayer = false;
+			bool IsTuneLayer = false;
+			bool IsEntityLayer = false;
 
 			if(pLayer == (CMapItemLayer*)pLayers->GameLayer())
 			{
-				IsGameLayer = true;
+				IsEntityLayer = IsGameLayer = true;
 				PassedGameLayer = true;
 			}
 
+			if(pLayer == (CMapItemLayer*)pLayers->FrontLayer())
+				IsEntityLayer = IsFrontLayer = true;
+
+			if(pLayer == (CMapItemLayer*)pLayers->SwitchLayer())
+				IsEntityLayer = IsSwitchLayer = true;
+
+			if(pLayer == (CMapItemLayer*)pLayers->TeleLayer())
+				IsEntityLayer = IsTeleLayer = true;
+
+			if(pLayer == (CMapItemLayer*)pLayers->SpeedupLayer())
+				IsEntityLayer = IsSpeedupLayer = true;
+
+			if(pLayer == (CMapItemLayer*)pLayers->TuneLayer())
+				IsEntityLayer = IsTuneLayer = true;
+
 			if(m_Type == -1)
 				Render = true;
-			else if(m_Type == 0)
+			else if(m_Type <= TYPE_BACKGROUND_FORCE)
 			{
-				if(PassedGameLayer && (Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK))
+				if(PassedGameLayer)
 					return;
 				Render = true;
+
+				if(m_Type == TYPE_BACKGROUND_FORCE)
+				{
+					if(pLayer->m_Type == LAYERTYPE_TILES && !Config()->m_ClBackgroundShowTilesLayers)
+						continue;
+				}
 			}
-			else
+			else // TYPE_FOREGROUND
 			{
 				if(PassedGameLayer && !IsGameLayer)
 					Render = true;
 			}
 
-			if(!Render)
+			if(Render && pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_KP_0))
+			{
+				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+				CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
+				CServerInfo CurrentServerInfo;
+				Client()->GetServerInfo(&CurrentServerInfo);
+				char aFilename[256];
+				str_format(aFilename, sizeof(aFilename), "dumps/tilelayer_dump_%s-%d-%d-%dx%d.txt", CurrentServerInfo.m_aMap, g, l, pTMap->m_Width, pTMap->m_Height);
+				IOHANDLE File = Storage()->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
+				if(File)
+				{
+					for(int y = 0; y < pTMap->m_Height; y++)
+					{
+						for(int x = 0; x < pTMap->m_Width; x++)
+							io_write(File, &(pTiles[y*pTMap->m_Width + x].m_Index), sizeof(pTiles[y*pTMap->m_Width + x].m_Index));
+						io_write_newline(File);
+					}
+					io_close(File);
+				}
+			}
+
+			if((Render || IsGameLayer) && pLayer->m_Type == LAYERTYPE_TILES)
+			{
+				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+				int DataIndex = 0;
+				unsigned int TileSize = 0;
+				int TileLayerAndOverlayCount = 0;
+				if(IsFrontLayer)
+				{
+					DataIndex = pTMap->m_Front;
+					TileSize = sizeof(CTile);
+					TileLayerAndOverlayCount = 1;
+				}
+				else if(IsSwitchLayer)
+				{
+					DataIndex = pTMap->m_Switch;
+					TileSize = sizeof(CSwitchTile);
+					TileLayerAndOverlayCount = 3;
+				}
+				else if(IsTeleLayer)
+				{
+					DataIndex = pTMap->m_Tele;
+					TileSize = sizeof(CTeleTile);
+					TileLayerAndOverlayCount = 2;
+				}
+				else if(IsSpeedupLayer)
+				{
+					DataIndex = pTMap->m_Speedup;
+					TileSize = sizeof(CSpeedupTile);
+					TileLayerAndOverlayCount = 3;
+				}
+				else if(IsTuneLayer)
+				{
+					DataIndex = pTMap->m_Tune;
+					TileSize = sizeof(CTuneTile);
+					TileLayerAndOverlayCount = 1;
+				}
+				else
+				{
+					DataIndex = pTMap->m_Data;
+					TileSize = sizeof(CTile);
+					TileLayerAndOverlayCount = 1;
+				}
+			}
+
+			// skip rendering if detail layers if not wanted, or is entity layer and we are a background map
+			if((pLayer->m_Flags&LAYERFLAG_DETAIL && !Config()->m_GfxHighDetail && !IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE && IsEntityLayer))
 				continue;
 
-			// skip rendering if detail layers is not wanted
-			if(!(pLayer->m_Flags&LAYERFLAG_DETAIL && !Config()->m_GfxHighDetail && !IsGameLayer && (Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK)))
+			if((Render && Config()->m_ClOverlayEntities < 100 && !IsGameLayer && !IsFrontLayer && !IsSwitchLayer && !IsTeleLayer && !IsSpeedupLayer && !IsTuneLayer) || (Config()->m_ClOverlayEntities && IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE))
 			{
-				if(pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_KP_0))
+				if(pLayer->m_Type == LAYERTYPE_TILES)
 				{
 					CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
-					CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
-					CServerInfo CurrentServerInfo;
-					Client()->GetServerInfo(&CurrentServerInfo);
-					char aFilename[256];
-					str_format(aFilename, sizeof(aFilename), "dumps/tilelayer_dump_%s-%d-%d-%dx%d.txt", CurrentServerInfo.m_aMap, g, l, pTMap->m_Width, pTMap->m_Height);
-					IOHANDLE File = Storage()->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
-					if(File)
+					if(pTMap->m_Image == -1)
 					{
-						for(int y = 0; y < pTMap->m_Height; y++)
-						{
-							for(int x = 0; x < pTMap->m_Width; x++)
-								io_write(File, &(pTiles[y*pTMap->m_Width + x].m_Index), sizeof(pTiles[y*pTMap->m_Width + x].m_Index));
-							io_write_newline(File);
-						}
-						io_close(File);
-					}
-				}
-
-				if(!IsGameLayer)
-				{
-					if(pLayer->m_Type == LAYERTYPE_TILES)
-					{
-						CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
-						if(pTMap->m_Image == -1)
+						if(!IsGameLayer)
 							Graphics()->TextureClear();
 						else
-							Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
+							Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
+					}
+					else
+						Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
 
-						CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
-						Graphics()->BlendNone();
+					CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
+					unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Data);
+
+					if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTile))
+					{
 						vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f);
+						if(IsGameLayer && Config()->m_ClOverlayEntities)
+							Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
+						else if(!IsGameLayer && Config()->m_ClOverlayEntities && !(m_Type == TYPE_BACKGROUND_FORCE))
+							Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*(100-Config()->m_ClOverlayEntities)/100.0f);
+
+						Graphics()->BlendNone();
 						RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE,
 														EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
+
 						Graphics()->BlendNormal();
+
+						// draw kill tiles outside the entity clipping rectangle
+						if(IsGameLayer)
+						{
+							// slow blinking to hint that it's not a part of the map
+							double Seconds = time_get()/(double)time_freq();
+							vec4 ColorHint = vec4(1.0f, 1.0f, 1.0f, 0.3f + 0.7f*(1.0f+sin(2.0f*pi*Seconds/3.f))/2.0f);
+
+							RenderTools()->RenderTileRectangle(-201, -201, pTMap->m_Width+402, pTMap->m_Height+402,
+																0, TILE_DEATH, // display air inside, death outside
+																32.0f, Color*ColorHint, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT,
+																EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
+						}
+
 						RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT,
 														EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
 					}
-					else if(pLayer->m_Type == LAYERTYPE_QUADS)
+				}
+				else if(pLayer->m_Type == LAYERTYPE_QUADS)
+				{
+					CMapItemLayerQuads *pQLayer = (CMapItemLayerQuads *)pLayer;
+					if(pQLayer->m_Image == -1)
+						Graphics()->TextureClear();
+					else
+						Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pQLayer->m_Image));
+
+					CQuad *pQuads = (CQuad *)pLayers->Map()->GetDataSwapped(pQLayer->m_Data);
+					if(m_Type == TYPE_BACKGROUND_FORCE)
 					{
-						CMapItemLayerQuads *pQLayer = (CMapItemLayerQuads *)pLayer;
-						if(pQLayer->m_Image == -1)
-							Graphics()->TextureClear();
-						else
-							Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pQLayer->m_Image));
-
-						CQuad *pQuads = (CQuad *)pLayers->Map()->GetDataSwapped(pQLayer->m_Data);
-
-						//Graphics()->BlendNone();
-						//RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_OPAQUE, EnvelopeEval, this);
+						if(Config()->m_ClShowQuads)
+						{
+							Graphics()->BlendNormal();
+							RenderTools()->ForceRenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, 1.f);
+						}
+					}
+					else
+					{
 						Graphics()->BlendNormal();
 						RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
 					}
 				}
 			}
-
-			// eggs
-			if(m_pClient->IsEaster())
+			else if(Render && Config()->m_ClOverlayEntities && IsFrontLayer)
 			{
-				CMapItemLayer *pNextLayer = pLayers->GetLayer(pGroup->m_StartLayer+l+1);
-				if(m_pEggTiles && (l+1) < pGroup->m_NumLayers && pNextLayer == (CMapItemLayer*)pLayers->GameLayer())
+				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
+
+				CTile *pFrontTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Front);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Front);
+
+				if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTile))
 				{
-					Graphics()->TextureSet(m_pClient->m_pMapimages->GetEasterTexture());
+					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
+					Graphics()->BlendNone();
+					RenderTools()->RenderTilemap(pFrontTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE,
+							EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
 					Graphics()->BlendNormal();
-					RenderTools()->RenderTilemap(m_pEggTiles, m_EggLayerWidth, m_EggLayerHeight, 32.0f, vec4(1,1,1,1), LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, -1, 0);
+					RenderTools()->RenderTilemap(pFrontTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT,
+							EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);
+				}
+			}
+			else if(Render && Config()->m_ClOverlayEntities && IsSwitchLayer)
+			{
+				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
+
+				CSwitchTile *pSwitchTiles = (CSwitchTile *)pLayers->Map()->GetData(pTMap->m_Switch);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Switch);
+
+				if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CSwitchTile))
+				{
+					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
+					Graphics()->BlendNone();
+					RenderTools()->RenderSwitchmap(pSwitchTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE);
+					Graphics()->BlendNormal();
+					RenderTools()->RenderSwitchmap(pSwitchTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT);
+					RenderTools()->RenderSwitchOverlay(pSwitchTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Config()->m_ClOverlayEntities/100.0f);
+				}
+			}
+			else if(Render && Config()->m_ClOverlayEntities && IsTeleLayer)
+			{
+				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
+
+				CTeleTile *pTeleTiles = (CTeleTile *)pLayers->Map()->GetData(pTMap->m_Tele);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Tele);
+
+				if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTeleTile))
+				{
+					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
+					Graphics()->BlendNone();
+					RenderTools()->RenderTelemap(pTeleTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE);
+					Graphics()->BlendNormal();
+					RenderTools()->RenderTelemap(pTeleTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT);
+					RenderTools()->RenderTeleOverlay(pTeleTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Config()->m_ClOverlayEntities/100.0f);
+				}
+			}
+			else if(Render && Config()->m_ClOverlayEntities && IsSpeedupLayer)
+			{
+				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
+
+				CSpeedupTile *pSpeedupTiles = (CSpeedupTile *)pLayers->Map()->GetData(pTMap->m_Speedup);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Speedup);
+
+				if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CSpeedupTile))
+				{
+					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
+					Graphics()->BlendNone();
+					RenderTools()->RenderSpeedupmap(pSpeedupTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE);
+					Graphics()->BlendNormal();
+					RenderTools()->RenderSpeedupmap(pSpeedupTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT);
+					RenderTools()->RenderSpeedupOverlay(pSpeedupTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Config()->m_ClOverlayEntities/100.0f);
+				}
+			}
+			else if(Render && Config()->m_ClOverlayEntities && IsTuneLayer)
+			{
+				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
+				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
+
+				CTuneTile *pTuneTiles = (CTuneTile *)pLayers->Map()->GetData(pTMap->m_Tune);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Tune);
+
+				if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTuneTile))
+				{
+					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
+					Graphics()->BlendNone();
+					RenderTools()->RenderTunemap(pTuneTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE);
+					Graphics()->BlendNormal();
+					RenderTools()->RenderTunemap(pTuneTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_TRANSPARENT);
 				}
 			}
 		}

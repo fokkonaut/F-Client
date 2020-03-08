@@ -46,6 +46,8 @@
 #include "serverbrowser.h"
 #include "client.h"
 
+#include <base/color.h>
+
 #if defined(CONF_FAMILY_WINDOWS)
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
@@ -868,6 +870,17 @@ void CClient::Render()
 	}
 	else
 	{
+		/*if (Config()->m_ClOverlayEntities)
+		{
+			vec3 bg = HslToRgb(vec3(Config()->m_ClBackgroundEntitiesHue / 255.0f, Config()->m_ClBackgroundEntitiesSat / 255.0f, Config()->m_ClBackgroundEntitiesLht / 255.0f));
+			Graphics()->Clear(bg.r, bg.g, bg.b);
+		}
+		else
+		{
+			vec3 bg = HslToRgb(vec3(Config()->m_ClBackgroundHue / 255.0f, Config()->m_ClBackgroundSat / 255.0f, Config()->m_ClBackgroundLht / 255.0f));
+			Graphics()->Clear(bg.r, bg.g, bg.b);
+		}*/
+
 		if(Config()->m_GfxClear)
 			Graphics()->Clear(1,1,0);
 		GameClient()->OnRender();

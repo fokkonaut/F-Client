@@ -7,6 +7,9 @@
 
 #include "render.h"
 
+#include <generated/client_data.h>
+#include <engine/shared/config.h>
+
 void ValidateFCurve(const vec2& p0, vec2& p1, vec2& p2, const vec2& p3)
 {
 	// validate the bezier curve
@@ -226,6 +229,14 @@ static void Rotate(CPoint *pCenter, CPoint *pPoint, float Rotation)
 
 void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser)
 {
+	if(!m_pConfig->m_ClShowQuads || m_pConfig->m_ClOverlayEntities == 100)
+		return;
+
+	ForceRenderQuads(pQuads, NumQuads, RenderFlags, pfnEval, pUser, (100-m_pConfig->m_ClOverlayEntities)/100.0f);
+}
+
+void CRenderTools::ForceRenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser, float Alpha)
+{
 	Graphics()->QuadsBegin();
 	float Conv = 1/255.0f;
 	for(int i = 0; i < NumQuads; i++)
@@ -296,10 +307,10 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 		}
 
 		IGraphics::CColorVertex Array[4] = {
-			IGraphics::CColorVertex(0, q->m_aColors[0].r*Conv*r*q->m_aColors[0].a*Conv*a, q->m_aColors[0].g*Conv*g*q->m_aColors[0].a*Conv*a, q->m_aColors[0].b*Conv*b*q->m_aColors[0].a*Conv*a, q->m_aColors[0].a*Conv*a),
-			IGraphics::CColorVertex(1, q->m_aColors[1].r*Conv*r*q->m_aColors[1].a*Conv*a, q->m_aColors[1].g*Conv*g*q->m_aColors[1].a*Conv*a, q->m_aColors[1].b*Conv*b*q->m_aColors[1].a*Conv*a, q->m_aColors[1].a*Conv*a),
-			IGraphics::CColorVertex(2, q->m_aColors[2].r*Conv*r*q->m_aColors[2].a*Conv*a, q->m_aColors[2].g*Conv*g*q->m_aColors[2].a*Conv*a, q->m_aColors[2].b*Conv*b*q->m_aColors[2].a*Conv*a, q->m_aColors[2].a*Conv*a),
-			IGraphics::CColorVertex(3, q->m_aColors[3].r*Conv*r*q->m_aColors[3].a*Conv*a, q->m_aColors[3].g*Conv*g*q->m_aColors[3].a*Conv*a, q->m_aColors[3].b*Conv*b*q->m_aColors[3].a*Conv*a, q->m_aColors[3].a*Conv*a)};
+			IGraphics::CColorVertex(0, q->m_aColors[0].r*Conv*r*q->m_aColors[0].a*Conv*a, q->m_aColors[0].g*Conv*g*q->m_aColors[0].a*Conv*a, q->m_aColors[0].b*Conv*b*q->m_aColors[0].a*Conv*a, q->m_aColors[0].a*Conv*a*Alpha),
+			IGraphics::CColorVertex(1, q->m_aColors[1].r*Conv*r*q->m_aColors[1].a*Conv*a, q->m_aColors[1].g*Conv*g*q->m_aColors[1].a*Conv*a, q->m_aColors[1].b*Conv*b*q->m_aColors[1].a*Conv*a, q->m_aColors[1].a*Conv*a*Alpha),
+			IGraphics::CColorVertex(2, q->m_aColors[2].r*Conv*r*q->m_aColors[2].a*Conv*a, q->m_aColors[2].g*Conv*g*q->m_aColors[2].a*Conv*a, q->m_aColors[2].b*Conv*b*q->m_aColors[2].a*Conv*a, q->m_aColors[2].a*Conv*a*Alpha),
+			IGraphics::CColorVertex(3, q->m_aColors[3].r*Conv*r*q->m_aColors[3].a*Conv*a, q->m_aColors[3].g*Conv*g*q->m_aColors[3].a*Conv*a, q->m_aColors[3].b*Conv*b*q->m_aColors[3].a*Conv*a, q->m_aColors[3].a*Conv*a*Alpha)};
 		Graphics()->SetColorVertex(Array, 4);
 
 		CPoint *pPoints = q->m_aPoints;
@@ -328,6 +339,84 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 	}
 	Graphics()->QuadsEnd();
 	Graphics()->WrapNormal();
+}
+
+void CRenderTools::RenderTileRectangle(int RectX, int RectY, int RectW, int RectH,
+                                       unsigned char IndexIn, unsigned char IndexOut,
+                                       float Scale, vec4 Color, int RenderFlags,
+                                       ENVELOPE_EVAL pfnEval, void *pUser, int ColorEnv, int ColorEnvOffset)
+{
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	// calculate the final pixelsize for the tiles
+	float TilePixelSize = 1024/32.0f;
+	float FinalTileSize = Scale/(ScreenX1-ScreenX0) * Graphics()->ScreenWidth();
+	float FinalTilesetScale = FinalTileSize/TilePixelSize;
+
+	float r=1, g=1, b=1, a=1;
+	if(ColorEnv >= 0)
+	{
+		float aChannels[4];
+		pfnEval(ColorEnvOffset/1000.0f, ColorEnv, aChannels, pUser);
+		r = aChannels[0];
+		g = aChannels[1];
+		b = aChannels[2];
+		a = aChannels[3];
+	}
+
+	Graphics()->QuadsBegin();
+	Graphics()->SetColor(Color.r*r, Color.g*g, Color.b*b, Color.a*a);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	// adjust the texture shift according to mipmap level
+	float TexSize = 1024.0f;
+	float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
+	float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
+
+	for(int y = StartY; y < EndY; y++)
+	{
+		for(int x = StartX; x < EndX; x++)
+		{
+			unsigned char Index = (x>=RectX && x<RectX+RectW && y>=RectY && y<RectY+RectH) ? IndexIn : IndexOut;
+			if(Index)
+			{
+				bool Render = false;
+				if(RenderFlags&LAYERRENDERFLAG_TRANSPARENT)
+					Render = true;
+
+				if(Render)
+				{
+					int tx = Index%16;
+					int ty = Index/16;
+					int Px0 = tx*(1024/16);
+					int Py0 = ty*(1024/16);
+					int Px1 = Px0+(1024/16)-1;
+					int Py1 = Py0+(1024/16)-1;
+
+					float x0 = Nudge + Px0/TexSize+Frac;
+					float y0 = Nudge + Py0/TexSize+Frac;
+					float x1 = Nudge + Px1/TexSize-Frac;
+					float y1 = Nudge + Py0/TexSize+Frac;
+					float x2 = Nudge + Px1/TexSize-Frac;
+					float y2 = Nudge + Py1/TexSize-Frac;
+					float x3 = Nudge + Px0/TexSize+Frac;
+					float y3 = Nudge + Py1/TexSize-Frac;
+
+					Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+					Graphics()->QuadsDrawTL(&QuadItem, 1);
+				}
+			}
+		}
+	}
+
+	Graphics()->QuadsEnd();
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
 }
 
 void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 Color, int RenderFlags,
@@ -451,6 +540,652 @@ void CRenderTools::RenderTilemap(CTile *pTiles, int w, int h, float Scale, vec4 
 				}
 			}
 			x += pTiles[c].m_Skip;
+		}
+
+	Graphics()->QuadsEnd();
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderTeleOverlay(CTeleTile *pTele, int w, int h, float Scale, float Alpha)
+{
+	if(!m_pConfig->m_ClTextEntities)
+	  return;
+
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	if(EndX - StartX > Graphics()->ScreenWidth() / m_pConfig->m_GfxTextOverlay || EndY - StartY > Graphics()->ScreenHeight() / m_pConfig->m_GfxTextOverlay)
+		return; // its useless to render text at this distance
+
+	float Size = m_pConfig->m_ClTextEntitiesSize/100.f;
+	float ToCenterOffset = (1-Size)/2.f;
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+
+			if(mx<0)
+				continue; // mx = 0;
+			if(mx>=w)
+				continue; // mx = w-1;
+			if(my<0)
+				continue; // my = 0;
+			if(my>=h)
+				continue; // my = h-1;
+
+			int c = mx + my*w;
+
+			unsigned char Index = pTele[c].m_Number;
+			if(Index && pTele[c].m_Type != TILE_TELECHECKIN && pTele[c].m_Type != TILE_TELECHECKINEVIL)
+			{
+				char aBuf[16];
+				str_format(aBuf, sizeof(aBuf), "%d", Index);
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				UI()->TextRender()->Text(0, mx*Scale - 3.f, (my+ToCenterOffset)*Scale, Size*Scale, aBuf, -1);
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderSpeedupOverlay(CSpeedupTile *pSpeedup, int w, int h, float Scale, float Alpha)
+{
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	if(EndX - StartX > Graphics()->ScreenWidth() / m_pConfig->m_GfxTextOverlay || EndY - StartY > Graphics()->ScreenHeight() / m_pConfig->m_GfxTextOverlay)
+		return; // its useless to render text at this distance
+
+	float Size = m_pConfig->m_ClTextEntitiesSize / 100.f;
+	float ToCenterOffset = (1-Size)/2.f;
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+			if(mx<0)
+				continue; // mx = 0;
+			if(mx>=w)
+				continue; // mx = w-1;
+			if(my<0)
+				continue; // my = 0;
+			if(my>=h)
+				continue; // my = h-1;
+
+			int c = mx + my*w;
+
+			int Force = (int)pSpeedup[c].m_Force;
+			int MaxSpeed = (int)pSpeedup[c].m_MaxSpeed;
+			if(Force)
+			{
+				// draw arrow
+				Graphics()->TextureSet(g_pData->m_aImages[IMAGE_SPEEDUP_ARROW].m_Id);
+				Graphics()->QuadsBegin();
+				Graphics()->SetColor(255.0f, 255.0f, 255.0f, Alpha);
+
+				SelectSprite(SPRITE_SPEEDUP_ARROW);
+				Graphics()->QuadsSetRotation(pSpeedup[c].m_Angle*(3.14159265f/180.0f));
+				DrawSprite(mx*Scale+16, my*Scale+16, 35.0f);
+
+				Graphics()->QuadsEnd();
+
+				if(m_pConfig->m_ClTextEntities)
+				{
+					// draw force
+					char aBuf[16];
+					str_format(aBuf, sizeof(aBuf), "%d", Force);
+					UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+					UI()->TextRender()->Text(0, mx*Scale, (my+0.5f+ToCenterOffset/2)*Scale, Size*Scale/2.f, aBuf, -1);
+					UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+					if(MaxSpeed)
+					{
+						str_format(aBuf, sizeof(aBuf), "%d", MaxSpeed);
+						UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+						UI()->TextRender()->Text(0, mx*Scale, (my+ToCenterOffset/2)*Scale, Size*Scale/2.f, aBuf, -1);
+						UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+					}
+				}
+			}
+		}
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderSwitchOverlay(CSwitchTile *pSwitch, int w, int h, float Scale, float Alpha)
+{
+	if(!m_pConfig->m_ClTextEntities)
+	  return;
+
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	if(EndX - StartX > Graphics()->ScreenWidth() / m_pConfig->m_GfxTextOverlay || EndY - StartY > Graphics()->ScreenHeight() / m_pConfig->m_GfxTextOverlay)
+		return; // its useless to render text at this distance
+
+	float Size = m_pConfig->m_ClTextEntitiesSize/100.f;
+	float ToCenterOffset = (1-Size)/2.f;
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+
+			if(mx<0)
+				continue; // mx = 0;
+			if(mx>=w)
+				continue; // mx = w-1;
+			if(my<0)
+				continue; // my = 0;
+			if(my>=h)
+				continue; // my = h-1;
+
+			int c = mx + my*w;
+
+			unsigned char Index = pSwitch[c].m_Number;
+			if(Index)
+			{
+				char aBuf[16];
+				str_format(aBuf, sizeof(aBuf), "%d", Index);
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				UI()->TextRender()->Text(0, mx*Scale, (my+ToCenterOffset/2)*Scale, Size*Scale/2.f, aBuf, -1);
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+
+			unsigned char Delay = pSwitch[c].m_Delay;
+			if(Delay)
+			{
+				char aBuf[16];
+				str_format(aBuf, sizeof(aBuf), "%d", Delay);
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				UI()->TextRender()->Text(0, mx*Scale, (my+0.5f+ToCenterOffset/2)* Scale, Size*Scale/2.f, aBuf, -1);
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderTuneOverlay(CTuneTile *pTune, int w, int h, float Scale, float Alpha)
+{
+	if(!m_pConfig->m_ClTextEntities)
+	  return;
+
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	if(EndX - StartX > Graphics()->ScreenWidth() / m_pConfig->m_GfxTextOverlay || EndY - StartY > Graphics()->ScreenHeight() / m_pConfig->m_GfxTextOverlay)
+		return; // its useless to render text at this distance
+
+	float Size = m_pConfig->m_ClTextEntitiesSize/100.f;
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+
+			if(mx<0)
+				continue; // mx = 0;
+			if(mx>=w)
+				continue; // mx = w-1;
+			if(my<0)
+				continue; // my = 0;
+			if(my>=h)
+				continue; // my = h-1;
+
+			int c = mx + my*w;
+
+			unsigned char Index = pTune[c].m_Number;
+			if(Index)
+			{
+				char aBuf[16];
+				str_format(aBuf, sizeof(aBuf), "%d", Index);
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				UI()->TextRender()->Text(0, mx*Scale+11.f, my*Scale+6.f, Size*Scale/1.5f-5.f, aBuf, -1); // numbers shouldn't be too big and in the center of the tile
+				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderTelemap(CTeleTile *pTele, int w, int h, float Scale, vec4 Color, int RenderFlags)
+{
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	// calculate the final pixelsize for the tiles
+	float TilePixelSize = 1024/32.0f;
+	float FinalTileSize = Scale/(ScreenX1-ScreenX0) * Graphics()->ScreenWidth();
+	float FinalTilesetScale = FinalTileSize/TilePixelSize;
+
+	Graphics()->QuadsBegin();
+	const float Alpha = Color.a;
+	Graphics()->SetColor(Color.r*Alpha, Color.g*Alpha, Color.b*Alpha, Alpha);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	// adjust the texture shift according to mipmap level
+	float TexSize = 1024.0f;
+	float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
+	float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+			if(RenderFlags&TILERENDERFLAG_EXTEND)
+			{
+				if(mx<0)
+					mx = 0;
+				if(mx>=w)
+					mx = w-1;
+				if(my<0)
+					my = 0;
+				if(my>=h)
+					my = h-1;
+			}
+			else
+			{
+				if(mx<0)
+					continue; // mx = 0;
+				if(mx>=w)
+					continue; // mx = w-1;
+				if(my<0)
+					continue; // my = 0;
+				if(my>=h)
+					continue; // my = h-1;
+			}
+
+			int c = mx + my*w;
+
+			unsigned char Index = pTele[c].m_Type;
+			if(Index)
+			{
+				bool Render = false;
+				if(RenderFlags&LAYERRENDERFLAG_TRANSPARENT)
+					Render = true;
+
+				if(Render)
+				{
+
+					int tx = Index%16;
+					int ty = Index/16;
+					int Px0 = tx*(1024/16);
+					int Py0 = ty*(1024/16);
+					int Px1 = Px0+(1024/16)-1;
+					int Py1 = Py0+(1024/16)-1;
+
+					float x0 = Nudge + Px0/TexSize+Frac;
+					float y0 = Nudge + Py0/TexSize+Frac;
+					float x1 = Nudge + Px1/TexSize-Frac;
+					float y1 = Nudge + Py0/TexSize+Frac;
+					float x2 = Nudge + Px1/TexSize-Frac;
+					float y2 = Nudge + Py1/TexSize-Frac;
+					float x3 = Nudge + Px0/TexSize+Frac;
+					float y3 = Nudge + Py1/TexSize-Frac;
+
+					Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+					Graphics()->QuadsDrawTL(&QuadItem, 1);
+				}
+			}
+		}
+
+	Graphics()->QuadsEnd();
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderSpeedupmap(CSpeedupTile *pSpeedupTile, int w, int h, float Scale, vec4 Color, int RenderFlags)
+{
+	//Graphics()->TextureSet(img_get(tmap->image));
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+	//Graphics()->MapScreen(screen_x0-50, screen_y0-50, screen_x1+50, screen_y1+50);
+
+	// calculate the final pixelsize for the tiles
+	float TilePixelSize = 1024/32.0f;
+	float FinalTileSize = Scale/(ScreenX1-ScreenX0) * Graphics()->ScreenWidth();
+	float FinalTilesetScale = FinalTileSize/TilePixelSize;
+
+	Graphics()->QuadsBegin();
+	const float Alpha = Color.a;
+	Graphics()->SetColor(Color.r*Alpha, Color.g*Alpha, Color.b*Alpha, Alpha);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	// adjust the texture shift according to mipmap level
+	float TexSize = 1024.0f;
+	float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
+	float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+			if(RenderFlags&TILERENDERFLAG_EXTEND)
+			{
+				if(mx<0)
+					mx = 0;
+				if(mx>=w)
+					mx = w-1;
+				if(my<0)
+					my = 0;
+				if(my>=h)
+					my = h-1;
+			}
+			else
+			{
+				if(mx<0)
+					continue; // mx = 0;
+				if(mx>=w)
+					continue; // mx = w-1;
+				if(my<0)
+					continue; // my = 0;
+				if(my>=h)
+					continue; // my = h-1;
+			}
+
+			int c = mx + my*w;
+
+			unsigned char Index = pSpeedupTile[c].m_Type;
+			if(Index)
+			{
+				bool Render = false;
+				if(RenderFlags&LAYERRENDERFLAG_TRANSPARENT)
+					Render = true;
+
+				if(Render)
+				{
+
+					int tx = Index%16;
+					int ty = Index/16;
+					int Px0 = tx*(1024/16);
+					int Py0 = ty*(1024/16);
+					int Px1 = Px0+(1024/16)-1;
+					int Py1 = Py0+(1024/16)-1;
+
+					float x0 = Nudge + Px0/TexSize+Frac;
+					float y0 = Nudge + Py0/TexSize+Frac;
+					float x1 = Nudge + Px1/TexSize-Frac;
+					float y1 = Nudge + Py0/TexSize+Frac;
+					float x2 = Nudge + Px1/TexSize-Frac;
+					float y2 = Nudge + Py1/TexSize-Frac;
+					float x3 = Nudge + Px0/TexSize+Frac;
+					float y3 = Nudge + Py1/TexSize-Frac;
+
+					Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+					Graphics()->QuadsDrawTL(&QuadItem, 1);
+				}
+			}
+		}
+
+	Graphics()->QuadsEnd();
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderSwitchmap(CSwitchTile *pSwitchTile, int w, int h, float Scale, vec4 Color, int RenderFlags)
+{
+	//Graphics()->TextureSet(img_get(tmap->image));
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+	//Graphics()->MapScreen(screen_x0-50, screen_y0-50, screen_x1+50, screen_y1+50);
+
+	// calculate the final pixelsize for the tiles
+	float TilePixelSize = 1024/32.0f;
+	float FinalTileSize = Scale/(ScreenX1-ScreenX0) * Graphics()->ScreenWidth();
+	float FinalTilesetScale = FinalTileSize/TilePixelSize;
+
+	Graphics()->QuadsBegin();
+	const float Alpha = Color.a;
+	Graphics()->SetColor(Color.r*Alpha, Color.g*Alpha, Color.b*Alpha, Alpha);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	// adjust the texture shift according to mipmap level
+	float TexSize = 1024.0f;
+	float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
+	float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+			if(RenderFlags&TILERENDERFLAG_EXTEND)
+			{
+				if(mx<0)
+					mx = 0;
+				if(mx>=w)
+					mx = w-1;
+				if(my<0)
+					my = 0;
+				if(my>=h)
+					my = h-1;
+			}
+			else
+			{
+				if(mx<0)
+					continue; // mx = 0;
+				if(mx>=w)
+					continue; // mx = w-1;
+				if(my<0)
+					continue; // my = 0;
+				if(my>=h)
+					continue; // my = h-1;
+			}
+
+			int c = mx + my*w;
+
+			unsigned char Index = pSwitchTile[c].m_Type;
+			if(Index)
+			{
+				if(Index == TILE_SWITCHTIMEDOPEN)
+					Index = 8;
+
+				unsigned char Flags = pSwitchTile[c].m_Flags;
+
+				bool Render = false;
+				if(Flags&TILEFLAG_OPAQUE)
+				{
+					if(RenderFlags&LAYERRENDERFLAG_OPAQUE)
+						Render = true;
+				}
+				else
+				{
+					if(RenderFlags&LAYERRENDERFLAG_TRANSPARENT)
+						Render = true;
+				}
+
+				if(Render)
+				{
+
+					int tx = Index%16;
+					int ty = Index/16;
+					int Px0 = tx*(1024/16);
+					int Py0 = ty*(1024/16);
+					int Px1 = Px0+(1024/16)-1;
+					int Py1 = Py0+(1024/16)-1;
+
+					float x0 = Nudge + Px0/TexSize+Frac;
+					float y0 = Nudge + Py0/TexSize+Frac;
+					float x1 = Nudge + Px1/TexSize-Frac;
+					float y1 = Nudge + Py0/TexSize+Frac;
+					float x2 = Nudge + Px1/TexSize-Frac;
+					float y2 = Nudge + Py1/TexSize-Frac;
+					float x3 = Nudge + Px0/TexSize+Frac;
+					float y3 = Nudge + Py1/TexSize-Frac;
+
+					if(Flags&TILEFLAG_VFLIP)
+					{
+						x0 = x2;
+						x1 = x3;
+						x2 = x3;
+						x3 = x0;
+					}
+
+					if(Flags&TILEFLAG_HFLIP)
+					{
+						y0 = y3;
+						y2 = y1;
+						y3 = y1;
+						y1 = y0;
+					}
+
+					if(Flags&TILEFLAG_ROTATE)
+					{
+						float Tmp = x0;
+						x0 = x3;
+						x3 = x2;
+						x2 = x1;
+						x1 = Tmp;
+						Tmp = y0;
+						y0 = y3;
+						y3 = y2;
+						y2 = y1;
+						y1 = Tmp;
+					}
+
+					Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+					Graphics()->QuadsDrawTL(&QuadItem, 1);
+				}
+			}
+		}
+
+	Graphics()->QuadsEnd();
+	Graphics()->MapScreen(ScreenX0, ScreenY0, ScreenX1, ScreenY1);
+}
+
+void CRenderTools::RenderTunemap(CTuneTile *pTune, int w, int h, float Scale, vec4 Color, int RenderFlags)
+{
+	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
+	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
+
+	// calculate the final pixelsize for the tiles
+	float TilePixelSize = 1024/32.0f;
+	float FinalTileSize = Scale/(ScreenX1-ScreenX0) * Graphics()->ScreenWidth();
+	float FinalTilesetScale = FinalTileSize/TilePixelSize;
+
+	Graphics()->QuadsBegin();
+	const float Alpha = Color.a;
+	Graphics()->SetColor(Color.r*Alpha, Color.g*Alpha, Color.b*Alpha, Alpha);
+
+	int StartY = (int)(ScreenY0/Scale)-1;
+	int StartX = (int)(ScreenX0/Scale)-1;
+	int EndY = (int)(ScreenY1/Scale)+1;
+	int EndX = (int)(ScreenX1/Scale)+1;
+
+	// adjust the texture shift according to mipmap level
+	float TexSize = 1024.0f;
+	float Frac = (1.25f/TexSize) * (1/FinalTilesetScale);
+	float Nudge = (0.5f/TexSize) * (1/FinalTilesetScale);
+
+	for(int y = StartY; y < EndY; y++)
+		for(int x = StartX; x < EndX; x++)
+		{
+			int mx = x;
+			int my = y;
+
+			if(RenderFlags&TILERENDERFLAG_EXTEND)
+			{
+				if(mx<0)
+					mx = 0;
+				if(mx>=w)
+					mx = w-1;
+				if(my<0)
+					my = 0;
+				if(my>=h)
+					my = h-1;
+			}
+			else
+			{
+				if(mx<0)
+					continue; // mx = 0;
+				if(mx>=w)
+					continue; // mx = w-1;
+				if(my<0)
+					continue; // my = 0;
+				if(my>=h)
+					continue; // my = h-1;
+			}
+
+			int c = mx + my*w;
+
+			unsigned char Index = pTune[c].m_Type;
+			if(Index)
+			{
+				bool Render = false;
+				if(RenderFlags&LAYERRENDERFLAG_TRANSPARENT)
+					Render = true;
+
+				if(Render)
+				{
+
+					int tx = Index%16;
+					int ty = Index/16;
+					int Px0 = tx*(1024/16);
+					int Py0 = ty*(1024/16);
+					int Px1 = Px0+(1024/16)-1;
+					int Py1 = Py0+(1024/16)-1;
+
+					float x0 = Nudge + Px0/TexSize+Frac;
+					float y0 = Nudge + Py0/TexSize+Frac;
+					float x1 = Nudge + Px1/TexSize-Frac;
+					float y1 = Nudge + Py0/TexSize+Frac;
+					float x2 = Nudge + Px1/TexSize-Frac;
+					float y2 = Nudge + Py1/TexSize-Frac;
+					float x3 = Nudge + Px0/TexSize+Frac;
+					float y3 = Nudge + Py1/TexSize-Frac;
+
+					Graphics()->QuadsSetSubsetFree(x0, y0, x1, y1, x2, y2, x3, y3);
+					IGraphics::CQuadItem QuadItem(x*Scale, y*Scale, Scale, Scale);
+					Graphics()->QuadsDrawTL(&QuadItem, 1);
+				}
+			}
 		}
 
 	Graphics()->QuadsEnd();

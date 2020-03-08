@@ -32,6 +32,7 @@ public:
 	enum
 	{
 		TYPE_BACKGROUND=0,
+		TYPE_BACKGROUND_FORCE,
 		TYPE_FOREGROUND,
 	};
 

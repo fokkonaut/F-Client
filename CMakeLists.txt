@@ -888,10 +888,16 @@ set(EXPECTED_DATA
   editor/automap/jungle_deathtiles.json
   editor/automap/jungle_main.json
   editor/automap/winter_main.json
+  editor/entities/entities_clear/ddnet.png
+  editor/entities/entities_clear/ddrace.png
+  editor/entities/entities_clear/fng.png
+  editor/entities/entities_clear/race.png
+  editor/entities/entities_clear/vanilla.png
   editor/background.png
   editor/checker.png
   editor/cursor.png
   editor/entities.png
+  editor/speed_arrow.png
   emoticons.png
   fonts/DejaVuSans.ttf
   game.png

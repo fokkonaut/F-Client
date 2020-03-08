@@ -8,12 +8,15 @@
 
 #include "mapimages.h"
 
+#include <engine/serverbrowser.h>
+
 CMapImages::CMapImages()
 {
 	m_Info[MAP_TYPE_GAME].m_Count = 0;
 	m_Info[MAP_TYPE_MENU].m_Count = 0;
 
 	m_EasterIsLoaded = false;
+	m_EntitiesIsLoaded = false;
 }
 
 void CMapImages::LoadMapImages(IMap *pMap, class CLayers *pLayers, int MapType)
@@ -104,4 +107,36 @@ int CMapImages::Num() const
 	if(Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		return m_Info[MAP_TYPE_GAME].m_Count;
 	return m_Info[MAP_TYPE_MENU].m_Count;
+}
+
+IGraphics::CTextureHandle CMapImages::GetEntities()
+{
+	CServerInfo Info;
+	Client()->GetServerInfo(&Info);
+
+	// DDNet default to prevent delay in seeing entities
+	const char *pEntities = "ddnet";
+	if(IsDDNet(&Info))
+		pEntities = "ddnet";
+	else if(IsDDRace(&Info))
+		pEntities = "ddrace";
+	else if(IsRace(&Info))
+		pEntities = "race";
+	else if(IsFNG(&Info))
+		pEntities = "fng";
+	else if(IsVanilla(&Info))
+		pEntities = "vanilla";
+
+	if (!m_EntitiesIsLoaded || m_pEntitiesGameType != pEntities)
+	{
+		char aPath[64];
+		str_format(aPath, sizeof(aPath), "editor/entities_clear/%s.png", pEntities);
+		
+		if (m_EntitiesTextures.IsValid())
+			Graphics()->UnloadTexture(&m_EntitiesTextures);
+		m_EntitiesTextures = Graphics()->LoadTexture(aPath, IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+		m_EntitiesIsLoaded = true;
+		m_pEntitiesGameType = pEntities;
+	}
+	return m_EntitiesTextures;
 }

@@ -25,6 +25,8 @@ class CMapImages : public CComponent
 
 	void LoadMapImages(class IMap *pMap, class CLayers *pLayers, int MapType);
 
+	const char *m_pEntitiesGameType;
+
 public:
 	CMapImages();
 
@@ -35,6 +37,14 @@ public:
 	void OnMenuMapLoad(class IMap *pMap);
 	
 	IGraphics::CTextureHandle GetEasterTexture();
+
+	IGraphics::CTextureHandle GetEntities();
+
+	bool m_EntitiesIsLoaded;
+	IGraphics::CTextureHandle m_EntitiesTextures;
+	IGraphics::CTextureHandle m_OverlayBottomTexture;
+	IGraphics::CTextureHandle m_OverlayTopTexture;
+	IGraphics::CTextureHandle m_OverlayCenterTexture;
 };
 
 #endif

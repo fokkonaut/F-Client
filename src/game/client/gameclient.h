@@ -202,6 +202,8 @@ public:
 		bool m_ChatIgnore;
 		bool m_Friend;
 
+		bool m_Afk;
+
 		void UpdateRenderInfo(CGameClient *pGameClient, int ClientID, bool UpdateSkinInfo);
 		void UpdateBotRenderInfo(CGameClient *pGameClient, int ClientID);
 		void Reset(CGameClient *pGameClient, int CLientID);

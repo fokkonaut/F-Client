@@ -1354,6 +1354,15 @@ void CGameClient::OnNewSnapshot()
 					m_Snap.m_paPlayerInfosRace[ClientID] = pInfo;
 				}
 			}
+			else if (Item.m_Type == NETOBJTYPE_EXPLAYERINFO)
+			{
+				const CNetObj_ExPlayerInfo *pInfo = (const CNetObj_ExPlayerInfo*)pData;
+				int ClientID = Item.m_ID;
+				if (ClientID < MAX_CLIENTS && m_aClients[ClientID].m_Active)
+				{
+					m_aClients[Item.m_ID].m_Afk = pInfo->m_Flags&EXPLAYERFLAG_AFK;
+				}
+			}
 			else if(Item.m_Type == NETOBJTYPE_CHARACTER)
 			{
 				if(Item.m_ID < MAX_CLIENTS)
@@ -1820,6 +1829,7 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient, int ClientID)
 	m_Active = false;
 	m_ChatIgnore = false;
 	m_Friend = false;
+	m_Afk = false;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
 		m_SkinPartIDs[p] = 0;

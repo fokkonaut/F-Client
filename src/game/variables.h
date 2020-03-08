@@ -200,4 +200,6 @@ MACRO_CONFIG_INT(ClSameClanColor, cl_same_clan_color, 5898183, 0, 0xFFFFFF, CFGF
 MACRO_CONFIG_INT(ClClientRecognition, cl_client_recognition, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable custom client recognition (visible in scoreboard)")
 
 MACRO_CONFIG_INT(ClShowHookCollAlways, cl_show_hook_coll_always, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show every players' hook collision line even if they're not using it")
+
+MACRO_CONFIG_INT(ClAfkEmote, cl_afk_emote, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show zzz emote next to afk players")
 #endif

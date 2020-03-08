@@ -531,6 +531,16 @@ void CPlayers::RenderPlayer(
 		Graphics()->QuadsEnd();
 	}
 
+	if(Config()->m_ClAfkEmote && m_pClient->m_aClients[ClientID].m_Afk && !(pInfo.m_PlayerFlags&PLAYERFLAG_CHATTING) && !(Client()->DummyConnected() && ClientID == m_pClient->m_LocalClientID[!Config()->m_ClDummy]))
+	{
+		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_EMOTICONS].m_Id);
+		Graphics()->QuadsBegin();
+		RenderTools()->SelectSprite(SPRITE_ZZZ);
+		IGraphics::CQuadItem QuadItem(Position.x + 24, Position.y - 40, 64,64);
+		Graphics()->QuadsDraw(&QuadItem, 1);
+		Graphics()->QuadsEnd();
+	}
+
 	if (m_pClient->m_aClients[ClientID].m_EmoticonStart != -1 && m_pClient->m_aClients[ClientID].m_EmoticonStart + 2 * Client()->GameTickSpeed() > Client()->GameTick())
 	{
 		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_EMOTICONS].m_Id);

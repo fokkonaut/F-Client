@@ -21,6 +21,8 @@ GameMsgIDs = Enum("GAMEMSG", ["TEAM_SWAP", "SPEC_INVALIDID", "TEAM_SHUFFLE", "TE
 
 							"GAME_PAUSED"]) # todo 0.8: sort (1 para)
 
+ExPlayerFlags = Flags("EXPLAYERFLAG", ["AFK"])
+
 
 RawHeader = '''
 
@@ -80,6 +82,7 @@ Flags = [
 	GameStateFlags,
 	CoreEventFlags,
 	RaceFlags,
+	ExPlayerFlags,
 ]
 
 Objects = [
@@ -228,6 +231,10 @@ Objects = [
 
 	NetObjectEx("MyOwnObject", "my-own-object@heinrich5991.de", [
 		NetIntAny("m_Test"),
+	]),
+
+	NetObjectEx("ExPlayerInfo", "player@netobj.ddnet.tw", [
+		NetIntAny("m_Flags"),
 	]),
 
 	## Events

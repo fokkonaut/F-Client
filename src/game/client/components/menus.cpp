@@ -1150,7 +1150,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 		Box.VSplitLeft(ButtonWidth, &Button, &Box);
 		static CButtonContainer s_FClientButton;
 		if(DoButton_MenuTabTop(&s_FClientButton, Localize("F-Client"), Client()->State() == IClient::STATE_OFFLINE && Config()->m_UiSettingsPage==SETTINGS_FCLIENT, &Button,
-			Config()->m_UiSettingsPage == SETTINGS_FCLIENT ? 1.0f : NotActiveAlpha, 1.0f, CUI::CORNER_ALL))
+			Config()->m_UiSettingsPage == SETTINGS_FCLIENT ? 1.0f : NotActiveAlpha, 1.0f, Corners))
 		{
 			m_pClient->m_pCamera->ChangePosition(CCamera::POS_SETTINGS_FCLIENT);
 			Config()->m_UiSettingsPage = SETTINGS_FCLIENT;

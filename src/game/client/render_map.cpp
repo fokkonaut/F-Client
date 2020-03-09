@@ -9,7 +9,6 @@
 
 #include <generated/client_data.h>
 #include <engine/shared/config.h>
-#include <game/client/components/maplayers.h>
 
 void ValidateFCurve(const vec2& p0, vec2& p1, vec2& p2, const vec2& p3)
 {
@@ -230,12 +229,10 @@ static void Rotate(CPoint *pCenter, CPoint *pPoint, float Rotation)
 
 void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser)
 {
-	CMapLayers *pMapLayers = (CMapLayers *)pUser;
-	bool Online = pMapLayers->GameClient()->Client()->State() == IClient::STATE_ONLINE || pMapLayers->GameClient()->Client()->State() == IClient::STATE_DEMOPLAYBACK;
-	if(Online && (!m_pConfig->m_ClShowQuads || m_pConfig->m_ClOverlayEntities == 100))
+	if(!m_pConfig->m_ClShowQuads || m_pConfig->m_ClOverlayEntities == 100)
 		return;
 
-	ForceRenderQuads(pQuads, NumQuads, RenderFlags, pfnEval, pUser, !Online ? 1.0f : (100-m_pConfig->m_ClOverlayEntities)/100.0f);
+	ForceRenderQuads(pQuads, NumQuads, RenderFlags, pfnEval, pUser, (100-m_pConfig->m_ClOverlayEntities)/100.0f);
 }
 
 void CRenderTools::ForceRenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser, float Alpha)

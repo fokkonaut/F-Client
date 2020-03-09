@@ -550,7 +550,10 @@ void CMapLayers::OnRender()
 					else
 					{
 						Graphics()->BlendNormal();
-						RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
+						if (m_pClient->Client()->State() == IClient::STATE_ONLINE || m_pClient->Client()->State() == IClient::STATE_DEMOPLAYBACK)
+							RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
+						else // menu background map
+							RenderTools()->ForceRenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this, 1.f);
 					}
 				}
 			}

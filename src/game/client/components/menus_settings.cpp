@@ -2097,7 +2097,7 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 	}
 }
 
-void CMenus::RenderSettingsFClient(CUIRect MainView)
+void CMenus::RenderSettingsFClient	(CUIRect MainView)
 {
 	CUIRect Label, Button, Game, BottomView, Background;
 
@@ -2106,7 +2106,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 	BottomView.HSplitTop(20.f, 0, &BottomView);
 
 	// render game menu backgrounds
-	int NumOptions = 2;
+	int NumOptions = 3;
 	float ButtonHeight = 20.0f;
 	float Spacing = 2.0f;
 	float BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
@@ -2162,6 +2162,14 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 	static int s_ShowHookCollAlways = 0;
 	if(DoButton_CheckBox(&s_ShowHookCollAlways, Localize("Show every players' hook collision line"), Config()->m_ClShowHookCollAlways, &Button))
 		Config()->m_ClShowHookCollAlways ^= 1;
+
+	GameRight.HSplitTop(Spacing, 0, &GameRight);
+	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
+	static int s_ShowNinja = 0;
+	if(DoButton_CheckBox(&s_ShowNinja, Localize("Show ninja skin"), Config()->m_ClShowNinja, &Button))
+	{
+		Config()->m_ClShowNinja ^= 1;
+	}
 
 	// reset button
 	Spacing = 3.0f;

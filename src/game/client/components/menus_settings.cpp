@@ -1489,9 +1489,15 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 	MainView.y += ScrollOffset.y;
 
 	CUIRect LastExpandRect;
+	static int s_FClientDropdown = 0;
+	static bool s_FClientActive = true;
+	float Split = DoIndependentDropdownMenu(&s_FClientDropdown, &MainView, Localize("F-Client"), HeaderHeight, &CMenus::RenderSettingsControlsFClient, &s_FClientActive);
+
+	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
+	s_ScrollRegion.AddRect(LastExpandRect);
 	static int s_MouseDropdown = 0;
 	static bool s_MouseActive = true;
-	float Split = DoIndependentDropdownMenu(&s_MouseDropdown, &MainView, Localize("Mouse"), HeaderHeight, &CMenus::RenderSettingsControlsMouse, &s_MouseActive);
+	Split = DoIndependentDropdownMenu(&s_MouseDropdown, &MainView, Localize("Mouse"), HeaderHeight, &CMenus::RenderSettingsControlsMouse, &s_MouseActive);
 
 	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
 	s_ScrollRegion.AddRect(LastExpandRect);
@@ -1534,12 +1540,6 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 	static int s_MiscDropdown = 0;
 	static bool s_MiscActive = true;
 	Split = DoIndependentDropdownMenu(&s_MiscDropdown, &MainView, Localize("Misc"), HeaderHeight, &CMenus::RenderSettingsControlsMisc, &s_MiscActive);
-
-	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
-	s_ScrollRegion.AddRect(LastExpandRect);
-	static int s_FClientDropdown = 0;
-	static bool s_FClientActive = true;
-	Split = DoIndependentDropdownMenu(&s_FClientDropdown, &MainView, Localize("F-Client"), HeaderHeight, &CMenus::RenderSettingsControlsFClient, &s_FClientActive);
 
 	MainView.HSplitTop(Split+10.0f, &LastExpandRect, &MainView);
 	s_ScrollRegion.AddRect(LastExpandRect);

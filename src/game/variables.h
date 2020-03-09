@@ -191,7 +191,7 @@ MACRO_CONFIG_INT(ClEyeDuration, cl_eye_duration, 999999, 1, 999999, CFGFLAG_CLIE
 
 MACRO_CONFIG_INT(ClPredictDDRace, cl_predict_ddrace, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Predict some DDRace tiles")
 
-MACRO_CONFIG_INT(ClOldGunPosition, cl_old_gun_position, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Tees hold gun a bit higher like in TW 0.6.1 and older")
+MACRO_CONFIG_INT(ClOldGunPosition, cl_old_gun_position, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Tees hold gun a bit higher like in vanilla")
 MACRO_CONFIG_INT(ClOldChatSounds, cl_old_chat_sounds, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Swap chat sounds for highlight and normal chat")
 
 MACRO_CONFIG_INT(ClAuthedPlayerColor, cl_authed_player_color, 5898183, 0, 0xFFFFFF, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Color of name of authenticated player in scoreboard")

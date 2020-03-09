@@ -2099,17 +2099,23 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 
 void CMenus::RenderSettingsFClient(CUIRect MainView)
 {
-	CUIRect Label, Button, Game, BottomView, Background, EntitiesBackground;
+	enum
+	{
+		SECTION_GAMEPLAY,
+		SECTION_MISCELLANEOUS,
+		SECTION_BACKGROUND,
+		NUM_SECTIONS
+	};
+
+	CUIRect Label, Button, BottomView, Background;
 
 	// cut view
 	MainView.HSplitBottom(80.0f, &MainView, &BottomView);
 	BottomView.HSplitTop(20.f, 0, &BottomView);
 
-	// render game menu backgrounds
-	int NumOptions = 3;
+	// render menu background
 	float ButtonHeight = 20.0f;
 	float Spacing = 2.0f;
-	float BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
 
 	if(this->Client()->State() == IClient::STATE_ONLINE)
 		Background = MainView;
@@ -2117,74 +2123,251 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 		MainView.HSplitTop(20.0f, 0, &Background);
 	RenderTools()->DrawUIRect(&Background, vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), this->Client()->State() == IClient::STATE_OFFLINE ? CUI::CORNER_ALL : CUI::CORNER_B, 5.0f);
 	MainView.HSplitTop(20.0f, 0, &MainView);
-	MainView.HSplitTop(BackgroundHeight, &Game, &MainView);
-	RenderTools()->DrawUIRect(&Game, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
-	// render client menu background
-	NumOptions = 4;
-	if(Config()->m_ClAutoDemoRecord) NumOptions += 1;
-	if(Config()->m_ClAutoScreenshot) NumOptions += 1;
-	BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
-
-	CUIRect GameLeft, GameRight;
-	// render game menu
-	Game.HSplitTop(ButtonHeight, &Label, &Game);
+	// F-Client label
+	MainView.HSplitTop(ButtonHeight, &Label, &MainView);
 	Label.y += 2.0f;
 	UI()->DoLabel(&Label, Localize("F-Client"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
-	// split
-	Game.VSplitMid(&GameLeft, &GameRight);
-	GameLeft.VSplitRight(Spacing * 0.5f, &GameLeft, 0);
-	GameRight.VSplitLeft(Spacing * 0.5f, 0, &GameRight);
+	// split in the middle
+	CUIRect Left, Right;
+	MainView.VSplitMid(&Left, &Right, Spacing);
+
+	// sections
+	int NumOptions[NUM_SECTIONS];
+	NumOptions[SECTION_GAMEPLAY] = 4 + Config()->m_ClTextEntities;
+	NumOptions[SECTION_MISCELLANEOUS] = 6;
+	NumOptions[SECTION_BACKGROUND] = 6;
+
+	float BackgroundHeight[NUM_SECTIONS];
+	for (int i = 0; i < NUM_SECTIONS; i++)
+		BackgroundHeight[i] = (float)(NumOptions[i]+1)*ButtonHeight+(float)NumOptions[i]*Spacing;
+
+	CUIRect Gameplay, Miscellaneous, BackgroundSettings;
 
 	// left side
-	GameLeft.HSplitTop(Spacing, 0, &GameLeft);
-	GameLeft.HSplitTop(ButtonHeight, &Button, &GameLeft);
-	static int s_OldGunPos = 0;
-	if(DoButton_CheckBox(&s_OldGunPos, Localize("Old gun position"), Config()->m_ClOldGunPosition, &Button))
-		Config()->m_ClOldGunPosition ^= 1;
+	{
+		// gameplay
+		{
+			// background
+			{
+				Left.HSplitTop(BackgroundHeight[SECTION_GAMEPLAY], &Gameplay, &Left);
+				RenderTools()->DrawUIRect(&Gameplay, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+			}
 
-	GameLeft.HSplitTop(Spacing, 0, &GameLeft);
-	GameLeft.HSplitTop(ButtonHeight, &Button, &GameLeft);
-	static int s_OldChatSounds = 0;
-	if(DoButton_CheckBox(&s_OldChatSounds, Localize("Old chat sounds"), Config()->m_ClOldChatSounds, &Button))
-		Config()->m_ClOldChatSounds ^= 1;
+			// label
+			{
+				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				Gameplay.HSplitTop(ButtonHeight, &Label, &Gameplay);
+				UI()->DoLabel(&Label, Localize("Gameplay"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+			}
+
+			// overlay entities
+			{
+				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
+				DoScrollbarOption(&Config()->m_ClOverlayEntities, &Config()->m_ClOverlayEntities, &Button, Localize("Overlay Entities"), 0, 100);
+			}
+
+			// text entities
+			{
+				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
+				if(DoButton_CheckBox(&Config()->m_ClTextEntities, Localize("Show text entities"), Config()->m_ClTextEntities, &Button))
+					Config()->m_ClTextEntities ^= 1;
+
+				if (Config()->m_ClTextEntities)
+				{
+					Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+					Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
+					Button.VSplitLeft(ButtonHeight, 0, &Button);
+					DoScrollbarOption(&Config()->m_ClTextEntitiesSize, &Config()->m_ClTextEntitiesSize, &Button, Localize("Size"), 0, 100);
+				}
+			}
+
+			// show quads
+			{
+				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
+				if(DoButton_CheckBox(&Config()->m_ClShowQuads, Localize("Show quads"), Config()->m_ClShowQuads, &Button))
+					Config()->m_ClShowQuads ^= 1;
+			}
+
+			// show others hook collisions
+			{
+				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
+				if (DoButton_CheckBox(&Config()->m_ClShowHookCollOther, Localize("Show other players' hook collision lines"), Config()->m_ClShowHookCollOther, &Button))
+					Config()->m_ClShowHookCollOther ^= 1;
+			}
+		}
+
+		// background
+		{
+			// cut off
+			MainView.HSplitTop(170.f, 0, &MainView);
+
+			// background
+			{
+				MainView.HSplitTop(BackgroundHeight[SECTION_BACKGROUND], &BackgroundSettings, &MainView);
+				RenderTools()->DrawUIRect(&BackgroundSettings, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+			}
+
+			// label
+			{
+				BackgroundSettings.HSplitTop(Spacing, 0, &BackgroundSettings);
+				BackgroundSettings.HSplitTop(ButtonHeight, &Label, &BackgroundSettings);
+				UI()->DoLabel(&Label, Localize("Background"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+			}
+
+			// split in the middle
+			CUIRect BgLeft, BgRight;
+			BackgroundSettings.VSplitMid(&BgLeft, &BgRight, Spacing);
+
+			// background sliders, entities background map editbox, show tile layers
+			{
+				CUIRect aRects[2];
+				aRects[0] = BgLeft;
+				aRects[1] = BgRight;
+				aRects[0].VSplitRight(10.0f, &aRects[0], 0);
+				aRects[1].VSplitLeft(10.0f, 0, &aRects[1]);
+
+				int *pColorSlider[2][3] = {{&Config()->m_ClBackgroundHue, &Config()->m_ClBackgroundSat, &Config()->m_ClBackgroundLht}, {&Config()->m_ClBackgroundEntitiesHue, &Config()->m_ClBackgroundEntitiesSat, &Config()->m_ClBackgroundEntitiesLht}};
+
+				const char *paParts[] = {
+					Localize("Background (regular)"),
+					Localize("Background (entities)")};
+				const char *paLabels[] = {
+					Localize("Hue"),
+					Localize("Sat."),
+					Localize("Lht.")};
+
+				for(int i = 0; i < 2; i++)
+				{
+					aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
+					UI()->DoLabel(&Label, paParts[i], 14.0f, CUI::ALIGN_LEFT);
+					aRects[i].VSplitLeft(20.0f, 0, &aRects[i]);
+					aRects[i].HSplitTop(2.5f, 0, &aRects[i]);
+
+					for(int s = 0; s < 3; s++)
+					{
+						aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
+						Label.VSplitLeft(100.0f, &Label, &Button);
+						Button.HMargin(2.0f, &Button);
+
+						float k = (*pColorSlider[i][s]) / 255.0f;
+						k = DoScrollbarH(pColorSlider[i][s], &Button, k);
+						*pColorSlider[i][s] = (int)(k*255.0f);
+						UI()->DoLabel(&Label, paLabels[s], 15.0f, CUI::ALIGN_LEFT);
+					}
+				}
+
+				{
+					static float s_Map = 0.0f;
+					aRects[1].HSplitTop(25.0f, &Background, &aRects[1]);
+					Background.HSplitTop(20.0f, &Background, 0);
+					Background.VSplitLeft(100.0f, &Label, &BgLeft);
+					UI()->DoLabel(&Label, Localize("Map"), 14.0f, CUI::ALIGN_LEFT);
+					DoEditBox(Config()->m_ClBackgroundEntities, &BgLeft, Config()->m_ClBackgroundEntities, sizeof(Config()->m_ClBackgroundEntities), 14.0f, &s_Map);
+
+					aRects[1].HSplitTop(20.0f, &Button, 0);
+					if(DoButton_CheckBox(&Config()->m_ClBackgroundShowTilesLayers, Localize("Show tiles layers from BG map"), Config()->m_ClBackgroundShowTilesLayers, &Button))
+						Config()->m_ClBackgroundShowTilesLayers ^= 1;
+				}
+			}
+		}
+	}
 
 	// right side
-	GameRight.HSplitTop(Spacing, 0, &GameRight);
-	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
-	static int s_ClientRecognition = 0;
-	if(DoButton_CheckBox(&s_ClientRecognition, Localize("Client recognition (scoreboard)"), Config()->m_ClClientRecognition, &Button))
-		Config()->m_ClClientRecognition ^= 1;
-
-	GameRight.HSplitTop(Spacing, 0, &GameRight);
-	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
-	static int s_ShowHookCollAlways = 0;
-	if(DoButton_CheckBox(&s_ShowHookCollAlways, Localize("Show every players' hook collision line"), Config()->m_ClShowHookCollAlways, &Button))
-		Config()->m_ClShowHookCollAlways ^= 1;
-
-	GameRight.HSplitTop(Spacing, 0, &GameRight);
-	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
-	static int s_ShowNinja = 0;
-	if(DoButton_CheckBox(&s_ShowNinja, Localize("Show ninja skin"), Config()->m_ClShowNinja, &Button))
 	{
-		Config()->m_ClShowNinja ^= 1;
+		// miscellaneous
+		{
+			// background
+			{
+				Right.HSplitTop(BackgroundHeight[SECTION_MISCELLANEOUS], &Miscellaneous, &Right);
+				RenderTools()->DrawUIRect(&Miscellaneous, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+			}
+
+			// label
+			{
+				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Label, &Miscellaneous);
+				UI()->DoLabel(&Label, Localize("Miscellaneous"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+			}
+
+			// old chat sounds
+			{
+				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
+				if(DoButton_CheckBox(&Config()->m_ClOldChatSounds, Localize("Old chat sounds"), Config()->m_ClOldChatSounds, &Button))
+					Config()->m_ClOldChatSounds ^= 1;
+			}
+
+			// old gun position
+			{
+				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
+				if(DoButton_CheckBox(&Config()->m_ClOldGunPosition, Localize("Old gun position"), Config()->m_ClOldGunPosition, &Button))
+					Config()->m_ClOldGunPosition ^= 1;
+			}
+
+			// show ninja skin
+			{
+				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
+				if (DoButton_CheckBox(&Config()->m_ClShowNinja, Localize("Show ninja skin"), Config()->m_ClShowNinja, &Button))
+					Config()->m_ClShowNinja ^= 1;
+			}
+
+			// client recognition
+			{
+				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
+				if(DoButton_CheckBox(&Config()->m_ClClientRecognition, Localize("Client recognition (scoreboard)"), Config()->m_ClClientRecognition, &Button))
+					Config()->m_ClClientRecognition ^= 1;
+			}
+
+			// default zoom
+			{
+				Miscellaneous.HSplitTop(ButtonHeight+Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
+				DoScrollbarOption(&Config()->m_ClDefaultZoom, &Config()->m_ClDefaultZoom, &Button, Localize("Default zoom"), 0, 20);
+			}
+		}
 	}
 
 	// reset button
-	Spacing = 3.0f;
-	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
-
-	BottomView.VSplitRight(ButtonWidth, 0, &BottomView);
-	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
-
-	BottomView.HSplitTop(25.0f, &BottomView, 0);
-	Button = BottomView;
-	static CButtonContainer s_ResetButton;
-	if(DoButton_Menu(&s_ResetButton, Localize("Reset"), 0, &Button))
 	{
-		Config()->m_ClOldGunPosition = 0;
-		Config()->m_ClOldChatSounds = 0;
+		Spacing = 3.0f;
+		float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
+
+		BottomView.VSplitRight(ButtonWidth, 0, &BottomView);
+		RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, Config()->m_ClMenuAlpha/100.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
+
+		BottomView.HSplitTop(25.0f, &BottomView, 0);
+		Button = BottomView;
+		static CButtonContainer s_ResetButton;
+		if(DoButton_Menu(&s_ResetButton, Localize("Reset"), 0, &Button))
+		{
+			Config()->m_ClOverlayEntities = 0;
+			Config()->m_ClTextEntities = 1;
+			Config()->m_ClTextEntitiesSize = 70;
+			Config()->m_ClShowQuads = 1;
+			Config()->m_ClShowHookCollOther = 1;
+			Config()->m_ClOldChatSounds = 0;
+			Config()->m_ClOldGunPosition = 1;
+			Config()->m_ClShowNinja = 1;
+			Config()->m_ClClientRecognition = 1;
+			Config()->m_ClDefaultZoom = 10;
+			Config()->m_ClBackgroundHue = 0;
+			Config()->m_ClBackgroundSat = 0;
+			Config()->m_ClBackgroundLht = 128;
+			Config()->m_ClBackgroundEntitiesHue = 0;
+			Config()->m_ClBackgroundEntitiesSat = 0;
+			Config()->m_ClBackgroundEntitiesLht = 128;
+			str_copy(Config()->m_ClBackgroundEntities, "", sizeof(Config()->m_ClBackgroundEntities));
+			Config()->m_ClBackgroundShowTilesLayers = 0;
+		}
 	}
 }
 

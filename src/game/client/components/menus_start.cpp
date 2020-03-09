@@ -109,7 +109,14 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 		UI()->DoLabel(&Version, aBuf, 14.0f, CUI::ALIGN_CENTER);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	}
-	UI()->DoLabel(&Version, GAME_RELEASE_VERSION, 14.0f, CUI::ALIGN_RIGHT);
+	else
+	{
+		str_format(aBuf, sizeof(aBuf), Localize("by fokkonaut"), Client()->LatestVersion());
+		TextRender()->TextColor(1.0f, 0.4f, 0.4f, 1.0f);
+		UI()->DoLabel(&Version, aBuf, 14.0f, CUI::ALIGN_CENTER);
+		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	UI()->DoLabel(&Version, GAME_VERSION, 14.0f, CUI::ALIGN_RIGHT);
 
 	if(NewPage != -1)
 		SetMenuPage(NewPage);

@@ -2213,7 +2213,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 			{
 				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
 				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
-				if(DoButton_CheckBox(&Config()->m_ClShowHookCollAlways, Localize("Show every players' hook collision line"), Config()->m_ClShowHookCollAlways, &Button))
+				if(DoButton_CheckBox(&Config()->m_ClShowHookCollAlways, Localize("Always show every players' hook collision line"), Config()->m_ClShowHookCollAlways, &Button))
 					Config()->m_ClShowHookCollAlways ^= 1;
 			}
 		}

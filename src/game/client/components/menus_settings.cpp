@@ -2135,7 +2135,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 
 	// sections
 	int NumOptions[NUM_SECTIONS];
-	NumOptions[SECTION_GAMEPLAY] = 4 + Config()->m_ClTextEntities;
+	NumOptions[SECTION_GAMEPLAY] = 6 + Config()->m_ClTextEntities;
 	NumOptions[SECTION_MISCELLANEOUS] = 6;
 	NumOptions[SECTION_BACKGROUND] = 6;
 
@@ -2197,15 +2197,31 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 			{
 				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
 				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
-				if (DoButton_CheckBox(&Config()->m_ClShowHookCollOther, Localize("Show other players' hook collision lines"), Config()->m_ClShowHookCollOther, &Button))
+				if(DoButton_CheckBox(&Config()->m_ClShowHookCollOther, Localize("Show other players' hook collision lines"), Config()->m_ClShowHookCollOther, &Button))
 					Config()->m_ClShowHookCollOther ^= 1;
+			}
+
+			// show own hook collision
+			{
+				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
+				if(DoButton_CheckBox(&Config()->m_ClShowHookCollOwn, Localize("Show own players' hook collision line"), Config()->m_ClShowHookCollOwn, &Button))
+					Config()->m_ClShowHookCollOwn ^= 1;
+			}
+
+			// show hook collisions always
+			{
+				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
+				if(DoButton_CheckBox(&Config()->m_ClShowHookCollAlways, Localize("Show every players' hook collision line"), Config()->m_ClShowHookCollAlways, &Button))
+					Config()->m_ClShowHookCollAlways ^= 1;
 			}
 		}
 
 		// background
 		{
 			// cut off
-			MainView.HSplitTop(170.f, 0, &MainView);
+			MainView.HSplitTop(200.0f, 0, &MainView);
 
 			// background
 			{
@@ -2354,6 +2370,8 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 			Config()->m_ClTextEntitiesSize = 70;
 			Config()->m_ClShowQuads = 1;
 			Config()->m_ClShowHookCollOther = 1;
+			Config()->m_ClShowHookCollOwn = 1;
+			Config()->m_ClShowHookCollAlways = 0;
 			Config()->m_ClOldChatSounds = 0;
 			Config()->m_ClOldGunPosition = 1;
 			Config()->m_ClShowNinja = 1;

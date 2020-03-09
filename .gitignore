@@ -1,7 +1,7 @@
 tags
-.vs
-data
-datasrc
-other
-out
-scripts
+.vs/
+data/
+datasrc/
+other/
+out/
+scripts/

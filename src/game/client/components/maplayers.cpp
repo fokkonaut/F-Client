@@ -481,7 +481,7 @@ void CMapLayers::OnRender()
 			if((pLayer->m_Flags&LAYERFLAG_DETAIL && !Config()->m_GfxHighDetail && !IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE && IsEntityLayer))
 				continue;
 
-			if((Render && Config()->m_ClOverlayEntities < 100 && !IsGameLayer && !IsFrontLayer && !IsSwitchLayer && !IsTeleLayer && !IsSpeedupLayer && !IsTuneLayer) || (Config()->m_ClOverlayEntities && IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE))
+			if((Render && Config()->m_ClOverlayEntities < 100 && !IsGameLayer && !IsFrontLayer && !IsSwitchLayer && !IsTeleLayer && !IsSpeedupLayer && !IsTuneLayer) || (Config()->m_ClOverlayEntities && IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE) || (Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK))
 			{
 				if(pLayer->m_Type == LAYERTYPE_TILES)
 				{

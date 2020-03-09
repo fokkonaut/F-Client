@@ -1422,6 +1422,8 @@ if(CLIENT)
     animstate.cpp
     animstate.h
     component.h
+	components/background.cpp
+    components/background.h
     components/binds.cpp
     components/binds.h
     components/broadcast.cpp

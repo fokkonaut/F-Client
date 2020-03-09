@@ -6,6 +6,8 @@
 
 class CMapImages : public CComponent
 {
+	friend class CBackground;
+
 	enum
 	{
 		MAX_TEXTURES=64,
@@ -35,6 +37,7 @@ public:
 
 	virtual void OnMapLoad();
 	void OnMenuMapLoad(class IMap *pMap);
+	void LoadBackground(class IMap *pMap);
 	
 	IGraphics::CTextureHandle GetEasterTexture();
 

@@ -7,6 +7,8 @@
 
 class CMapLayers : public CComponent
 {
+	friend class CBackground;
+
 	CLayers *m_pMenuLayers;
 	IEngineMap *m_pMenuMap;
 

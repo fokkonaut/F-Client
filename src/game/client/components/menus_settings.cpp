@@ -2097,9 +2097,9 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 	}
 }
 
-void CMenus::RenderSettingsFClient	(CUIRect MainView)
+void CMenus::RenderSettingsFClient(CUIRect MainView)
 {
-	CUIRect Label, Button, Game, BottomView, Background;
+	CUIRect Label, Button, Game, BottomView, Background, EntitiesBackground;
 
 	// cut view
 	MainView.HSplitBottom(80.0f, &MainView, &BottomView);

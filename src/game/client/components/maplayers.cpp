@@ -481,7 +481,9 @@ void CMapLayers::OnRender()
 			if((pLayer->m_Flags&LAYERFLAG_DETAIL && !Config()->m_GfxHighDetail && !IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE && IsEntityLayer))
 				continue;
 
-			if((Render && Config()->m_ClOverlayEntities < 100 && !IsGameLayer && !IsFrontLayer && !IsSwitchLayer && !IsTeleLayer && !IsSpeedupLayer && !IsTuneLayer) || (Config()->m_ClOverlayEntities && IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE) || (Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK))
+			bool Online = Client()->State() == IClient::STATE_ONLINE || Client()->State() == IClient::STATE_DEMOPLAYBACK;
+
+			if((Render && (!Online || Config()->m_ClOverlayEntities < 100) && !IsGameLayer && !IsFrontLayer && !IsSwitchLayer && !IsTeleLayer && !IsSpeedupLayer && !IsTuneLayer) || (Config()->m_ClOverlayEntities && IsGameLayer) || (m_Type == TYPE_BACKGROUND_FORCE))
 			{
 				if(pLayer->m_Type == LAYERTYPE_TILES)
 				{
@@ -502,10 +504,13 @@ void CMapLayers::OnRender()
 					if((Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTile)) || pTMap->m_Version >= 4)
 					{
 						vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f);
-						if(IsGameLayer && Config()->m_ClOverlayEntities)
-							Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
-						else if(!IsGameLayer && Config()->m_ClOverlayEntities && !(m_Type == TYPE_BACKGROUND_FORCE))
-							Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*(100-Config()->m_ClOverlayEntities)/100.0f);
+						if (Online)
+						{
+							if(IsGameLayer && Config()->m_ClOverlayEntities)
+								Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
+							else if(!IsGameLayer && Config()->m_ClOverlayEntities && !(m_Type == TYPE_BACKGROUND_FORCE))
+								Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*(100-Config()->m_ClOverlayEntities)/100.0f);
+						}
 
 						Graphics()->BlendNone();
 						RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE,

@@ -2217,81 +2217,6 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 					Config()->m_ClShowHookCollAlways ^= 1;
 			}
 		}
-
-		// background
-		{
-			// cut off
-			MainView.HSplitTop(200.0f, 0, &MainView);
-
-			// background
-			{
-				MainView.HSplitTop(BackgroundHeight[SECTION_BACKGROUND], &BackgroundSettings, &MainView);
-				RenderTools()->DrawUIRect(&BackgroundSettings, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
-			}
-
-			// label
-			{
-				BackgroundSettings.HSplitTop(Spacing, 0, &BackgroundSettings);
-				BackgroundSettings.HSplitTop(ButtonHeight, &Label, &BackgroundSettings);
-				UI()->DoLabel(&Label, Localize("Background"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
-			}
-
-			// split in the middle
-			CUIRect BgLeft, BgRight;
-			BackgroundSettings.VSplitMid(&BgLeft, &BgRight, Spacing);
-
-			// background sliders, entities background map editbox, show tile layers
-			{
-				CUIRect aRects[2];
-				aRects[0] = BgLeft;
-				aRects[1] = BgRight;
-				aRects[0].VSplitRight(10.0f, &aRects[0], 0);
-				aRects[1].VSplitLeft(10.0f, 0, &aRects[1]);
-
-				int *pColorSlider[2][3] = {{&Config()->m_ClBackgroundHue, &Config()->m_ClBackgroundSat, &Config()->m_ClBackgroundLht}, {&Config()->m_ClBackgroundEntitiesHue, &Config()->m_ClBackgroundEntitiesSat, &Config()->m_ClBackgroundEntitiesLht}};
-
-				const char *paParts[] = {
-					Localize("Background (regular)"),
-					Localize("Background (entities)")};
-				const char *paLabels[] = {
-					Localize("Hue"),
-					Localize("Sat."),
-					Localize("Lht.")};
-
-				for(int i = 0; i < 2; i++)
-				{
-					aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
-					UI()->DoLabel(&Label, paParts[i], 14.0f, CUI::ALIGN_LEFT);
-					aRects[i].VSplitLeft(20.0f, 0, &aRects[i]);
-					aRects[i].HSplitTop(2.5f, 0, &aRects[i]);
-
-					for(int s = 0; s < 3; s++)
-					{
-						aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
-						Label.VSplitLeft(100.0f, &Label, &Button);
-						Button.HMargin(2.0f, &Button);
-
-						float k = (*pColorSlider[i][s]) / 255.0f;
-						k = DoScrollbarH(pColorSlider[i][s], &Button, k);
-						*pColorSlider[i][s] = (int)(k*255.0f);
-						UI()->DoLabel(&Label, paLabels[s], 15.0f, CUI::ALIGN_LEFT);
-					}
-				}
-
-				{
-					static float s_Map = 0.0f;
-					aRects[1].HSplitTop(25.0f, &Background, &aRects[1]);
-					Background.HSplitTop(20.0f, &Background, 0);
-					Background.VSplitLeft(100.0f, &Label, &BgLeft);
-					UI()->DoLabel(&Label, Localize("Map"), 14.0f, CUI::ALIGN_LEFT);
-					DoEditBox(Config()->m_ClBackgroundEntities, &BgLeft, Config()->m_ClBackgroundEntities, sizeof(Config()->m_ClBackgroundEntities), 14.0f, &s_Map);
-
-					aRects[1].HSplitTop(20.0f, &Button, 0);
-					if(DoButton_CheckBox(&Config()->m_ClBackgroundShowTilesLayers, Localize("Show tiles layers from BG map"), Config()->m_ClBackgroundShowTilesLayers, &Button))
-						Config()->m_ClBackgroundShowTilesLayers ^= 1;
-				}
-			}
-		}
 	}
 
 	// right side
@@ -2348,6 +2273,81 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 				Miscellaneous.HSplitTop(ButtonHeight+Spacing, 0, &Miscellaneous);
 				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
 				DoScrollbarOption(&Config()->m_ClDefaultZoom, &Config()->m_ClDefaultZoom, &Button, Localize("Default zoom"), 0, 20);
+			}
+		}
+	}
+
+	// background
+	{
+		// cut off
+		MainView.HSplitTop(200.0f, 0, &MainView);
+
+		// background
+		{
+			MainView.HSplitTop(BackgroundHeight[SECTION_BACKGROUND], &BackgroundSettings, &MainView);
+			RenderTools()->DrawUIRect(&BackgroundSettings, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+		}
+
+		// label
+		{
+			BackgroundSettings.HSplitTop(Spacing, 0, &BackgroundSettings);
+			BackgroundSettings.HSplitTop(ButtonHeight, &Label, &BackgroundSettings);
+			UI()->DoLabel(&Label, Localize("Background"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+		}
+
+		// split in the middle
+		CUIRect BgLeft, BgRight;
+		BackgroundSettings.VSplitMid(&BgLeft, &BgRight, Spacing);
+
+		// background sliders, entities background map editbox, show tile layers
+		{
+			CUIRect aRects[2];
+			aRects[0] = BgLeft;
+			aRects[1] = BgRight;
+			aRects[0].VSplitRight(10.0f, &aRects[0], 0);
+			aRects[1].VSplitLeft(10.0f, 0, &aRects[1]);
+
+			int *pColorSlider[2][3] = {{&Config()->m_ClBackgroundHue, &Config()->m_ClBackgroundSat, &Config()->m_ClBackgroundLht}, {&Config()->m_ClBackgroundEntitiesHue, &Config()->m_ClBackgroundEntitiesSat, &Config()->m_ClBackgroundEntitiesLht}};
+
+			const char *paParts[] = {
+				Localize("Background (regular)"),
+				Localize("Background (entities)")};
+			const char *paLabels[] = {
+				Localize("Hue"),
+				Localize("Sat."),
+				Localize("Lht.")};
+
+			for(int i = 0; i < 2; i++)
+			{
+				aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
+				UI()->DoLabel(&Label, paParts[i], 14.0f, CUI::ALIGN_LEFT);
+				aRects[i].VSplitLeft(20.0f, 0, &aRects[i]);
+				aRects[i].HSplitTop(2.5f, 0, &aRects[i]);
+
+				for(int s = 0; s < 3; s++)
+				{
+					aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
+					Label.VSplitLeft(100.0f, &Label, &Button);
+					Button.HMargin(2.0f, &Button);
+
+					float k = (*pColorSlider[i][s]) / 255.0f;
+					k = DoScrollbarH(pColorSlider[i][s], &Button, k);
+					*pColorSlider[i][s] = (int)(k*255.0f);
+					UI()->DoLabel(&Label, paLabels[s], 15.0f, CUI::ALIGN_LEFT);
+				}
+			}
+
+			{
+				static float s_Map = 0.0f;
+				aRects[1].HSplitTop(25.0f, &Background, &aRects[1]);
+				Background.HSplitTop(20.0f, &Background, 0);
+				Background.VSplitLeft(100.0f, &Label, &BgLeft);
+				UI()->DoLabel(&Label, Localize("Map"), 14.0f, CUI::ALIGN_LEFT);
+				DoEditBox(Config()->m_ClBackgroundEntities, &BgLeft, Config()->m_ClBackgroundEntities, sizeof(Config()->m_ClBackgroundEntities), 14.0f, &s_Map);
+
+				aRects[1].HSplitTop(20.0f, &Button, 0);
+				if(DoButton_CheckBox(&Config()->m_ClBackgroundShowTilesLayers, Localize("Show tiles layers from BG map"), Config()->m_ClBackgroundShowTilesLayers, &Button))
+					Config()->m_ClBackgroundShowTilesLayers ^= 1;
 			}
 		}
 	}

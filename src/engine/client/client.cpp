@@ -881,8 +881,6 @@ void CClient::Render()
 			Graphics()->Clear(bg.r, bg.g, bg.b);
 		}
 
-		if(Config()->m_GfxClear)
-			Graphics()->Clear(1,1,0);
 		GameClient()->OnRender();
 	}
 	DebugRender();

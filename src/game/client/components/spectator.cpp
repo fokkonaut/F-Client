@@ -12,6 +12,7 @@
 #include <game/client/render.h>
 
 #include "spectator.h"
+#include <engine/serverbrowser.h>
 
 
 void CSpectator::ConKeySpectator(IConsole::IResult *pResult, void *pUserData)
@@ -274,10 +275,14 @@ void CSpectator::OnRender()
 
 	x = -300.0f*ScaleX + 30.0f, y = StartY;
 
+	// in ddrace dead players are considered as paused
+	CServerInfo Info;
+	Client()->GetServerInfo(&Info);
+
 	for(int i = 0, Count = 0; i < MAX_CLIENTS; ++i)
 	{
 		if(!m_pClient->m_Snap.m_paPlayerInfos[i] || m_pClient->m_aClients[i].m_Team == TEAM_SPECTATORS ||
-			m_pClient->m_Snap.m_paPlayerInfos[i]->m_PlayerFlags&PLAYERFLAG_DEAD ||
+			(m_pClient->m_Snap.m_paPlayerInfos[i]->m_PlayerFlags&PLAYERFLAG_DEAD && !IsRace(&Info)) ||
 			(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != TEAM_SPECTATORS &&
 			(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != m_pClient->m_aClients[i].m_Team || i == m_pClient->m_LocalClientID[Config()->m_ClDummy])))
 			continue;

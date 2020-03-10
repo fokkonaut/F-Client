@@ -497,9 +497,9 @@ void CMapLayers::OnRender()
 						Graphics()->TextureSet(m_pClient->m_pMapimages->Get(pTMap->m_Image));
 
 					CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
-					//unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Data);
+					unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Data);
 
-					//if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTile))
+					if((Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTile)) || pTMap->m_Version >= 4)
 					{
 						vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f);
 						if(IsGameLayer && Config()->m_ClOverlayEntities)
@@ -563,9 +563,9 @@ void CMapLayers::OnRender()
 				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
 
 				CTile *pFrontTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Front);
-				//unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Front);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Front);
 
-				//if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTile))
+				if((Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTile)) || pTMap->m_Version >= 4)
 				{
 					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
 					Graphics()->BlendNone();
@@ -582,9 +582,9 @@ void CMapLayers::OnRender()
 				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
 
 				CSwitchTile *pSwitchTiles = (CSwitchTile *)pLayers->Map()->GetData(pTMap->m_Switch);
-				//unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Switch);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Switch);
 
-				//if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CSwitchTile))
+				if((Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CSwitchTile)) || pTMap->m_Version >= 4)
 				{
 					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
 					Graphics()->BlendNone();
@@ -600,9 +600,9 @@ void CMapLayers::OnRender()
 				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
 
 				CTeleTile *pTeleTiles = (CTeleTile *)pLayers->Map()->GetData(pTMap->m_Tele);
-				//unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Tele);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Tele);
 
-				//if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTeleTile))
+				if((Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTeleTile)) || pTMap->m_Version >= 4)
 				{
 					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
 					Graphics()->BlendNone();
@@ -618,9 +618,9 @@ void CMapLayers::OnRender()
 				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
 
 				CSpeedupTile *pSpeedupTiles = (CSpeedupTile *)pLayers->Map()->GetData(pTMap->m_Speedup);
-				//unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Speedup);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Speedup);
 
-				//if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CSpeedupTile))
+				if((Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CSpeedupTile)) || pTMap->m_Version >= 4)
 				{
 					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
 					Graphics()->BlendNone();
@@ -636,9 +636,9 @@ void CMapLayers::OnRender()
 				Graphics()->TextureSet(m_pClient->m_pMapimages->GetEntities());
 
 				CTuneTile *pTuneTiles = (CTuneTile *)pLayers->Map()->GetData(pTMap->m_Tune);
-				//unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Tune);
+				unsigned int Size = pLayers->Map()->GetDataSize(pTMap->m_Tune);
 
-				//if(Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTuneTile))
+				if((Size >= pTMap->m_Width*pTMap->m_Height*sizeof(CTuneTile)) || pTMap->m_Version >= 4)
 				{
 					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f*Config()->m_ClOverlayEntities/100.0f);
 					Graphics()->BlendNone();

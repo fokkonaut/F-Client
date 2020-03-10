@@ -495,7 +495,7 @@ void CHud::RenderCursor()
 		return;
 
 	vec2 Pos = *m_pClient->m_pCamera->GetCenter();
-	RenderTools()->MapScreenToGroup(Pos.x, Pos.y, Layers()->GameGroup(), m_pClient->m_pCamera->GetZoom());
+	RenderTools()->MapScreenToGroup(Pos.x, Pos.y, Layers()->GameGroup(), 1.0f);
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
 

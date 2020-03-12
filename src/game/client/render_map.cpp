@@ -307,10 +307,10 @@ void CRenderTools::ForceRenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags
 		}
 
 		IGraphics::CColorVertex Array[4] = {
-			IGraphics::CColorVertex(0, q->m_aColors[0].r*Conv*r*q->m_aColors[0].a*Conv*a, q->m_aColors[0].g*Conv*g*q->m_aColors[0].a*Conv*a, q->m_aColors[0].b*Conv*b*q->m_aColors[0].a*Conv*a, q->m_aColors[0].a*Conv*a*Alpha),
-			IGraphics::CColorVertex(1, q->m_aColors[1].r*Conv*r*q->m_aColors[1].a*Conv*a, q->m_aColors[1].g*Conv*g*q->m_aColors[1].a*Conv*a, q->m_aColors[1].b*Conv*b*q->m_aColors[1].a*Conv*a, q->m_aColors[1].a*Conv*a*Alpha),
-			IGraphics::CColorVertex(2, q->m_aColors[2].r*Conv*r*q->m_aColors[2].a*Conv*a, q->m_aColors[2].g*Conv*g*q->m_aColors[2].a*Conv*a, q->m_aColors[2].b*Conv*b*q->m_aColors[2].a*Conv*a, q->m_aColors[2].a*Conv*a*Alpha),
-			IGraphics::CColorVertex(3, q->m_aColors[3].r*Conv*r*q->m_aColors[3].a*Conv*a, q->m_aColors[3].g*Conv*g*q->m_aColors[3].a*Conv*a, q->m_aColors[3].b*Conv*b*q->m_aColors[3].a*Conv*a, q->m_aColors[3].a*Conv*a*Alpha)};
+			IGraphics::CColorVertex(0, q->m_aColors[0].r*Conv*r*q->m_aColors[0].a*Conv*a*Alpha, q->m_aColors[0].g*Conv*g*q->m_aColors[0].a*Conv*a*Alpha, q->m_aColors[0].b*Conv*b*q->m_aColors[0].a*Conv*a*Alpha, q->m_aColors[0].a*Conv*a*Alpha),
+			IGraphics::CColorVertex(1, q->m_aColors[1].r*Conv*r*q->m_aColors[1].a*Conv*a*Alpha, q->m_aColors[1].g*Conv*g*q->m_aColors[1].a*Conv*a*Alpha, q->m_aColors[1].b*Conv*b*q->m_aColors[1].a*Conv*a*Alpha, q->m_aColors[1].a*Conv*a*Alpha),
+			IGraphics::CColorVertex(2, q->m_aColors[2].r*Conv*r*q->m_aColors[2].a*Conv*a*Alpha, q->m_aColors[2].g*Conv*g*q->m_aColors[2].a*Conv*a*Alpha, q->m_aColors[2].b*Conv*b*q->m_aColors[2].a*Conv*a*Alpha, q->m_aColors[2].a*Conv*a*Alpha),
+			IGraphics::CColorVertex(3, q->m_aColors[3].r*Conv*r*q->m_aColors[3].a*Conv*a*Alpha, q->m_aColors[3].g*Conv*g*q->m_aColors[3].a*Conv*a*Alpha, q->m_aColors[3].b*Conv*b*q->m_aColors[3].a*Conv*a*Alpha, q->m_aColors[3].a*Conv*a*Alpha)};
 		Graphics()->SetColorVertex(Array, 4);
 
 		CPoint *pPoints = q->m_aPoints;

@@ -21,6 +21,8 @@
 #include "chat.h"
 #include "binds.h"
 
+#include <base/color.h>
+
 
 void CChat::OnReset()
 {
@@ -1270,6 +1272,11 @@ void CChat::OnRender()
 			TextColor = ColorBlue;
 		else if(pLine->m_NameColor == TEAM_SPECTATORS)
 			TextColor = ColorSpec;
+		else if (pLine->m_ClientID >= 0 && Config()->m_ClChatTeamColors && m_pClient->m_Teams.Team(pLine->m_ClientID))
+		{
+			vec3 rgb = HslToRgb(vec3(m_pClient->m_Teams.Team(pLine->m_ClientID) / 64.0f, 1.0f, 0.75f));
+			TextColor = vec4(rgb.r, rgb.g, rgb.b, 1.f);
+		}
 		else
 			TextColor = ColorAllPre;
 

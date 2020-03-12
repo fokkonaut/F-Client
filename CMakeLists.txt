@@ -1369,6 +1369,8 @@ set_src(GAME_SHARED GLOB src/game
   layers.cpp
   layers.h
   mapitems.h
+  teamscore.cpp
+  teamscore.h
   tuning.h
   variables.h
   version.h

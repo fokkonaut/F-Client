@@ -434,6 +434,9 @@ void CGameClient::OnInit()
 	m_IsXmasDay = time_isxmasday();
 	m_IsEasterDay = time_iseasterday();
 	m_pMenus->RenderLoading();
+
+	m_FClientMsgSent[CLIENT_MAIN] = false;
+	m_FClientMsgSent[CLIENT_DUMMY] = false;
 }
 
 void CGameClient::OnUpdate()
@@ -481,6 +484,7 @@ void CGameClient::OnDummySwap()
 void CGameClient::OnDummyDisconnect()
 {
 	m_LocalClientID[CLIENT_DUMMY] = -1;
+	m_FClientMsgSent[CLIENT_DUMMY] = false;
 }
 
 int CGameClient::OnSnapInput(int *pData, bool Dummy, bool Force)
@@ -579,6 +583,10 @@ void CGameClient::OnReset()
 	m_LastGameStartTick = -1;
 	m_LastFlagCarrierRed = FLAG_MISSING;
 	m_LastFlagCarrierBlue = FLAG_MISSING;
+
+	m_Teams.Reset();
+	m_FClientMsgSent[CLIENT_MAIN] = false;
+	m_FClientMsgSent[CLIENT_DUMMY] = false;
 }
 
 void CGameClient::UpdatePositions()
@@ -863,8 +871,14 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		{
 			// also receive whisper messages to the dummy
 			CNetMsg_Sv_Chat *pMsg = (CNetMsg_Sv_Chat *)pRawMsg;
-			if (pMsg->m_Mode == CHAT_WHISPER && pMsg->m_ClientID != m_LocalClientID[Config()->m_ClDummy])
+
+			if((pMsg->m_Mode == CHAT_TEAM
+					&& (m_aClients[m_LocalClientID[CLIENT_MAIN]].m_Team != m_aClients[m_LocalClientID[CLIENT_DUMMY]].m_Team
+						|| m_Teams.Team(m_LocalClientID[CLIENT_MAIN]) != m_Teams.Team(m_LocalClientID[CLIENT_DUMMY])))
+				|| (pMsg->m_Mode == CHAT_WHISPER && pMsg->m_ClientID != m_LocalClientID[Config()->m_ClDummy]))
+			{
 				m_pChat->OnMessage(MsgId, pRawMsg);
+			}
 		}
 		if(MsgId == NETMSGTYPE_SV_CLIENTINFO)
 		{
@@ -1093,6 +1107,30 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		CNetMsg_De_ClientLeave *pMsg = (CNetMsg_De_ClientLeave *)pRawMsg;
 		DoLeaveMessage(pMsg->m_pName, pMsg->m_ClientID, pMsg->m_pReason);
 		m_pStats->OnPlayerLeave(pMsg->m_ClientID);
+	}
+	else if(MsgId == NETMSGTYPE_SV_TEAMSSTATE)
+	{
+		unsigned int i;
+
+		for(i = 0; i < MAX_CLIENTS; i++)
+		{
+			int Team = pUnpacker->GetInt();
+			bool WentWrong = false;
+
+			if(pUnpacker->Error())
+				WentWrong = true;
+
+			if(!WentWrong && Team >= 0 && Team < MAX_CLIENTS)
+				m_Teams.Team(i, Team);
+			else if(Team != MAX_CLIENTS)
+				WentWrong = true;
+
+			if(WentWrong)
+			{
+				m_Teams.Team(i, 0);
+				break;
+			}
+		}
 	}
 }
 
@@ -1515,6 +1553,17 @@ void CGameClient::OnNewSnapshot()
 		}
 	}
 
+	// sort player infos by DDRace Team (and score between)
+	int Index = 0;
+	for(int Team = 0; Team <= MAX_CLIENTS; ++Team)
+	{
+		for(int i = 0; i < MAX_CLIENTS && Index < MAX_CLIENTS; ++i)
+		{
+			if(m_Snap.m_aInfoByScore[i].m_pPlayerInfo && m_Teams.Team(m_Snap.m_aInfoByScore[i].m_ClientID) == Team)
+				m_Snap.m_paInfoByDDTeam[Index++] = m_Snap.m_aInfoByScore[i];
+		}
+	}
+
 	// calc some player stats
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{
@@ -1549,6 +1598,18 @@ void CGameClient::OnNewSnapshot()
 		m_ServerMode = SERVERMODE_PURE;
 	else
 		m_ServerMode = SERVERMODE_PUREMOD;
+
+	// send the server that we are a F-Client
+	for (int i = 0; i < NUM_CLIENTS; i++)
+	{
+		if (!m_FClientMsgSent[i] && m_Snap.m_pLocalInfo && (Client()->DummyConnected() || i != CLIENT_DUMMY))
+		{
+			CMsgPacker Msg(NETMSGTYPE_CL_ISFCLIENT, false);
+			Msg.AddInt(FCLIENT_VERSION);
+			Client()->SendMsg(&Msg, MSGFLAG_VITAL, i);
+			m_FClientMsgSent[i] = true;
+		}
+	}
 
 	// ex playerinfo
 	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != (int)m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)
@@ -2095,6 +2156,9 @@ int CGameClient::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2& NewPos2, in
 
 		if(!IsOneSuper && (!m_Teams.SameTeam(i, OwnID) || IsOneSolo || OwnClientData.m_NoHookHit))
 			continue;*/
+
+		if (!m_Teams.SameTeam(i, OwnID))
+			continue;
 
 		vec2 ClosestPoint = closest_point_on_line(HookPos, NewPos, Position);
 		if(distance(Position, ClosestPoint) < PhysSize + 2.0f)

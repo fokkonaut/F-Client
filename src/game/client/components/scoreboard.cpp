@@ -22,6 +22,8 @@
 #include "scoreboard.h"
 #include "stats.h"
 
+#include <base/color.h>
+
 
 CScoreboard::CScoreboard()
 {
@@ -244,13 +246,16 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	float ScoreOffset = DeathOffset+DeathLength, ScoreLength = Race ? 83.0f : 35.0f;
 	float tw = 0.0f;
 
+	// calculate measurements
 	float CountrySpacing = 3.0f;
 	int Clamp = 16;
+	float RoundRadius = 15.0f;
 	if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 48)
 	{
 		LineHeight = 11.0f;
 		TeeSizeMod = 0.5f;
 		Spacing = 0.0f;
+		RoundRadius = 5.0f;
 		CountrySpacing = 1.3f;
 		Clamp = 32;
 	}
@@ -259,6 +264,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		LineHeight = 14.0f;
 		TeeSizeMod = 0.8f;
 		Spacing = 0.0f;
+		RoundRadius = 5.0f;
 		CountrySpacing = 1.8f;
 		Clamp = 24;
 	}
@@ -267,6 +273,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		LineHeight = 16.0f;
 		TeeSizeMod = 0.9f;
 		Spacing = 0.0f;
+		RoundRadius = 15.0f;
 		CountrySpacing = 2.5f;
 	}
 
@@ -473,7 +480,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		for (int i = 0; i < MAX_CLIENTS; i++)
 		{
 			// make sure that we render the correct team
-			const CGameClient::CPlayerInfoItem* pInfo = &m_pClient->m_Snap.m_aInfoByScore[i];
+			const CGameClient::CPlayerInfoItem* pInfo = &m_pClient->m_Snap.m_paInfoByDDTeam[i];
 			if (!pInfo->m_pPlayerInfo || m_pClient->m_aClients[pInfo->m_ClientID].m_Team != Team || (!RenderDead && (pInfo->m_pPlayerInfo->m_PlayerFlags & PLAYERFLAG_DEAD)) ||
 				(RenderDead && !(pInfo->m_pPlayerInfo->m_PlayerFlags & PLAYERFLAG_DEAD)))
 				continue;
@@ -490,14 +497,89 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		rendered = -32;
 	if (upper24)
 		rendered = -24;
+
+	int OldDDTeam = -1;
+
 	for(int i = 0 ; i < NumRenderScoreIDs ; i++)
 	{
-		if (rendered++ < 0) continue;
 		if(RenderScoreIDs[i] >= 0)
 		{
-			const CGameClient::CPlayerInfoItem *pInfo = &m_pClient->m_Snap.m_aInfoByScore[RenderScoreIDs[i]];
+			if (rendered++ < 0) continue;
+
+			// make sure that we render the correct team
+			const CGameClient::CPlayerInfoItem *pInfo = &m_pClient->m_Snap.m_paInfoByDDTeam[RenderScoreIDs[i]];
+
 			bool RenderDead = pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_DEAD;
 			float ColorAlpha = RenderDead ? 0.5f : 1.0f;
+
+			int DDTeam = m_pClient->m_Teams.Team(pInfo->m_ClientID);
+			int NextDDTeam = 0;
+
+			for(int j = i + 1; j < NumRenderScoreIDs; j++)
+			{
+				const CGameClient::CPlayerInfoItem *pInfo2 = &m_pClient->m_Snap.m_paInfoByDDTeam[RenderScoreIDs[j]];
+
+				if(!pInfo2 || m_pClient->m_aClients[pInfo2->m_ClientID].m_Team != Team)
+					continue;
+
+				NextDDTeam = m_pClient->m_Teams.Team(pInfo2->m_ClientID);
+				break;
+			}
+
+			if (OldDDTeam == -1)
+			{
+				for (int j = i - 1; j >= 0; j--)
+				{
+					const CGameClient::CPlayerInfoItem *pInfo2 = &m_pClient->m_Snap.m_paInfoByDDTeam[RenderScoreIDs[j]];
+
+					if(!pInfo2 || m_pClient->m_aClients[pInfo2->m_ClientID].m_Team != Team)
+						continue;
+
+					OldDDTeam = m_pClient->m_Teams.Team(pInfo2->m_ClientID);
+					break;
+				}
+			}
+
+			if (DDTeam != TEAM_FLOCK)
+			{
+				vec3 rgb = HslToRgb(vec3(DDTeam / 64.0f, 1.0f, 0.5f));
+				int Corners = 0;
+
+				if (OldDDTeam != DDTeam)
+					Corners |= CUI::CORNER_TL | CUI::CORNER_TR;
+				if (NextDDTeam != DDTeam)
+					Corners |= CUI::CORNER_BL | CUI::CORNER_BR;
+
+				CUIRect Rect = {x, y, w, LineHeight};
+				if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
+					RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f*ColorAlpha), Corners, 3.0f);
+				else
+					RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f*ColorAlpha), Corners, 5.0f);
+
+				if (NextDDTeam != DDTeam)
+				{
+					char aBuf[64];
+					//if(m_pClient->m_GameInfo.m_aTeamSize[0] > 8)
+					{
+						str_format(aBuf, sizeof(aBuf),"%d", DDTeam);
+						TextRender()->SetCursor(&Cursor, x, y + Spacing + FontSize - (FontSize/1.5f), FontSize/1.5f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
+						Cursor.m_LineWidth = NameLength+3;
+					}
+					// TODO: this would work, if uncommented, but the text is under the line, since its smaller than in 0.6
+					/*else
+					{
+						str_format(aBuf, sizeof(aBuf),"Team %d", DDTeam);
+						tw = TextRender()->TextWidth(0, FontSize, aBuf, -1, -1.0f);
+						TextRender()->SetCursor(&Cursor, PingOffset+w/2.0f-tw/2.0f, y + LineHeight, FontSize/1.5f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
+						Cursor.m_LineWidth = NameLength+3;
+					}*/
+					TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+					TextRender()->TextEx(&Cursor, aBuf, -1);
+				}
+			}
+
+			OldDDTeam = DDTeam;
+
 			TextRender()->TextColor(1.0f, 1.0f, 1.0f, ColorAlpha);
 
 			// color for text

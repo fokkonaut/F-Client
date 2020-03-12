@@ -13,6 +13,8 @@
 #include "chat.h"
 #include "skins.h"
 
+#include <base/color.h>
+
 void CInfoMessages::OnReset()
 {
 	m_InfoMsgCurrent = 0;
@@ -80,6 +82,7 @@ void CInfoMessages::OnMessage(int MsgType, void *pRawMsg)
 		Kill.m_Weapon = pMsg->m_Weapon;
 		Kill.m_ModeSpecial = pMsg->m_ModeSpecial;
 		Kill.m_FlagCarrierBlue = m_pClient->m_Snap.m_pGameDataFlag ? m_pClient->m_Snap.m_pGameDataFlag->m_FlagCarrierBlue : -1;
+		Kill.m_VictimDDTeam = m_pClient->m_Teams.Team(pMsg->m_Victim);
 
 		AddInfoMsg(INFOMSG_KILL, Kill);
 	}
@@ -177,7 +180,15 @@ void CInfoMessages::RenderKillMsg(const CInfoMsg *pInfoMsg, float x, float y) co
 	CTextCursor Cursor;
 	TextRender()->SetCursor(&Cursor, x, y, FontSize, TEXTFLAG_RENDER);
 
-	RenderTools()->DrawClientID(TextRender(), &Cursor, pInfoMsg->m_Player1ID);
+	vec4 BgIdColor = vec4(1.0f, 1.0f, 1.0f, 0.5f);
+	if(pInfoMsg->m_Player1ID >= 0 && Config()->m_ClChatTeamColors && pInfoMsg->m_VictimDDTeam)
+	{
+		vec3 rgb = HslToRgb(vec3(pInfoMsg->m_VictimDDTeam / 64.0f, 1.0f, 0.75f));
+		TextRender()->TextColor(rgb.r, rgb.g, rgb.b, 1.0f);
+		BgIdColor = vec4(rgb.r, rgb.g, rgb.b, 0.5f);
+	}
+
+	RenderTools()->DrawClientID(TextRender(), &Cursor, pInfoMsg->m_Player1ID, BgIdColor);
 	TextRender()->TextEx(&Cursor, pInfoMsg->m_aPlayer1Name, -1);
 
 	// render victim tee

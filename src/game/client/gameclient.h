@@ -10,6 +10,8 @@
 #include <game/gamecore.h>
 #include "render.h"
 
+#include <game/teamscore.h>
+
 class CGameClient : public IGameClient
 {
 	class CStack
@@ -150,6 +152,7 @@ public:
 		const CNetObj_PlayerInfo *m_paPlayerInfos[MAX_CLIENTS];
 		const CNetObj_PlayerInfoRace *m_paPlayerInfosRace[MAX_CLIENTS];
 		CPlayerInfoItem m_aInfoByScore[MAX_CLIENTS];
+		CPlayerInfoItem m_paInfoByDDTeam[MAX_CLIENTS];
 
 		// spectate data
 		struct CSpectateInfo
@@ -326,6 +329,11 @@ public:
 	int IntersectCharacter(vec2 Pos0, vec2 Pos1, vec2& NewPos, int OwnID);
 
 	int GetClientIconSprite(int ClientID);
+
+	class CTeamsCore m_Teams;
+
+private:
+	bool m_FClientMsgSent[NUM_CLIENTS];
 };
 
 

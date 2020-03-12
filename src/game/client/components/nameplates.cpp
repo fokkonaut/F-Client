@@ -10,6 +10,8 @@
 #include "nameplates.h"
 #include "controls.h"
 
+#include <base/color.h>
+
 void CNamePlates::RenderNameplate(
 	const CNetObj_Character *pPrevChar,
 	const CNetObj_Character *pPlayerChar,
@@ -56,6 +58,14 @@ void CNamePlates::RenderNameplate(
 				BgIdColor = vec4(1.0f, 0.5f, 0.5f, a * 0.5f);
 			else if(m_pClient->m_aClients[ClientID].m_Team == TEAM_BLUE)
 				BgIdColor = vec4(0.7f, 0.7f, 1.0f, a * 0.5f);
+		}
+
+		vec3 rgb = vec3(1.0f, 1.0f, 1.0f);
+		if (Config()->m_ClNameplatesTeamcolors && m_pClient->m_Teams.Team(ClientID))
+		{
+			rgb = HslToRgb(vec3(m_pClient->m_Teams.Team(ClientID) / 64.0f, 1.0f, 0.75f));
+			TextRender()->TextColor(rgb.r, rgb.g, rgb.b, 1.0f);
+			BgIdColor = vec4(rgb.r, rgb.g, rgb.b, a * 0.5f);
 		}
 
 		if(a > 0.001f)

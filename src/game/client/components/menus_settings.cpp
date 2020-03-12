@@ -2136,7 +2136,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 	// sections
 	int NumOptions[NUM_SECTIONS];
 	NumOptions[SECTION_GAMEPLAY] = 6 + Config()->m_ClTextEntities;
-	NumOptions[SECTION_MISCELLANEOUS] = 6;
+	NumOptions[SECTION_MISCELLANEOUS] = 7;
 	NumOptions[SECTION_BACKGROUND] = 6;
 
 	float BackgroundHeight[NUM_SECTIONS];
@@ -2268,6 +2268,14 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 					Config()->m_ClClientRecognition ^= 1;
 			}
 
+			// colored team chat messages
+			{
+				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
+				if(DoButton_CheckBox(&Config()->m_ClChatTeamColors, Localize("Show names in chat in team colors"), Config()->m_ClChatTeamColors, &Button))
+					Config()->m_ClChatTeamColors ^= 1;
+			}
+
 			// default zoom
 			{
 				Miscellaneous.HSplitTop(ButtonHeight+Spacing, 0, &Miscellaneous);
@@ -2376,6 +2384,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 			Config()->m_ClOldGunPosition = 1;
 			Config()->m_ClShowNinja = 1;
 			Config()->m_ClClientRecognition = 1;
+			Config()->m_ClChatTeamColors = 0;
 			Config()->m_ClDefaultZoom = 10;
 			Config()->m_ClBackgroundHue = 0;
 			Config()->m_ClBackgroundSat = 0;

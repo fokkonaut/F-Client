@@ -501,4 +501,8 @@ Messages = [
 	NetMessageEx("Cl_ExPlayerInfo", "explayerinfo@ddnet.tw", [
 		NetIntAny("m_Flags"),
 	]),
+
+	NetMessageEx("Cl_IsFClient", "isfclient@ddnet.tw", []),
+
+	NetMessageEx("Sv_TeamsState", "teamstate@ddnet.tw", []),
 ]

@@ -16,6 +16,7 @@ class CInfoMessages : public CComponent
 		int m_Player1ID;
 		char m_aPlayer1Name[MAX_NAME_LENGTH];
 		CTeeRenderInfo m_Player1RenderInfo;
+		int m_VictimDDTeam;
 
 		// killer
 		int m_Player2ID;

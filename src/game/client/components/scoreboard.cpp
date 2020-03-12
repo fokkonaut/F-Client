@@ -249,13 +249,11 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	// calculate measurements
 	float CountrySpacing = 3.0f;
 	int Clamp = 16;
-	float RoundRadius = 15.0f;
 	if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 48)
 	{
 		LineHeight = 11.0f;
 		TeeSizeMod = 0.5f;
 		Spacing = 0.0f;
-		RoundRadius = 5.0f;
 		CountrySpacing = 1.3f;
 		Clamp = 32;
 	}
@@ -264,7 +262,6 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		LineHeight = 14.0f;
 		TeeSizeMod = 0.8f;
 		Spacing = 0.0f;
-		RoundRadius = 5.0f;
 		CountrySpacing = 1.8f;
 		Clamp = 24;
 	}
@@ -273,10 +270,8 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		LineHeight = 16.0f;
 		TeeSizeMod = 0.9f;
 		Spacing = 0.0f;
-		RoundRadius = 15.0f;
 		CountrySpacing = 2.5f;
 	}
-
 
 	bool NoTitle = pTitle? false : true;
 

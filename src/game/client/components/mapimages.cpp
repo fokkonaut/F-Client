@@ -146,7 +146,9 @@ IGraphics::CTextureHandle CMapImages::GetEntities()
 
 	// DDNet default to prevent delay in seeing entities
 	const char *pEntities = "ddnet";
-	if(IsDDNet(&Info))
+	if (IsFDDrace(&Info))
+		pEntities = "f-ddrace";
+	else if(IsDDNet(&Info))
 		pEntities = "ddnet";
 	// commented out because fokkonaut ported DDNet server to 0.7 and we basically
 	// dont have any old ddrace servers, only the ones that use DDNet entities

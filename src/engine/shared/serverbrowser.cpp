@@ -65,6 +65,11 @@ bool IsDDNet(const CServerInfo *pInfo)
 	    || IsBlockInfectionZ(pInfo);
 }
 
+bool IsFDDrace(const CServerInfo *pInfo)
+{
+	return str_find_nocase(pInfo->m_aGameType, "f-ddrace");
+}
+
 // other
 
 bool Is64Player(const CServerInfo *pInfo)

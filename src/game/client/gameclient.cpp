@@ -1916,10 +1916,9 @@ void CGameClient::SendStartInfo(int Dummy)
 	Msg.m_pName = Dummy ? Config()->m_DummyName : Config()->m_PlayerName;
 	Msg.m_pClan = Dummy ? Config()->m_DummyClan : Config()->m_PlayerClan;
 	Msg.m_Country = Dummy ? Config()->m_DummyCountry : Config()->m_PlayerCountry;
-	const char *pClientString = "fclient!" FCLIENT_VERSION;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
-		Msg.m_apSkinPartNames[p] = m_pSkins->IsSkinPartDefault(Dummy, p) ? pClientString : CSkins::ms_apSkinVariables[Dummy][p];
+		Msg.m_apSkinPartNames[p] = m_pSkins->IsSkinPartDefault(Dummy, p) ? FCLIENT_STRING : CSkins::ms_apSkinVariables[Dummy][p];
 		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[Dummy][p];
 		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[Dummy][p];
 	}
@@ -1949,7 +1948,7 @@ void CGameClient::SendSkinChange(int Dummy)
 	CNetMsg_Cl_SkinChange Msg;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
-		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[Dummy][p];
+		Msg.m_apSkinPartNames[p] = m_pSkins->IsSkinPartDefault(Dummy, p) ? FCLIENT_STRING : CSkins::ms_apSkinVariables[Dummy][p];
 		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[Dummy][p];
 		Msg.m_aSkinPartColors[p] = *CSkins::ms_apColorVariables[Dummy][p];
 	}

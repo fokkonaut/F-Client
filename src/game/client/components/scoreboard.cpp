@@ -470,18 +470,21 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 		RenderScoreIDs[i] = -1;
 
-	for (int RenderDead = 0; RenderDead < 2; ++RenderDead)
+	for (int DDTeam = 0; DDTeam < MAX_CLIENTS; DDTeam++)
 	{
-		for (int i = 0; i < MAX_CLIENTS; i++)
+		for (int RenderDead = 0; RenderDead < 2; ++RenderDead)
 		{
-			// make sure that we render the correct team
-			const CGameClient::CPlayerInfoItem* pInfo = &m_pClient->m_Snap.m_paInfoByDDTeam[i];
-			if (!pInfo->m_pPlayerInfo || m_pClient->m_aClients[pInfo->m_ClientID].m_Team != Team || (!RenderDead && (pInfo->m_pPlayerInfo->m_PlayerFlags & PLAYERFLAG_DEAD)) ||
-				(RenderDead && !(pInfo->m_pPlayerInfo->m_PlayerFlags & PLAYERFLAG_DEAD)))
-				continue;
+			for (int i = 0; i < MAX_CLIENTS; i++)
+			{
+				// make sure that we render the correct team
+				const CGameClient::CPlayerInfoItem* pInfo = &m_pClient->m_Snap.m_paInfoByDDTeam[i];
+				if (!pInfo->m_pPlayerInfo || m_pClient->m_aClients[pInfo->m_ClientID].m_Team != Team || (!RenderDead && (pInfo->m_pPlayerInfo->m_PlayerFlags & PLAYERFLAG_DEAD)) ||
+					(RenderDead && !(pInfo->m_pPlayerInfo->m_PlayerFlags & PLAYERFLAG_DEAD)) || m_pClient->m_Teams.Team(pInfo->m_ClientID) != DDTeam)
+					continue;
 
-			RenderScoreIDs[NumRenderScoreIDs] = i;
-			NumRenderScoreIDs++;
+				RenderScoreIDs[NumRenderScoreIDs] = i;
+				NumRenderScoreIDs++;
+			}
 		}
 	}
 

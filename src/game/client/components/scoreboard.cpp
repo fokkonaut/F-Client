@@ -237,7 +237,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 48)
 	{
 		LineHeight = 11.0f;
-		TeeSizeMod = 0.5f;
+		TeeSizeMod = 0.6f;
 		Spacing = 0.0f;
 		CountrySpacing = 1.3f;
 		HeadlineFontsize = 8.0f;

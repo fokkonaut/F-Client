@@ -222,34 +222,17 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 	float HeadlineHeight = 40.0f;
 	float TitleFontsize = 20.0f;
-
 	float HeadlineFontsize = 12.0f;
-	if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 48)
-		HeadlineFontsize = 8.0f;
-	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
-		HeadlineFontsize = 9.0f;
-	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 16)
-		HeadlineFontsize = 10.0f;
 
+	// calculate measurements
 	float LineHeight = 20.0f;
 	float TeeSizeMod = 1.0f;
 	float Spacing = 2.0f;
-	float PingOffset = x+Spacing, PingLength = 35.0f;
-	float CountryFlagOffset = PingOffset+PingLength, CountryFlagLength = 20.f;
-	float IdSize = Config()->m_ClShowUserId ? LineHeight : 0.0f;
-	float ReadyLength = ReadyMode ? 10.f : 0.f;
-	float TeeOffset = CountryFlagOffset+CountryFlagLength+4.0f, TeeLength = 25*TeeSizeMod;
-	float NameOffset = CountryFlagOffset+CountryFlagLength+IdSize, NameLength = 128.0f-IdSize/2-ReadyLength;
-	float ClanOffset = NameOffset+NameLength+ReadyLength, ClanLength = 88.0f-IdSize/2;
-	float KillOffset = ClanOffset+ClanLength, KillLength = Race ? 0.0f : 24.0f;
-	float DeathOffset = KillOffset+KillLength, DeathLength = Race ? 0.0f : 24.0f;
-	float ScoreOffset = DeathOffset+DeathLength, ScoreLength = Race ? 83.0f : 35.0f;
-	float tw = 0.0f;
+	float CountrySpacing = 3.0f;
 	float ClientIconSize = 1.0f;
 	float ClientIconSpacing = 1.0f;
-
-	// calculate measurements
-	float CountrySpacing = 3.0f;
+	float TeeOffsetMod = 1.0f;
+	float NameOffsetMod = 0.0f;
 	int Clamp = 16;
 	if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 48)
 	{
@@ -257,9 +240,12 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		TeeSizeMod = 0.5f;
 		Spacing = 0.0f;
 		CountrySpacing = 1.3f;
+		HeadlineFontsize = 8.0f;
 		Clamp = 32;
 		ClientIconSize = 0.7f;
 		ClientIconSpacing = 0.55f;
+		TeeOffsetMod = 0.6f;
+		NameOffsetMod = 3.0f;
 	}
 	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
 	{
@@ -267,9 +253,12 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		TeeSizeMod = 0.8f;
 		Spacing = 0.0f;
 		CountrySpacing = 1.8f;
+		HeadlineFontsize = 9.0f;
 		Clamp = 24;
 		ClientIconSize = 0.8f;
 		ClientIconSpacing = 0.7f;
+		TeeOffsetMod = 0.8f;
+		NameOffsetMod = 2.0f;
 	}
 	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 16)
 	{
@@ -277,9 +266,23 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		TeeSizeMod = 0.9f;
 		Spacing = 0.0f;
 		CountrySpacing = 2.5f;
+		HeadlineFontsize = 10.0f;
 		ClientIconSize = 0.9f;
 		ClientIconSpacing = 0.8f;
+		NameOffsetMod = 1.0f;
 	}
+
+	float PingOffset = x+Spacing, PingLength = 35.0f;
+	float CountryFlagOffset = PingOffset+PingLength, CountryFlagLength = 20*TeeOffsetMod;
+	float IdSize = Config()->m_ClShowUserId ? LineHeight : 0.0f;
+	float ReadyLength = ReadyMode ? 10.f : 0.f;
+	float TeeOffset = CountryFlagOffset+CountryFlagLength+4.0f, TeeLength = 25*TeeSizeMod;
+	float NameOffset = CountryFlagOffset+CountryFlagLength+IdSize+NameOffsetMod, NameLength = 128.0f-IdSize/2-ReadyLength;
+	float ClanOffset = NameOffset+NameLength+ReadyLength, ClanLength = 88.0f-IdSize/2;
+	float KillOffset = ClanOffset+ClanLength, KillLength = Race ? 0.0f : 24.0f;
+	float DeathOffset = KillOffset+KillLength, DeathLength = Race ? 0.0f : 24.0f;
+	float ScoreOffset = DeathOffset+DeathLength, ScoreLength = Race ? 83.0f : 35.0f;
+	float tw = 0.0f;
 
 	bool NoTitle = pTitle? false : true;
 

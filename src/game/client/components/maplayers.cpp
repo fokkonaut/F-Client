@@ -519,7 +519,7 @@ void CMapLayers::OnRender()
 						Graphics()->BlendNormal();
 
 						// draw kill tiles outside the entity clipping rectangle
-						if(IsGameLayer)
+						if(IsGameLayer && Online)
 						{
 							// slow blinking to hint that it's not a part of the map
 							double Seconds = time_get()/(double)time_freq();

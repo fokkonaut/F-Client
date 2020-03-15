@@ -245,6 +245,8 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	float DeathOffset = KillOffset+KillLength, DeathLength = Race ? 0.0f : 24.0f;
 	float ScoreOffset = DeathOffset+DeathLength, ScoreLength = Race ? 83.0f : 35.0f;
 	float tw = 0.0f;
+	float ClientIconSize = 1.0f;
+	float ClientIconSpacing = 1.0f;
 
 	// calculate measurements
 	float CountrySpacing = 3.0f;
@@ -256,6 +258,8 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		Spacing = 0.0f;
 		CountrySpacing = 1.3f;
 		Clamp = 32;
+		ClientIconSize = 0.7f;
+		ClientIconSpacing = 0.55f;
 	}
 	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
 	{
@@ -264,6 +268,8 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		Spacing = 0.0f;
 		CountrySpacing = 1.8f;
 		Clamp = 24;
+		ClientIconSize = 0.8f;
+		ClientIconSpacing = 0.7f;
 	}
 	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 16)
 	{
@@ -271,6 +277,8 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		TeeSizeMod = 0.9f;
 		Spacing = 0.0f;
 		CountrySpacing = 2.5f;
+		ClientIconSize = 0.9f;
+		ClientIconSpacing = 0.8f;
 	}
 
 	bool NoTitle = pTitle? false : true;
@@ -628,7 +636,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 					Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CLIENTICONS].m_Id);
 					Graphics()->QuadsBegin();
 					RenderTools()->SelectSprite(Sprite);
-					IGraphics::CQuadItem QuadItem(CountryFlagOffset + 30.0f - 10.0f, y, 10, 10);
+					IGraphics::CQuadItem QuadItem(CountryFlagOffset+20*ClientIconSpacing, y, 10*ClientIconSize, 10*ClientIconSize);
 					Graphics()->QuadsDrawTL(&QuadItem, 1);
 					Graphics()->QuadsEnd();
 				}

@@ -832,7 +832,8 @@ void CHud::OnRender()
 				}
 			}
 			RenderSpectatorHud();
-			RenderSpectatorNotification();
+			// this message is annoying in ddrace where /pause is called often
+			//RenderSpectatorNotification();
 		}
 
 		RenderGameTimer();

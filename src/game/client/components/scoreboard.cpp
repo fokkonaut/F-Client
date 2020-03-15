@@ -218,6 +218,9 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	const CGameClient::CSnapState& Snap = m_pClient->m_Snap;
 	const bool ReadyMode = Snap.m_pGameData && (Snap.m_pGameData->m_GameStateFlags&(GAMESTATEFLAG_STARTCOUNTDOWN|GAMESTATEFLAG_PAUSED|GAMESTATEFLAG_WARMUP)) && Snap.m_pGameData->m_GameStateEndTick == 0;
 
+	CServerInfo Info;
+	Client()->GetServerInfo(&Info);
+	bool FDDrace = IsFDDrace(&Info);
 	bool Race = m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_RACE;
 
 	float HeadlineHeight = 40.0f;
@@ -454,7 +457,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	tw = TextRender()->TextWidth(0, HeadlineFontsize, pClanStr, -1, -1.0f);
 	TextRender()->Text(0, ClanOffset+ClanLength/2-tw/2, y+Spacing, HeadlineFontsize, pClanStr, -1.0f);
 
-	if(!Race)
+	if(!Race && !FDDrace)
 	{
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.5f);
 		tw = TextRender()->TextWidth(0, HeadlineFontsize, "K", -1, -1.0f);
@@ -732,7 +735,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-			if(!Race)
+			if(!Race && !FDDrace)
 			{
 				// K
 				TextRender()->TextColor(TextColor.r, TextColor.g, TextColor.b, 0.5f*ColorAlpha);

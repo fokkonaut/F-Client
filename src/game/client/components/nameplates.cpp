@@ -60,10 +60,9 @@ void CNamePlates::RenderNameplate(
 				BgIdColor = vec4(0.7f, 0.7f, 1.0f, a * 0.5f);
 		}
 
-		vec3 rgb = vec3(1.0f, 1.0f, 1.0f);
 		if (Config()->m_ClNameplatesTeamcolors && m_pClient->m_Teams.Team(ClientID))
 		{
-			rgb = HslToRgb(vec3(m_pClient->m_Teams.Team(ClientID) / 64.0f, 1.0f, 0.75f));
+			vec3 rgb = HslToRgb(vec3(m_pClient->m_Teams.Team(ClientID) / 64.0f, 1.0f, 0.75f));
 			TextRender()->TextColor(rgb.r, rgb.g, rgb.b, 1.0f);
 			BgIdColor = vec4(rgb.r, rgb.g, rgb.b, a * 0.5f);
 		}

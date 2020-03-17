@@ -1557,10 +1557,17 @@ void CGameClient::OnNewSnapshot()
 	int Index = 0;
 	for(int Team = 0; Team <= MAX_CLIENTS; ++Team)
 	{
-		for(int i = 0; i < MAX_CLIENTS && Index < MAX_CLIENTS; ++i)
+		for (int RenderDead = 0; RenderDead < 2; ++RenderDead)
 		{
-			if(m_Snap.m_aInfoByScore[i].m_pPlayerInfo && m_Teams.Team(m_Snap.m_aInfoByScore[i].m_ClientID) == Team)
+			for(int i = 0; i < MAX_CLIENTS && Index < MAX_CLIENTS; ++i)
+			{
+				const CGameClient::CPlayerInfoItem* pInfo = &m_Snap.m_aInfoByScore[i];
+				if (!pInfo->m_pPlayerInfo || (!RenderDead && (pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_DEAD)) ||
+					(RenderDead && !(pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_DEAD)) || m_Teams.Team(pInfo->m_ClientID) != Team)
+					continue;
+
 				m_Snap.m_paInfoByDDTeam[Index++] = m_Snap.m_aInfoByScore[i];
+			}
 		}
 	}
 

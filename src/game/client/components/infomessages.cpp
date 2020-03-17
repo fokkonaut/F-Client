@@ -190,6 +190,7 @@ void CInfoMessages::RenderKillMsg(const CInfoMsg *pInfoMsg, float x, float y) co
 
 	RenderTools()->DrawClientID(TextRender(), &Cursor, pInfoMsg->m_Player1ID, BgIdColor);
 	TextRender()->TextEx(&Cursor, pInfoMsg->m_aPlayer1Name, -1);
+	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// render victim tee
 	x -= 24.0f;

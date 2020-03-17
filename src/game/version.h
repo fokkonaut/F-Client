@@ -2,11 +2,11 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_VERSION_H
 #define GAME_VERSION_H
-#define GAME_VERSION "0.7.4, 2.1"
+#define GAME_VERSION "0.7.4, 2.2"
 #define GAME_NETVERSION "0.7 802f1be60a05665f"
 #define CLIENT_VERSION 0x0704
 #define SETTINGS_FILENAME "settings_fclient"
-#define FCLIENT_VERSION 2010
+#define FCLIENT_VERSION 2020
 #define FCLIENT_STRING "fclient!"
 static const char GAME_RELEASE_VERSION[8] = "0.7.4";
 #endif

@@ -539,9 +539,9 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 			CUIRect Rect = {x, y, w, LineHeight};
 			if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
-				RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f*ColorAlpha), Corners, 3.0f);
+				RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f), Corners, 3.0f);
 			else
-				RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f*ColorAlpha), Corners, 5.0f);
+				RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f), Corners, 5.0f);
 
 			if (NextDDTeam != DDTeam)
 			{

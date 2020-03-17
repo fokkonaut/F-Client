@@ -14,6 +14,7 @@
 #include "spectator.h"
 #include <engine/serverbrowser.h>
 #include <base/color.h>
+#include "skins.h"
 
 
 void CSpectator::ConKeySpectator(IConsole::IResult *pResult, void *pUserData)
@@ -297,9 +298,6 @@ void CSpectator::OnRender()
 			(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team != m_pClient->m_aClients[pInfo->m_ClientID].m_Team || pInfo->m_ClientID == m_pClient->m_LocalClientID[Config()->m_ClDummy])))
 			continue;
 
-		bool RenderDead = pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_DEAD;
-		float ColorAlpha = RenderDead ? 0.5f : 1.0f;
-
 		if(Count != 0 && Count%ColumnSize == 0)
 		{
 			x += 290.0f;
@@ -348,10 +346,12 @@ void CSpectator::OnRender()
 			Rect.y = Height/2.0f+y+BoxMove;
 			Rect.w = 270.0f;
 			Rect.h = LineHeight;
-			RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f*ColorAlpha), Corners, RoundRadius);
+			RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f), Corners, RoundRadius);
 		}
 
 		OldDDTeam = DDTeam;
+
+		bool RenderDead = pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_DEAD;
 
 		if(m_pClient->m_Snap.m_SpecInfo.m_SpecMode == SPEC_PLAYER && m_pClient->m_Snap.m_SpecInfo.m_SpectatorID == pInfo->m_ClientID)
 		{
@@ -397,9 +397,26 @@ void CSpectator::OnRender()
 			Graphics()->QuadsEnd();
 		}
 
-		CTeeRenderInfo TeeInfo = m_pClient->m_aClients[pInfo->m_ClientID].m_RenderInfo;
-		TeeInfo.m_Size *= ScaleY;
-		RenderTools()->RenderTee(CAnimState::GetIdle(), &TeeInfo, EMOTE_NORMAL, vec2(1.0f, 0.0f), vec2(Width/2.0f+x+20.0f, Height/2.0f+y+20.0f));
+		if(RenderDead)
+		{
+			Graphics()->BlendNormal();
+			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_DEADTEE].m_Id);
+			Graphics()->QuadsBegin();
+			if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
+			{
+				vec4 Color = m_pClient->m_pSkins->GetColorV4(m_pClient->m_pSkins->GetTeamColor(true, 0, m_pClient->m_aClients[pInfo->m_ClientID].m_Team, SKINPART_BODY), false);
+				Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+			}
+			IGraphics::CQuadItem QuadItem(Width/2.0f+x+20.0f - 32*ScaleY, Height/2.0f+y+20.0f - 32*ScaleY, 64*ScaleY, 64*ScaleY);
+			Graphics()->QuadsDrawTL(&QuadItem, 1);
+			Graphics()->QuadsEnd();
+		}
+		else
+		{
+			CTeeRenderInfo TeeInfo = m_pClient->m_aClients[pInfo->m_ClientID].m_RenderInfo;
+			TeeInfo.m_Size *= ScaleY;
+			RenderTools()->RenderTee(CAnimState::GetIdle(), &TeeInfo, EMOTE_NORMAL, vec2(1.0f, 0.0f), vec2(Width/2.0f+x+20.0f, Height/2.0f+y+20.0f));
+		}
 
 		y += LineHeight;
 	}

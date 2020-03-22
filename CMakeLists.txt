@@ -1006,6 +1006,7 @@ set(EXPECTED_DATA
   skins/body/force.png
   skins/body/fox.png
   skins/body/greensward.png
+  skins/body/greyfox_body.png
   skins/body/hippo.png
   skins/body/kitty.png
   skins/body/koala.png
@@ -1041,6 +1042,7 @@ set(EXPECTED_DATA
   skins/greensward.json
   skins/greycoon.json
   skins/greyfox.json
+  skins/greyfox2.json
   skins/hands/standard.png
   skins/hippo.json
   skins/koala.json
@@ -1059,6 +1061,7 @@ set(EXPECTED_DATA
   skins/marking/downdony.png
   skins/marking/duodonny.png
   skins/marking/fox.png
+  skins/marking/greyfox_marking.png
   skins/marking/hipbel.png
   skins/marking/lowcross.png
   skins/marking/lowpaint.png

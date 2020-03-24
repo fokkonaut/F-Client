@@ -370,7 +370,7 @@ void CSpectator::OnRender()
 			m_SelectedSpectatorID = pInfo->m_ClientID;
 			Selected = true;
 		}
-		TextRender()->TextColor(1.0f, 1.0f, 1.0f, Selected?1.0f:0.5f);
+		TextRender()->TextColor(1.0f, 1.0f, 1.0f, Selected ? 1.0f : RenderDead ? 0.3f : 0.5f);
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "%s", Config()->m_ClShowsocial ? m_pClient->m_aClients[pInfo->m_ClientID].m_aName : "");
 

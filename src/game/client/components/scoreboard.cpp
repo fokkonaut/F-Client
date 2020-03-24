@@ -679,6 +679,8 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		{
 			vec4 Color = m_pClient->m_pSkins->GetColorV4(Config()->m_ClAuthedPlayerColor, false);
 			TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
+			if(HighlightedLine)
+				TextRender()->TextOutlineColor(0.0f, 0.1f, 0.0f, 0.5f);
 		}
 		Cursor.m_LineWidth = NameLength-TeeLength;
 		TextRender()->TextEx(&Cursor, m_pClient->m_aClients[pInfo->m_ClientID].m_aName, str_length(m_pClient->m_aClients[pInfo->m_ClientID].m_aName));

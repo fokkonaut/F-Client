@@ -2164,7 +2164,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 
 			// overlay entities
 			{
-				Gameplay.HSplitTop(Spacing, 0, &Gameplay);
+				// first entry in row doesnt need a spacing
 				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
 				DoScrollbarOption(&Config()->m_ClOverlayEntities, &Config()->m_ClOverlayEntities, &Button, Localize("Overlay Entities"), 0, 100);
 			}
@@ -2238,7 +2238,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 
 			// old chat sounds
 			{
-				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				// first entry in row doesnt need a spacing
 				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
 				if(DoButton_CheckBox(&Config()->m_ClOldChatSounds, Localize("Old chat sounds"), Config()->m_ClOldChatSounds, &Button))
 					Config()->m_ClOldChatSounds ^= 1;
@@ -2286,7 +2286,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 
 			// default zoom
 			{
-				Miscellaneous.HSplitTop(ButtonHeight+Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight+2*Spacing, 0, &Miscellaneous);
 				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
 				DoScrollbarOption(&Config()->m_ClDefaultZoom, &Config()->m_ClDefaultZoom, &Button, Localize("Default zoom"), 0, 20);
 			}
@@ -2312,59 +2312,45 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 		}
 
 		// split in the middle
-		CUIRect BgLeft, BgRight;
-		BackgroundSettings.VSplitMid(&BgLeft, &BgRight, Spacing);
+		CUIRect aRects[2];
+		BackgroundSettings.VSplitMid(&aRects[0], &aRects[1], Spacing);
 
-		// background sliders, entities background map editbox, show tile layers
+		// background sliders
 		{
-			CUIRect aRects[2];
-			aRects[0] = BgLeft;
-			aRects[1] = BgRight;
-			aRects[0].VSplitRight(10.0f, &aRects[0], 0);
-			aRects[1].VSplitLeft(10.0f, 0, &aRects[1]);
-
 			int *pColorSlider[2][3] = {{&Config()->m_ClBackgroundHue, &Config()->m_ClBackgroundSat, &Config()->m_ClBackgroundLht}, {&Config()->m_ClBackgroundEntitiesHue, &Config()->m_ClBackgroundEntitiesSat, &Config()->m_ClBackgroundEntitiesLht}};
 
-			const char *paParts[] = {
-				Localize("Background (regular)"),
-				Localize("Background (entities)")};
-			const char *paLabels[] = {
-				Localize("Hue"),
-				Localize("Sat."),
-				Localize("Lht.")};
+			const char *paParts[] = { Localize("Background (regular)"), Localize("Background (entities)") };
+			const char *paLabels[] = { Localize("Hue."), Localize("Sat."), Localize("Lht.") };
 
 			for(int i = 0; i < 2; i++)
 			{
-				aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
-				UI()->DoLabel(&Label, paParts[i], 14.0f, CUI::ALIGN_LEFT);
-				aRects[i].VSplitLeft(20.0f, 0, &aRects[i]);
-				aRects[i].HSplitTop(2.5f, 0, &aRects[i]);
+				// first entry in row doesnt need a spacing
+				aRects[i].HSplitTop(ButtonHeight, &Label, &aRects[i]);
+				UI()->DoLabel(&Label, paParts[i], ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 				for(int s = 0; s < 3; s++)
 				{
-					aRects[i].HSplitTop(20.0f, &Label, &aRects[i]);
-					Label.VSplitLeft(100.0f, &Label, &Button);
-					Button.HMargin(2.0f, &Button);
-
-					float k = (*pColorSlider[i][s]) / 255.0f;
-					k = DoScrollbarH(pColorSlider[i][s], &Button, k);
-					*pColorSlider[i][s] = (int)(k*255.0f);
-					UI()->DoLabel(&Label, paLabels[s], 15.0f, CUI::ALIGN_LEFT);
+					aRects[i].HSplitTop(Spacing, 0, &aRects[i]);
+					aRects[i].HSplitTop(ButtonHeight, &Button, &aRects[i]);
+					DoScrollbarOption(pColorSlider[i][s], pColorSlider[i][s], &Button, paLabels[s], 0, 255);
 				}
 			}
+		}
 
-			{
-				static float s_Map = 0.0f;
-				aRects[1].HSplitTop(25.0f, &Background, &aRects[1]);
-				Background.HSplitTop(20.0f, &Background, 0);
-				Background.VSplitLeft(100.0f, &Label, &BgLeft);
-				UI()->DoLabel(&Label, Localize("Map"), 14.0f, CUI::ALIGN_LEFT);
-				DoEditBox(Config()->m_ClBackgroundEntities, &BgLeft, Config()->m_ClBackgroundEntities, sizeof(Config()->m_ClBackgroundEntities), 14.0f, &s_Map);
+		// entities bg map
+		{
+			aRects[1].HSplitTop(Spacing, 0, &aRects[1]);
+			aRects[1].HSplitTop(ButtonHeight, &Button, &aRects[1]);
+			static float s_Map = 0.0f;
+			DoEditBoxOption(Config()->m_ClBackgroundEntities, Config()->m_ClBackgroundEntities, sizeof(Config()->m_ClBackgroundEntities), &Button, Localize("Map"), 80.0f, &s_Map);
+		}
 
-				aRects[1].HSplitTop(20.0f, &Button, 0);
-				if(DoButton_CheckBox(&Config()->m_ClBackgroundShowTilesLayers, Localize("Show tiles layers from BG map"), Config()->m_ClBackgroundShowTilesLayers, &Button))
-					Config()->m_ClBackgroundShowTilesLayers ^= 1;
-			}
+		// show tile layers from bg map
+		{
+			aRects[1].HSplitTop(Spacing, 0, &aRects[1]);
+			aRects[1].HSplitTop(ButtonHeight, &Button, 0);
+			if(DoButton_CheckBox(&Config()->m_ClBackgroundShowTilesLayers, Localize("Show tiles layers from BG map"), Config()->m_ClBackgroundShowTilesLayers, &Button))
+				Config()->m_ClBackgroundShowTilesLayers ^= 1;
 		}
 	}
 

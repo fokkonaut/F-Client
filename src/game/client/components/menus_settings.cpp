@@ -2164,7 +2164,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 
 			// overlay entities
 			{
-				// first entry in row doesnt need a spacing
+				// first entry in column doesnt need a spacing
 				Gameplay.HSplitTop(ButtonHeight, &Button, &Gameplay);
 				DoScrollbarOption(&Config()->m_ClOverlayEntities, &Config()->m_ClOverlayEntities, &Button, Localize("Overlay Entities"), 0, 100);
 			}
@@ -2238,7 +2238,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 
 			// old chat sounds
 			{
-				// first entry in row doesnt need a spacing
+				// first entry in column doesnt need a spacing
 				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
 				if(DoButton_CheckBox(&Config()->m_ClOldChatSounds, Localize("Old chat sounds"), Config()->m_ClOldChatSounds, &Button))
 					Config()->m_ClOldChatSounds ^= 1;
@@ -2320,11 +2320,11 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 			int *pColorSlider[2][3] = {{&Config()->m_ClBackgroundHue, &Config()->m_ClBackgroundSat, &Config()->m_ClBackgroundLht}, {&Config()->m_ClBackgroundEntitiesHue, &Config()->m_ClBackgroundEntitiesSat, &Config()->m_ClBackgroundEntitiesLht}};
 
 			const char *paParts[] = { Localize("Background (regular)"), Localize("Background (entities)") };
-			const char *paLabels[] = { Localize("Hue."), Localize("Sat."), Localize("Lht.") };
+			const char *paLabels[] = { Localize("Hue"), Localize("Sat."), Localize("Lht.") };
 
 			for(int i = 0; i < 2; i++)
 			{
-				// first entry in row doesnt need a spacing
+				// first entry in column doesnt need a spacing
 				aRects[i].HSplitTop(ButtonHeight, &Label, &aRects[i]);
 				UI()->DoLabel(&Label, paParts[i], ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
@@ -2348,7 +2348,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 		// show tile layers from bg map
 		{
 			aRects[1].HSplitTop(Spacing, 0, &aRects[1]);
-			aRects[1].HSplitTop(ButtonHeight, &Button, 0);
+			aRects[1].HSplitTop(ButtonHeight, &Button, &aRects[1]);
 			if(DoButton_CheckBox(&Config()->m_ClBackgroundShowTilesLayers, Localize("Show tiles layers from BG map"), Config()->m_ClBackgroundShowTilesLayers, &Button))
 				Config()->m_ClBackgroundShowTilesLayers ^= 1;
 		}

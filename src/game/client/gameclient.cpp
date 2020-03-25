@@ -435,8 +435,8 @@ void CGameClient::OnInit()
 	m_IsEasterDay = time_iseasterday();
 	m_pMenus->RenderLoading();
 
-	m_FClientMsgSent[CLIENT_MAIN] = false;
-	m_FClientMsgSent[CLIENT_DUMMY] = false;
+	m_DDraceMsgSent[CLIENT_MAIN] = false;
+	m_DDraceMsgSent[CLIENT_DUMMY] = false;
 }
 
 void CGameClient::OnUpdate()
@@ -484,7 +484,7 @@ void CGameClient::OnDummySwap()
 void CGameClient::OnDummyDisconnect()
 {
 	m_LocalClientID[CLIENT_DUMMY] = -1;
-	m_FClientMsgSent[CLIENT_DUMMY] = false;
+	m_DDraceMsgSent[CLIENT_DUMMY] = false;
 }
 
 int CGameClient::OnSnapInput(int *pData, bool Dummy, bool Force)
@@ -585,8 +585,8 @@ void CGameClient::OnReset()
 	m_LastFlagCarrierBlue = FLAG_MISSING;
 
 	m_Teams.Reset();
-	m_FClientMsgSent[CLIENT_MAIN] = false;
-	m_FClientMsgSent[CLIENT_DUMMY] = false;
+	m_DDraceMsgSent[CLIENT_MAIN] = false;
+	m_DDraceMsgSent[CLIENT_DUMMY] = false;
 }
 
 void CGameClient::UpdatePositions()
@@ -1609,12 +1609,12 @@ void CGameClient::OnNewSnapshot()
 	// send the server that we are a F-Client
 	for (int i = 0; i < NUM_CLIENTS; i++)
 	{
-		if (!m_FClientMsgSent[i] && m_Snap.m_pLocalInfo && (Client()->DummyConnected() || i != CLIENT_DUMMY))
+		if (!m_DDraceMsgSent[i] && m_Snap.m_pLocalInfo && (Client()->DummyConnected() || i != CLIENT_DUMMY))
 		{
-			CMsgPacker Msg(NETMSGTYPE_CL_ISFCLIENT, false);
-			Msg.AddInt(FCLIENT_VERSION);
+			CMsgPacker Msg(NETMSGTYPE_CL_ISDDRACE, false);
+			Msg.AddInt(DDRACE_VERSION);
 			Client()->SendMsg(&Msg, MSGFLAG_VITAL, i);
-			m_FClientMsgSent[i] = true;
+			m_DDraceMsgSent[i] = true;
 		}
 	}
 

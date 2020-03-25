@@ -333,7 +333,7 @@ public:
 	class CTeamsCore m_Teams;
 
 private:
-	bool m_FClientMsgSent[NUM_CLIENTS];
+	bool m_DDraceMsgSent[NUM_CLIENTS];
 };
 
 

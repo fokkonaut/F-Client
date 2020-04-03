@@ -44,7 +44,4 @@ MACRO_TUNING_PARAM(LaserBounceCost, laser_bounce_cost, 0)
 
 MACRO_TUNING_PARAM(PlayerCollision, player_collision, 1)
 MACRO_TUNING_PARAM(PlayerHooking, player_hooking, 1)
-
-// F-Client
-MACRO_TUNING_PARAM(JetpackStrength, jetpack_strength, 400.0f)
 #endif

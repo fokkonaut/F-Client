@@ -1243,7 +1243,7 @@ const char *CServer::GetMapName()
 
 int CServer::LoadMap(const char *pMapName)
 {
-	char aBuf[512];
+	char aBuf[IO_MAX_PATH_LENGTH];
 	str_format(aBuf, sizeof(aBuf), "maps/%s.map", pMapName);
 
 	// check for valid standard map
@@ -1291,6 +1291,15 @@ int CServer::LoadMap(const char *pMapName)
 void CServer::InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, CConfig *pConfig, IConsole *pConsole)
 {
 	m_Register.Init(pNetServer, pMasterServer, pConfig, pConsole);
+}
+
+void CServer::InitInterfaces(CConfig *pConfig, IConsole *pConsole, IGameServer *pGameServer, IEngineMap *pMap, IStorage *pStorage)
+{
+	m_pConfig = pConfig;
+	m_pConsole = pConsole;
+	m_pGameServer = pGameServer;
+	m_pMap = pMap;
+	m_pStorage = pStorage;
 }
 
 int CServer::Run()
@@ -1507,7 +1516,7 @@ int CServer::MapListEntryCallback(const char *pFilename, int IsDir, int DirType,
 	if(pFilename[0] == '.') // hidden files
 		return 0;
 
-	char aFilename[512];
+	char aFilename[IO_MAX_PATH_LENGTH];
 	if(pUserdata->m_aName[0])
 		str_format(aFilename, sizeof(aFilename), "%s/%s", pUserdata->m_aName, pFilename);
 	else
@@ -1518,7 +1527,7 @@ int CServer::MapListEntryCallback(const char *pFilename, int IsDir, int DirType,
 		CSubdirCallbackUserdata Userdata;
 		Userdata.m_pServer = pThis;
 		str_copy(Userdata.m_aName, aFilename, sizeof(Userdata.m_aName));
-		char FindPath[512];
+		char FindPath[IO_MAX_PATH_LENGTH];
 		str_format(FindPath, sizeof(FindPath), "maps/%s/", aFilename);
 		pThis->m_pStorage->ListDirectory(IStorage::TYPE_ALL, FindPath, MapListEntryCallback, &Userdata);
 		return 0;
@@ -1748,12 +1757,6 @@ void CServer::ConchainRconPasswordSet(IConsole::IResult *pResult, void *pUserDat
 
 void CServer::RegisterCommands()
 {
-	m_pConfig = Kernel()->RequestInterface<IConfigManager>()->Values();
-	m_pConsole = Kernel()->RequestInterface<IConsole>();
-	m_pGameServer = Kernel()->RequestInterface<IGameServer>();
-	m_pMap = Kernel()->RequestInterface<IEngineMap>();
-	m_pStorage = Kernel()->RequestInterface<IStorage>();
-
 	// register console commands
 	Console()->Register("kick", "i[id] ?r[reason]", CFGFLAG_SERVER, ConKick, this, "Kick player with specified id for any reason");
 	Console()->Register("status", "", CFGFLAG_SERVER, ConStatus, this, "List players");
@@ -1878,6 +1881,7 @@ int main(int argc, const char **argv) // ignore_convention
 	pEngineMasterServer->Init();
 	pEngineMasterServer->Load();
 
+	pServer->InitInterfaces(pConfigManager->Values(), pConsole, pGameServer, pEngineMap, pStorage);
 	if(!UseDefaultConfig)
 	{
 		// register all console commands

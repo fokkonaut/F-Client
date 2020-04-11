@@ -242,6 +242,7 @@ public:
 	virtual void Connect(const char *pAddress);
 	void DisconnectWithReason(const char *pReason);
 	virtual void Disconnect();
+	const char *ServerAddress() const { return m_aServerAddressStr; }
 
 	virtual void DummyDisconnect(const char *pReason);
 	virtual void DummyConnect();

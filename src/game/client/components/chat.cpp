@@ -253,6 +253,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 		}
 		else
 		{
+			m_pHistoryEntry = 0x0;
 			m_Mode = CHAT_NONE;
 			m_pClient->OnRelease();
 		}
@@ -429,7 +430,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 
 	if(Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key == KEY_UP)
 	{
-		if(IsTypingCommand())
+		if(IsTypingCommand() && !m_pHistoryEntry)
 		{
 			PreviousActiveCommand(&m_SelectedCommand);
 			if(m_SelectedCommand < 0)
@@ -453,7 +454,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 	}
 	else if (Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key == KEY_DOWN)
 	{
-		if(IsTypingCommand())
+		if(IsTypingCommand() && !m_pHistoryEntry)
 		{
 			NextActiveCommand(&m_SelectedCommand);
 			if(m_SelectedCommand >= m_CommandManager.CommandCount())
@@ -532,6 +533,7 @@ void CChat::ServerCommandCallback(IConsole::IResult *pResult, void *pContext)
 	Msg.m_Arguments = pComContext->m_pArgs;
 	pChatData->Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 
+	pChatData->m_pHistoryEntry = 0x0;
 	pChatData->m_Mode = CHAT_NONE;
 	pChatData->m_pClient->OnRelease();
 }

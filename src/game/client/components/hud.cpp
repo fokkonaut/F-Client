@@ -444,7 +444,7 @@ void CHud::RenderTeambalanceWarning()
 {
 	// render prompt about team-balance
 	if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS && Config()->m_ClWarningTeambalance && m_pClient->m_ServerSettings.m_TeamBalance &&
-		absolute(m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED]-m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE]) >= NUM_TEAMS)
+		absolute(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_RED]-m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_BLUE]) >= NUM_TEAMS)
 	{
 		bool Flash = time_get()/(time_freq()/2)%2 == 0;
 		const char *pText = Localize("Please balance teams!");

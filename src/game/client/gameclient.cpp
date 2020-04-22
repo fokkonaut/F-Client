@@ -482,12 +482,19 @@ void CGameClient::OnDummySwap()
 	int tmp = m_DummyInput.m_Fire;
 	m_DummyInput = m_pControls->m_InputData[!Config()->m_ClDummy];
 	m_pControls->m_InputData[Config()->m_ClDummy].m_Fire = tmp;
+	std::swap(m_aClients, m_aClientsDummy);
 }
 
 void CGameClient::OnDummyDisconnect()
 {
 	m_LocalClientID[CLIENT_DUMMY] = -1;
 	m_DDraceMsgSent[CLIENT_DUMMY] = false;
+
+	for (int i = 0; i < MAX_CLIENTS; i++)
+		m_aClientsDummy[i].Reset(this, i);
+	m_GameInfo.m_NumPlayers[CLIENT_DUMMY] = 0;
+	m_GameInfo.m_aTeamSize[CLIENT_DUMMY][TEAM_RED] = 0;
+	m_GameInfo.m_aTeamSize[CLIENT_DUMMY][TEAM_BLUE] = 0;
 }
 
 int CGameClient::OnSnapInput(int *pData, bool Dummy, bool Force)
@@ -564,7 +571,10 @@ void CGameClient::OnReset()
 	mem_zero(&m_Snap, sizeof(m_Snap));
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
 		m_aClients[i].Reset(this, i);
+		m_aClientsDummy[i].Reset(this, i);
+	}
 
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnReset();
@@ -716,6 +726,8 @@ void CGameClient::OnRelease()
 
 void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 {
+	bool Dummy = IsDummy ? !Config()->m_ClDummy : Config()->m_ClDummy;
+
 	Client()->RecordGameMessage(true);
 
 	// special messages
@@ -735,7 +747,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		m_ServerMode = SERVERMODE_PURE;
 
 		// apply new tuning
-		m_Tuning[IsDummy ? !Config()->m_ClDummy : Config()->m_ClDummy] = NewTuning;
+		m_Tuning[Dummy] = NewTuning;
 		return;
 	}
 	else if(MsgId == NETMSGTYPE_SV_VOTEOPTIONLISTADD)
@@ -750,7 +762,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 			m_pVoting->AddOption(pDescription);
 		}
 	}
-	else if(MsgId == NETMSGTYPE_SV_GAMEMSG)
+	else if(MsgId == NETMSGTYPE_SV_GAMEMSG && !IsDummy)
 	{
 		int GameMsgID = pUnpacker->GetInt();
 
@@ -916,28 +928,15 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 				m_pChat->OnMessage(MsgId, pRawMsg);
 			}
 		}
-		if(MsgId == NETMSGTYPE_SV_CLIENTINFO)
-		{
-			// when swapping to main tee while dummy is connecting we dont get the local client id for the dummy, thats why we catch it here
-			CNetMsg_Sv_ClientInfo *pMsg = (CNetMsg_Sv_ClientInfo *)pRawMsg;
-			if(pMsg->m_Local)
-			{
-				if(m_LocalClientID[CLIENT_DUMMY] != -1)
-				{
-					if(Config()->m_Debug)
-						Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", "invalid local clientinfo");
-					return;
-				}
-				m_LocalClientID[CLIENT_DUMMY] = pMsg->m_ClientID;
-				m_TeamChangeTime[CLIENT_DUMMY] = Client()->LocalTime();
-			}
-		}
-		return; // no need of all that stuff for the dummy
+	}
+	else
+	{
+		// TODO: this should be done smarter
+		for(int i = 0; i < m_All.m_Num; i++)
+			m_All.m_paComponents[i]->OnMessage(MsgId, pRawMsg);
 	}
 
-	// TODO: this should be done smarter
-	for(int i = 0; i < m_All.m_Num; i++)
-		m_All.m_paComponents[i]->OnMessage(MsgId, pRawMsg);
+	CClientData *apClients = IsDummy ? &m_aClientsDummy[0] : &m_aClients[0];
 
 	if(MsgId == NETMSGTYPE_SV_CLIENTINFO && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{
@@ -946,26 +945,26 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 
 		if(pMsg->m_Local)
 		{
-			if(m_LocalClientID[Config()->m_ClDummy] != -1)
+			if(m_LocalClientID[Dummy] != -1)
 			{
 				if(Config()->m_Debug)
 					Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", "invalid local clientinfo");
 				return;
 			}
 
-			m_LocalClientID[Config()->m_ClDummy] = pMsg->m_ClientID;
-			m_TeamChangeTime[Config()->m_ClDummy] = Client()->LocalTime();
+			m_LocalClientID[Dummy] = pMsg->m_ClientID;
+			m_TeamChangeTime[Dummy] = Client()->LocalTime();
 		}
 		else
 		{
-			if(m_aClients[pMsg->m_ClientID].m_Active)
+			if(apClients[pMsg->m_ClientID].m_Active)
 			{
 				if(Config()->m_Debug)
 					Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", "invalid clientinfo");
 				return;
 			}
 
-			if(m_LocalClientID[Config()->m_ClDummy] != -1 && !pMsg->m_Silent)
+			if(m_LocalClientID[Dummy] != -1 && !pMsg->m_Silent && !IsDummy)
 			{
 				DoEnterMessage(pMsg->m_pName, pMsg->m_ClientID, pMsg->m_Team);
 
@@ -980,37 +979,37 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 			}
 		}
 
-		m_aClients[pMsg->m_ClientID].m_Active = true;
-		m_aClients[pMsg->m_ClientID].m_Team  = pMsg->m_Team;
-		str_copy(m_aClients[pMsg->m_ClientID].m_aName, pMsg->m_pName, sizeof(m_aClients[pMsg->m_ClientID].m_aName));
-		str_copy(m_aClients[pMsg->m_ClientID].m_aClan, pMsg->m_pClan, sizeof(m_aClients[pMsg->m_ClientID].m_aClan));
-		m_aClients[pMsg->m_ClientID].m_Country = pMsg->m_Country;
+		apClients[pMsg->m_ClientID].m_Active = true;
+		apClients[pMsg->m_ClientID].m_Team  = pMsg->m_Team;
+		str_copy(apClients[pMsg->m_ClientID].m_aName, pMsg->m_pName, sizeof(apClients[pMsg->m_ClientID].m_aName));
+		str_copy(apClients[pMsg->m_ClientID].m_aClan, pMsg->m_pClan, sizeof(apClients[pMsg->m_ClientID].m_aClan));
+		apClients[pMsg->m_ClientID].m_Country = pMsg->m_Country;
 		for(int i = 0; i < NUM_SKINPARTS; i++)
 		{
-			str_copy(m_aClients[pMsg->m_ClientID].m_aaSkinPartNames[i], pMsg->m_apSkinPartNames[i], 24);
-			m_aClients[pMsg->m_ClientID].m_aUseCustomColors[i] = pMsg->m_aUseCustomColors[i];
-			m_aClients[pMsg->m_ClientID].m_aSkinPartColors[i] = pMsg->m_aSkinPartColors[i];
+			str_copy(apClients[pMsg->m_ClientID].m_aaSkinPartNames[i], pMsg->m_apSkinPartNames[i], 24);
+			apClients[pMsg->m_ClientID].m_aUseCustomColors[i] = pMsg->m_aUseCustomColors[i];
+			apClients[pMsg->m_ClientID].m_aSkinPartColors[i] = pMsg->m_aSkinPartColors[i];
 		}
 
 		// update friend state
-		m_aClients[pMsg->m_ClientID].m_Friend = Friends()->IsFriend(m_aClients[pMsg->m_ClientID].m_aName, m_aClients[pMsg->m_ClientID].m_aClan, true);
+		apClients[pMsg->m_ClientID].m_Friend = Friends()->IsFriend(apClients[pMsg->m_ClientID].m_aName, apClients[pMsg->m_ClientID].m_aClan, true);
 		// update chat ignore state
-		m_aClients[pMsg->m_ClientID].m_ChatIgnore = Blacklist()->IsIgnored(m_aClients[pMsg->m_ClientID].m_aName, m_aClients[pMsg->m_ClientID].m_aClan, true);
-		if(m_aClients[pMsg->m_ClientID].m_ChatIgnore)
+		apClients[pMsg->m_ClientID].m_ChatIgnore = Blacklist()->IsIgnored(apClients[pMsg->m_ClientID].m_aName, apClients[pMsg->m_ClientID].m_aClan, true);
+		if(apClients[pMsg->m_ClientID].m_ChatIgnore)
 		{
 			char aBuf[128];
 			char aLabel[64];
-			GetPlayerLabel(aLabel, sizeof(aLabel), pMsg->m_ClientID, m_aClients[pMsg->m_ClientID].m_aName);
+			GetPlayerLabel(aLabel, sizeof(aLabel), pMsg->m_ClientID, apClients[pMsg->m_ClientID].m_aName);
 			str_format(aBuf, sizeof(aBuf), Localize("%s is muted by you"), aLabel);
 			m_pChat->AddLine(aBuf, CChat::CLIENT_MSG);
 		}
 
-		m_aClients[pMsg->m_ClientID].UpdateRenderInfo(this, pMsg->m_ClientID, true);
+		apClients[pMsg->m_ClientID].UpdateRenderInfo(this, pMsg->m_ClientID, true);
 
-		m_GameInfo.m_NumPlayers++;
+		m_GameInfo.m_NumPlayers[Dummy]++;
 		// calculate team-balance
-		if(m_aClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
-			m_GameInfo.m_aTeamSize[m_aClients[pMsg->m_ClientID].m_Team]++;
+		if(apClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
+			m_GameInfo.m_aTeamSize[Dummy][apClients[pMsg->m_ClientID].m_Team]++;
 
 		m_pStats->OnPlayerEnter(pMsg->m_ClientID, pMsg->m_Team);
 	}
@@ -1019,30 +1018,30 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		Client()->RecordGameMessage(false);
 		CNetMsg_Sv_ClientDrop *pMsg = (CNetMsg_Sv_ClientDrop *)pRawMsg;
 
-		if(m_LocalClientID[Config()->m_ClDummy] == pMsg->m_ClientID || !m_aClients[pMsg->m_ClientID].m_Active)
+		if(m_LocalClientID[Dummy] == pMsg->m_ClientID || !apClients[pMsg->m_ClientID].m_Active)
 		{
 			if(Config()->m_Debug)
 				Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", "invalid clientdrop");
 			return;
 		}
 
-		if(!pMsg->m_Silent)
+		if(!pMsg->m_Silent && !IsDummy)
 		{
-			DoLeaveMessage(m_aClients[pMsg->m_ClientID].m_aName, pMsg->m_ClientID, pMsg->m_pReason);
+			DoLeaveMessage(apClients[pMsg->m_ClientID].m_aName, pMsg->m_ClientID, pMsg->m_pReason);
 
 			CNetMsg_De_ClientLeave Msg;
-			Msg.m_pName = m_aClients[pMsg->m_ClientID].m_aName;
+			Msg.m_pName = apClients[pMsg->m_ClientID].m_aName;
 			Msg.m_ClientID = pMsg->m_ClientID;
 			Msg.m_pReason = pMsg->m_pReason;
-			Client()->SendPackMsg(&Msg, MSGFLAG_NOSEND | MSGFLAG_RECORD);
+			Client()->SendPackMsg(&Msg, MSGFLAG_NOSEND|MSGFLAG_RECORD);
 		}
 
-		m_GameInfo.m_NumPlayers--;
+		m_GameInfo.m_NumPlayers[Dummy]--;
 		// calculate team-balance
-		if(m_aClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
-			m_GameInfo.m_aTeamSize[m_aClients[pMsg->m_ClientID].m_Team]--;
+		if(apClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
+			m_GameInfo.m_aTeamSize[Dummy][apClients[pMsg->m_ClientID].m_Team]--;
 
-		m_aClients[pMsg->m_ClientID].Reset(this, pMsg->m_ClientID);
+		apClients[pMsg->m_ClientID].Reset(this, pMsg->m_ClientID);
 		m_pStats->OnPlayerLeave(pMsg->m_ClientID);
 	}
 	else if(MsgId == NETMSGTYPE_SV_SKINCHANGE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
@@ -1050,7 +1049,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		Client()->RecordGameMessage(false);
 		CNetMsg_Sv_SkinChange *pMsg = (CNetMsg_Sv_SkinChange *)pRawMsg;
 
-		if(!m_aClients[pMsg->m_ClientID].m_Active)
+		if(!apClients[pMsg->m_ClientID].m_Active)
 		{
 			if(Config()->m_Debug)
 				Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", "invalid skin info");
@@ -1059,13 +1058,52 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 
 		for(int i = 0; i < NUM_SKINPARTS; i++)
 		{
-			str_copy(m_aClients[pMsg->m_ClientID].m_aaSkinPartNames[i], pMsg->m_apSkinPartNames[i], 24);
-			m_aClients[pMsg->m_ClientID].m_aUseCustomColors[i] = pMsg->m_aUseCustomColors[i];
-			m_aClients[pMsg->m_ClientID].m_aSkinPartColors[i] = pMsg->m_aSkinPartColors[i];
+			str_copy(apClients[pMsg->m_ClientID].m_aaSkinPartNames[i], pMsg->m_apSkinPartNames[i], 24);
+			apClients[pMsg->m_ClientID].m_aUseCustomColors[i] = pMsg->m_aUseCustomColors[i];
+			apClients[pMsg->m_ClientID].m_aSkinPartColors[i] = pMsg->m_aSkinPartColors[i];
 		}
-		m_aClients[pMsg->m_ClientID].UpdateRenderInfo(this, pMsg->m_ClientID, true);
+		apClients[pMsg->m_ClientID].UpdateRenderInfo(this, pMsg->m_ClientID, true);
 	}
-	else if(MsgId == NETMSGTYPE_SV_GAMEINFO && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+	else if(MsgId == NETMSGTYPE_SV_TEAM)
+	{
+		CNetMsg_Sv_Team *pMsg = (CNetMsg_Sv_Team *)pRawMsg;
+
+		if(Client()->State() != IClient::STATE_DEMOPLAYBACK)
+		{
+			// calculate team-balance
+			if(apClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
+				m_GameInfo.m_aTeamSize[Dummy][apClients[pMsg->m_ClientID].m_Team]--;
+			apClients[pMsg->m_ClientID].m_Team = pMsg->m_Team;
+			if(apClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
+				m_GameInfo.m_aTeamSize[Dummy][apClients[pMsg->m_ClientID].m_Team]++;
+
+			apClients[pMsg->m_ClientID].UpdateRenderInfo(this, pMsg->m_ClientID, false);
+
+			if(pMsg->m_ClientID == m_LocalClientID[Dummy])
+			{
+				m_TeamCooldownTick[Dummy] = pMsg->m_CooldownTick;
+				m_TeamChangeTime[Dummy] = Client()->LocalTime();
+			}
+		}
+
+		if(pMsg->m_Silent == 0 && !IsDummy)
+		{
+			DoTeamChangeMessage(apClients[pMsg->m_ClientID].m_aName, pMsg->m_ClientID, pMsg->m_Team);
+		}
+	}
+	else if (MsgId == NETMSGTYPE_SV_EMOTICON)
+	{
+		CNetMsg_Sv_Emoticon *pMsg = (CNetMsg_Sv_Emoticon *)pRawMsg;
+
+		// apply
+		apClients[pMsg->m_ClientID].m_Emoticon = pMsg->m_Emoticon;
+		apClients[pMsg->m_ClientID].m_EmoticonStart = Client()->GameTick();
+	}
+
+	if (IsDummy)
+		return; // no need of all that stuff for the dummy
+
+	if(MsgId == NETMSGTYPE_SV_GAMEINFO && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{
 		Client()->RecordGameMessage(false);
 		CNetMsg_Sv_GameInfo *pMsg = (CNetMsg_Sv_GameInfo *)pRawMsg;
@@ -1093,44 +1131,9 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		m_ServerSettings.m_TeamBalance = pMsg->m_TeamBalance;
 		m_ServerSettings.m_PlayerSlots = pMsg->m_PlayerSlots;
 	}
-	else if(MsgId == NETMSGTYPE_SV_TEAM)
-	{
-		CNetMsg_Sv_Team *pMsg = (CNetMsg_Sv_Team *)pRawMsg;
-
-		if(Client()->State() != IClient::STATE_DEMOPLAYBACK)
-		{
-			// calculate team-balance
-			if(m_aClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
-				m_GameInfo.m_aTeamSize[m_aClients[pMsg->m_ClientID].m_Team]--;
-			m_aClients[pMsg->m_ClientID].m_Team = pMsg->m_Team;
-			if(m_aClients[pMsg->m_ClientID].m_Team != TEAM_SPECTATORS)
-				m_GameInfo.m_aTeamSize[m_aClients[pMsg->m_ClientID].m_Team]++;
-
-			m_aClients[pMsg->m_ClientID].UpdateRenderInfo(this, pMsg->m_ClientID, false);
-
-			if(pMsg->m_ClientID == m_LocalClientID[Config()->m_ClDummy])
-			{
-				m_TeamCooldownTick[Config()->m_ClDummy] = pMsg->m_CooldownTick;
-				m_TeamChangeTime[Config()->m_ClDummy] = Client()->LocalTime();
-			}
-		}
-
-		if(pMsg->m_Silent == 0)
-		{
-			DoTeamChangeMessage(m_aClients[pMsg->m_ClientID].m_aName, pMsg->m_ClientID, pMsg->m_Team);
-		}
-	}
 	else if(MsgId == NETMSGTYPE_SV_READYTOENTER)
 	{
 		Client()->EnterGame();
-	}
-	else if (MsgId == NETMSGTYPE_SV_EMOTICON)
-	{
-		CNetMsg_Sv_Emoticon *pMsg = (CNetMsg_Sv_Emoticon *)pRawMsg;
-
-		// apply
-		m_aClients[pMsg->m_ClientID].m_Emoticon = pMsg->m_Emoticon;
-		m_aClients[pMsg->m_ClientID].m_EmoticonStart = Client()->GameTick();
 	}
 	else if(MsgId == NETMSGTYPE_DE_CLIENTENTER && Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
@@ -1373,10 +1376,10 @@ void CGameClient::OnNewSnapshot()
 							pClient->m_aSkinPartColors[p] = pInfo->m_aSkinPartColors[p];
 						}
 
-						m_GameInfo.m_NumPlayers++;
+						m_GameInfo.m_NumPlayers[Config()->m_ClDummy]++;
 						// calculate team-balance
 						if(pClient->m_Team != TEAM_SPECTATORS)
-							m_GameInfo.m_aTeamSize[pClient->m_Team]++;
+							m_GameInfo.m_aTeamSize[Config()->m_ClDummy][pClient->m_Team]++;
 					}
 				}
 				else if(Item.m_Type == NETOBJTYPE_DE_GAMEINFO)

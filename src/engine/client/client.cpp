@@ -692,8 +692,14 @@ void CClient::DummyDisconnect(const char *pReason)
 	if(!m_DummyConnected)
 		return;
 
+	// swap back to main like a real swap, so the gameclient can swap the clientdata of dummy and main again before resetting the dummy's one in OnDummyDisconnect
+	if (Config()->m_ClDummy)
+	{
+		Config()->m_ClDummy = m_LastDummy = 0;
+		GameClient()->OnDummySwap();
+	}
+
 	m_NetClient[CLIENT_DUMMY].Disconnect(pReason);
-	Config()->m_ClDummy = 0;
 	m_RconAuthed[CLIENT_DUMMY] = 0;
 	m_DummyConnected = false;
 	GameClient()->OnDummyDisconnect();
@@ -1682,7 +1688,11 @@ void CClient::ProcessServerPacketDummy(CNetChunk *pPacket)
 		if (Msg == NETMSG_CON_READY)
 		{
 			m_DummyConnected = true;
-			Config()->m_ClDummy = 1;
+			if (!Config()->m_ClDummy)
+			{
+				Config()->m_ClDummy = m_LastDummy = 1;
+				GameClient()->OnDummySwap();
+			}
 			if (m_RconAuthed[CLIENT_MAIN])
 				RconAuth("", m_RconPassword);
 		}

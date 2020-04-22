@@ -214,6 +214,7 @@ public:
 	};
 
 	CClientData m_aClients[MAX_CLIENTS];
+	CClientData m_aClientsDummy[MAX_CLIENTS];
 	int m_LocalClientID[NUM_CLIENTS];
 	int m_TeamCooldownTick[NUM_CLIENTS];
 	bool m_MuteServerBroadcast;
@@ -231,8 +232,8 @@ public:
 		int m_MatchNum;
 		int m_MatchCurrent;
 
-		int m_NumPlayers;
-		int m_aTeamSize[NUM_TEAMS];
+		int m_NumPlayers[NUM_CLIENTS];
+		int m_aTeamSize[NUM_CLIENTS][NUM_TEAMS];
 	};
 
 	CGameInfo m_GameInfo;

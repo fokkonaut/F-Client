@@ -237,7 +237,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 	float TeeOffsetMod = 1.0f;
 	float NameOffsetMod = 0.0f;
 	int Clamp = 16;
-	if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 48)
+	if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][Team] > 48)
 	{
 		LineHeight = 11.0f;
 		TeeSizeMod = 0.6f;
@@ -250,7 +250,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		TeeOffsetMod = 0.6f;
 		NameOffsetMod = 3.0f;
 	}
-	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
+	else if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][Team] > 32)
 	{
 		LineHeight = 14.0f;
 		TeeSizeMod = 0.8f;
@@ -263,7 +263,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		TeeOffsetMod = 0.8f;
 		NameOffsetMod = 2.0f;
 	}
-	else if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 16)
+	else if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][Team] > 16)
 	{
 		LineHeight = 16.0f;
 		TeeSizeMod = 0.9f;
@@ -291,10 +291,10 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 	// count players
 	dbg_assert(Team == TEAM_RED || Team == TEAM_BLUE, "Unknown team id");
-	int NumPlayers = m_pClient->m_GameInfo.m_aTeamSize[Team];
+	int NumPlayers = m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][Team];
 	int PlayerLines = NumPlayers;
 	if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
-		PlayerLines = max(m_pClient->m_GameInfo.m_aTeamSize[Team^1], PlayerLines);
+		PlayerLines = max(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][Team^1], PlayerLines);
 
 	// clamp
 	if(PlayerLines > Clamp)
@@ -367,7 +367,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		}
 	}
 
-	if(m_pClient->m_GameInfo.m_aTeamSize[0] <= 16 || (upper16 || upper24 || upper32))
+	if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][0] <= 16 || (upper16 || upper24 || upper32))
 	{
 		if(Race)
 		{
@@ -538,7 +538,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 				Corners |= CUI::CORNER_BL | CUI::CORNER_BR;
 
 			CUIRect Rect = {x, y, w, LineHeight};
-			if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
+			if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][Team] > 32)
 				RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f), Corners, 3.0f);
 			else
 				RenderTools()->DrawUIRect(&Rect, vec4(rgb.r, rgb.g, rgb.b, 0.75f), Corners, 5.0f);
@@ -546,7 +546,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 			if (NextDDTeam != DDTeam)
 			{
 				char aBuf[64];
-				//if(m_pClient->m_GameInfo.m_aTeamSize[0] > 8)
+				//if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][0] > 8)
 				{
 					str_format(aBuf, sizeof(aBuf),"%d", DDTeam);
 					TextRender()->SetCursor(&Cursor, x, y + Spacing + FontSize - (FontSize/1.5f), FontSize/1.5f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
@@ -578,7 +578,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		if(HighlightedLine)
 		{
 			CUIRect Rect = {x, y, w, LineHeight};
-			if(m_pClient->m_GameInfo.m_aTeamSize[Team] > 32)
+			if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][Team] > 32)
 				RenderTools()->DrawRoundRect(&Rect, vec4(1.0f, 1.0f, 1.0f, 0.75f*ColorAlpha), 3.0f);
 			else
 				RenderTools()->DrawRoundRect(&Rect, vec4(1.0f, 1.0f, 1.0f, 0.75f*ColorAlpha), 5.0f);
@@ -833,17 +833,17 @@ void CScoreboard::OnRender()
 		if(!(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS))
 		{
 			float ScoreboardHeight;
-			if(m_pClient->m_GameInfo.m_aTeamSize[0] > 48)
+			if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][0] > 48)
 			{
 				ScoreboardHeight = RenderScoreboard(Width/2-w, y, w, -4, 0, -1);
 				RenderScoreboard(Width/2, y, w, -5, 0, -1);
 			}
-			else if(m_pClient->m_GameInfo.m_aTeamSize[0] > 32)
+			else if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][0] > 32)
 			{
 				ScoreboardHeight = RenderScoreboard(Width/2-w, y, w, -7, 0, -1);
 				RenderScoreboard(Width/2, y, w, -8, 0, -1);
 			}
-			else if(m_pClient->m_GameInfo.m_aTeamSize[0] > 16)
+			else if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][0] > 16)
 			{
 				ScoreboardHeight = RenderScoreboard(Width/2-w, y, w, -6, 0, -1);
 				RenderScoreboard(Width/2, y, w, -3, 0, -1);

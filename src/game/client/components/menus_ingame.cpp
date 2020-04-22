@@ -35,7 +35,7 @@ void CMenus::GetSwitchTeamInfo(CSwitchTeamInfo *pInfo)
 		str_copy(pInfo->m_aNotification, Localize("Teams are locked"), sizeof(pInfo->m_aNotification));
 		pInfo->m_AllowSpec = false;
 	}
-	else if(TeamMod + m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED] + m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE] >= m_pClient->m_ServerSettings.m_PlayerSlots)
+	else if(TeamMod + m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_RED] + m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_BLUE] >= m_pClient->m_ServerSettings.m_PlayerSlots)
 	{
 		str_format(pInfo->m_aNotification, sizeof(pInfo->m_aNotification), Localize("Only %d active players are allowed"), m_pClient->m_ServerSettings.m_PlayerSlots);
 	}
@@ -112,10 +112,10 @@ void CMenus::RenderGame(CUIRect MainView)
 		// team button
 		if(m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
 		{
-			int RedTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED];
+			int RedTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_RED];
 			if(Team != TEAM_RED)
 				++RedTeamSizeNew;
-			int BlueTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE];
+			int BlueTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_BLUE];
 			if(Team == TEAM_BLUE)
 				--BlueTeamSizeNew;
 			bool BlockRed = m_pClient->m_ServerSettings.m_TeamBalance && (RedTeamSizeNew - BlueTeamSizeNew >= NUM_TEAMS);
@@ -138,10 +138,10 @@ void CMenus::RenderGame(CUIRect MainView)
 				SetActive(false);
 			}
 
-			RedTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED];
+			RedTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_RED];
 			if(Team == TEAM_RED)
 				--RedTeamSizeNew;
-			BlueTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE];
+			BlueTeamSizeNew = m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_BLUE];
 			if(Team != TEAM_BLUE)
 				++BlueTeamSizeNew;
 			bool BlockBlue = m_pClient->m_ServerSettings.m_TeamBalance && (BlueTeamSizeNew - RedTeamSizeNew >= NUM_TEAMS);
@@ -491,7 +491,7 @@ void CMenus::RenderServerInfo(CUIRect MainView)
 
 	GameInfo.HSplitBottom(ButtonHeight, &GameInfo, &Label);
 	Label.y += 2.0f;
-	str_format(aBuf, sizeof(aBuf), "%s: %d/%d", Localize("Players"), m_pClient->m_GameInfo.m_NumPlayers, CurrentServerInfo.m_MaxClients);
+	str_format(aBuf, sizeof(aBuf), "%s: %d/%d", Localize("Players"), m_pClient->m_GameInfo.m_NumPlayers[Config()->m_ClDummy], CurrentServerInfo.m_MaxClients);
 	UI()->DoLabel(&Label, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
 
 	// motd
@@ -716,7 +716,7 @@ void CMenus::RenderServerControl(CUIRect MainView)
 	{
 		if(!m_pClient->m_ServerSettings.m_KickVote)
 			pNotification = Localize("Server does not allow voting to kick players");
-		else if(m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED]+m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE] < m_pClient->m_ServerSettings.m_KickMin)
+		else if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_RED]+m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][TEAM_BLUE] < m_pClient->m_ServerSettings.m_KickMin)
 		{
 			str_format(aBuf, sizeof(aBuf), Localize("Kick voting requires %d players on the server"), m_pClient->m_ServerSettings.m_KickMin);
 			pNotification = aBuf;

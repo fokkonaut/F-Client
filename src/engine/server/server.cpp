@@ -1435,10 +1435,13 @@ int CServer::Run()
 
 			int64 Now = time_get();
 			bool NewTicks = false;
+			bool ShouldSnap = false;
 			while(Now > TickStartTime(m_CurrentGameTick+1))
 			{
 				m_CurrentGameTick++;
 				NewTicks = true;
+				if((m_CurrentGameTick%2) == 0)
+					ShouldSnap = true;
 
 				// apply new input
 				for(int c = 0; c < MAX_CLIENTS; c++)
@@ -1462,7 +1465,7 @@ int CServer::Run()
 			// snap game
 			if(NewTicks)
 			{
-				if(Config()->m_SvHighBandwidth || (m_CurrentGameTick%2) == 0)
+				if(Config()->m_SvHighBandwidth || ShouldSnap)
 					DoSnapshot();
 
 				UpdateClientRconCommands();

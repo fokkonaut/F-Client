@@ -1447,7 +1447,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		if(DoButton_Menu(&s_CustomSkinDeleteButton, Localize("Delete"), 0, &Button))
 		{
 			char aBuf[128];
-			str_format(aBuf, sizeof(aBuf), Localize("Are you sure that you want to delete the skin '%s'?"), m_pSelectedSkin->m_aName);
+			str_format(aBuf, sizeof(aBuf), Localize("Are you sure that you want to delete the skin '%s'?"), m_pSelectedSkin[m_Dummy]->m_aName);
 			PopupConfirm(Localize("Delete skin"), aBuf, Localize("Yes"), Localize("No"), &CMenus::PopupConfirmDeleteSkin);
 		}
 		BottomView.VSplitLeft(SpacingW, 0, &BottomView);
@@ -1463,15 +1463,15 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 
 void CMenus::PopupConfirmDeleteSkin()
 {
-	if(m_pSelectedSkin)
+	if(m_pSelectedSkin[m_Dummy])
 	{
 		char aBuf[IO_MAX_PATH_LENGTH];
-		str_format(aBuf, sizeof(aBuf), "skins/%s.json", m_pSelectedSkin->m_aName);
+		str_format(aBuf, sizeof(aBuf), "skins/%s.json", m_pSelectedSkin[m_Dummy]->m_aName);
 		if(Storage()->RemoveFile(aBuf, IStorage::TYPE_SAVE))
 		{
-			m_pClient->m_pSkins->RemoveSkin(m_pSelectedSkin);
+			m_pClient->m_pSkins->RemoveSkin(m_pSelectedSkin[m_Dummy]);
 			m_RefreshSkinSelector = true;
-			m_pSelectedSkin = 0;
+			m_pSelectedSkin[m_Dummy] = 0;
 		}
 		else
 			PopupMessage(Localize("Error"), Localize("Unable to delete the skin"), Localize("Ok"));

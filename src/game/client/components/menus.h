@@ -782,6 +782,7 @@ private:
 	void ResetSettingsControls();
 	void ResetSettingsGraphics();
 	void ResetSettingsSound();
+	void ResetSettingsFClient();
 
 	bool DoResolutionList(CUIRect* pRect, CListBox* pListBox,
 						  const sorted_array<CVideoMode>& lModes);

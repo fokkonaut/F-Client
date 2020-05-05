@@ -2366,28 +2366,8 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 		static CButtonContainer s_ResetButton;
 		if(DoButton_Menu(&s_ResetButton, Localize("Reset"), 0, &Button))
 		{
-			Config()->m_ClOverlayEntities = 0;
-			Config()->m_ClTextEntities = 1;
-			Config()->m_ClTextEntitiesSize = 70;
-			Config()->m_ClShowQuads = 1;
-			Config()->m_ClShowHookCollOther = 1;
-			Config()->m_ClShowHookCollOwn = 1;
-			Config()->m_ClShowHookCollAlways = 0;
-			Config()->m_ClOldChatSounds = 0;
-			Config()->m_ClOldGunPosition = 1;
-			Config()->m_ClShowNinja = 1;
-			Config()->m_ClClientRecognition = 1;
-			Config()->m_ClChatTeamColors = 0;
-			Config()->m_ClShowLocalTimeAlways = 0;
-			Config()->m_ClDefaultZoom = 10;
-			Config()->m_ClBackgroundHue = 0;
-			Config()->m_ClBackgroundSat = 0;
-			Config()->m_ClBackgroundLht = 128;
-			Config()->m_ClBackgroundEntitiesHue = 0;
-			Config()->m_ClBackgroundEntitiesSat = 0;
-			Config()->m_ClBackgroundEntitiesLht = 128;
-			str_copy(Config()->m_ClBackgroundEntities, "", sizeof(Config()->m_ClBackgroundEntities));
-			Config()->m_ClBackgroundShowTilesLayers = 0;
+			PopupConfirm(Localize("Reset F-Client settings"), Localize("Are you sure that you want to reset the F-Client settings to their defaults?"),
+				Localize("Reset"), Localize("Cancel"), &CMenus::ResetSettingsFClient);
 		}
 	}
 }
@@ -2447,6 +2427,32 @@ void CMenus::ResetSettingsSound()
 	Config()->m_SndRate = 48000;
 	Config()->m_SndVolume = 100;
 	UpdateMusicState();
+}
+
+void CMenus::ResetSettingsFClient()
+{
+	Config()->m_ClOverlayEntities = 0;
+	Config()->m_ClTextEntities = 1;
+	Config()->m_ClTextEntitiesSize = 70;
+	Config()->m_ClShowQuads = 1;
+	Config()->m_ClShowHookCollOther = 1;
+	Config()->m_ClShowHookCollOwn = 1;
+	Config()->m_ClShowHookCollAlways = 0;
+	Config()->m_ClOldChatSounds = 0;
+	Config()->m_ClOldGunPosition = 1;
+	Config()->m_ClShowNinja = 1;
+	Config()->m_ClClientRecognition = 1;
+	Config()->m_ClChatTeamColors = 0;
+	Config()->m_ClShowLocalTimeAlways = 0;
+	Config()->m_ClDefaultZoom = 10;
+	Config()->m_ClBackgroundHue = 0;
+	Config()->m_ClBackgroundSat = 0;
+	Config()->m_ClBackgroundLht = 128;
+	Config()->m_ClBackgroundEntitiesHue = 0;
+	Config()->m_ClBackgroundEntitiesSat = 0;
+	Config()->m_ClBackgroundEntitiesLht = 128;
+	str_copy(Config()->m_ClBackgroundEntities, "", sizeof(Config()->m_ClBackgroundEntities));
+	Config()->m_ClBackgroundShowTilesLayers = 0;
 }
 
 void CMenus::RenderSettings(CUIRect MainView)

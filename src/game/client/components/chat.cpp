@@ -649,6 +649,9 @@ void CChat::AddLine(const char *pLine, int ClientID, int Mode, int TargetID)
 			// check for main and dummy
 			for (int i = 0; i < NUM_CLIENTS; i++)
 			{
+				if (i == CLIENT_DUMMY && !Client()->DummyConnected())
+					continue;
+
 				const char* pHL = str_find_nocase(pLine, m_pClient->m_aClients[m_pClient->m_LocalClientID[i]].m_aName);
 				if (pHL)
 				{

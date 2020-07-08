@@ -1683,18 +1683,20 @@ void CGameClient::OnNewSnapshot()
 
 	static float LastZoom = .0;
 	static float LastScreenAspect = .0;
-	if(m_pCamera->GetZoom() != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
+	static bool LastDummyConnected = false;
+	if(m_pCamera->GetZoom() != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect || (Client()->DummyConnected() && !LastDummyConnected))
 	{
-		LastZoom = m_pCamera->GetZoom();
-		LastScreenAspect = Graphics()->ScreenAspect();
 		CNetMsg_Cl_ShowDistance Msg;
 		float x, y;
 		RenderTools()->CalcScreenParams(Graphics()->ScreenAspect(), m_pCamera->GetZoom(), &x, &y);
 		Msg.m_X = x;
 		Msg.m_Y = y;
-		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_MAIN);
-		if (Client()->DummyConnected())
+		if(m_pCamera->GetZoom() != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
+			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_MAIN);
+		if(Client()->DummyConnected())
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_DUMMY);
+		LastZoom = m_pCamera->GetZoom();
+		LastScreenAspect = Graphics()->ScreenAspect();
 	}
 }
 

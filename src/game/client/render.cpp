@@ -621,8 +621,6 @@ void CRenderTools::MapScreenToWorld(float CenterX, float CenterY, float Parallax
 	CalcScreenParams(Aspect, Zoom, &Width, &Height);
 	CenterX *= ParallaxX;
 	CenterY *= ParallaxY;
-	//Width *= Zoom;
-	//Height *= Zoom;
 	aPoints[0] = OffsetX+CenterX-Width/2;
 	aPoints[1] = OffsetY+CenterY-Height/2;
 	aPoints[2] = aPoints[0]+Width;

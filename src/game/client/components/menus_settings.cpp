@@ -2133,7 +2133,7 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 	// sections
 	int NumOptions[NUM_SECTIONS];
 	NumOptions[SECTION_GAMEPLAY] = 6 + Config()->m_ClTextEntities;
-	NumOptions[SECTION_MISCELLANEOUS] = 8;
+	NumOptions[SECTION_MISCELLANEOUS] = 9;
 	NumOptions[SECTION_BACKGROUND] = 6;
 
 	float BackgroundHeight[NUM_SECTIONS];
@@ -2287,13 +2287,20 @@ void CMenus::RenderSettingsFClient(CUIRect MainView)
 				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
 				DoScrollbarOption(&Config()->m_ClDefaultZoom, &Config()->m_ClDefaultZoom, &Button, Localize("Default zoom"), 0, 20);
 			}
+
+			// smooth zoom time
+			{
+				Miscellaneous.HSplitTop(Spacing, 0, &Miscellaneous);
+				Miscellaneous.HSplitTop(ButtonHeight, &Button, &Miscellaneous);
+				DoScrollbarOption(&Config()->m_ClSmoothZoomTime, &Config()->m_ClSmoothZoomTime, &Button, Localize("Smooth zoom time"), 0, 5000);
+			}
 		}
 	}
 
 	// background
 	{
 		// cut off
-		MainView.HSplitTop(220.0f, 0, &MainView);
+		MainView.HSplitTop(240.0f, 0, &MainView);
 
 		// background
 		{

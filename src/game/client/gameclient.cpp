@@ -1680,6 +1680,22 @@ void CGameClient::OnNewSnapshot()
 			m_aClients[m_LocalClientID[!Config()->m_ClDummy]].m_Aim = (bool)(m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
 		}
 	}
+
+	static float LastZoom = .0;
+	static float LastScreenAspect = .0;
+	if(m_pCamera->GetZoom() != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
+	{
+		LastZoom = m_pCamera->GetZoom();
+		LastScreenAspect = Graphics()->ScreenAspect();
+		CNetMsg_Cl_ShowDistance Msg;
+		float x, y;
+		RenderTools()->CalcScreenParams(Graphics()->ScreenAspect(), m_pCamera->GetZoom(), &x, &y);
+		Msg.m_X = x;
+		Msg.m_Y = y;
+		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_MAIN);
+		if (Client()->DummyConnected())
+			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_DUMMY);
+	}
 }
 
 void CGameClient::OnDemoRecSnap()

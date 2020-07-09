@@ -1695,13 +1695,14 @@ void CGameClient::OnNewSnapshot()
 		RenderTools()->CalcScreenParams(Graphics()->ScreenAspect(), ZoomToSend, &x, &y);
 		Msg.m_X = x;
 		Msg.m_Y = y;
-		if(m_pCamera->GetZoom() != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
+		if(ZoomToSend != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_MAIN);
 		if(Client()->DummyConnected())
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_DUMMY);
 		LastZoom = ZoomToSend;
 		LastScreenAspect = Graphics()->ScreenAspect();
 	}
+	LastDummyConnected = Client()->DummyConnected();;
 }
 
 void CGameClient::OnDemoRecSnap()

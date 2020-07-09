@@ -1692,14 +1692,14 @@ void CGameClient::OnNewSnapshot()
 	{
 		CNetMsg_Cl_ShowDistance Msg;
 		float x, y;
-		RenderTools()->CalcScreenParams(Graphics()->ScreenAspect(), m_pCamera->GetZoom(), &x, &y);
+		RenderTools()->CalcScreenParams(Graphics()->ScreenAspect(), ZoomToSend, &x, &y);
 		Msg.m_X = x;
 		Msg.m_Y = y;
 		if(m_pCamera->GetZoom() != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_MAIN);
 		if(Client()->DummyConnected())
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_DUMMY);
-		LastZoom = m_pCamera->GetZoom();
+		LastZoom = ZoomToSend;
 		LastScreenAspect = Graphics()->ScreenAspect();
 	}
 }

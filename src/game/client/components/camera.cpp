@@ -55,7 +55,7 @@ void CCamera::ScaleZoom(float Factor)
 
 void CCamera::ChangeZoom(float Target)
 {
-	if(Target >= 500.0f/ZoomStep)
+	if(Target >= 30)
 	{
 		return;
 	}

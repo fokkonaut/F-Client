@@ -97,8 +97,8 @@ public:
 	void MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup *pGroup, float Zoom);
 
 	void DrawClientID(ITextRender* pTextRender, CTextCursor* pCursor, int ID,
-					  const vec4& BgColor = vec4(1, 1, 1, 0.5f), const vec4& TextColor = vec4(0.1f, 0.1f, 0.1f, 1.0f));
-	float GetClientIdRectSize(float FontSize);
+					  const vec4& BgColor = vec4(1, 1, 1, 0.5f), const vec4& TextColor = vec4(0.1f, 0.1f, 0.1f, 1.0f), bool Nameplate = false);
+	float GetClientIdRectSize(float FontSize, bool Nameplate = false);
 
 	void RenderTeleOverlay(CTeleTile *pTele, int w, int h, float Scale, float Alpha=1.0f);
 	void RenderSpeedupOverlay(CSpeedupTile *pTele, int w, int h, float Scale, float Alpha=1.0f);

@@ -636,8 +636,9 @@ void CRenderTools::MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup 
 }
 
 void CRenderTools::DrawClientID(ITextRender* pTextRender, CTextCursor* pCursor, int ID,
-								const vec4& BgColor, const vec4& TextColor)
+								const vec4& BgColor, const vec4& TextColor, bool Nameplate)
 {
+	if(Nameplate && m_pConfig->m_ClShowUserId == 2) return;
 	if(!m_pConfig->m_ClShowUserId) return;
 
 	char aBuff[4];
@@ -681,8 +682,9 @@ void CRenderTools::DrawClientID(ITextRender* pTextRender, CTextCursor* pCursor, 
 	pCursor->m_X = PrevX + Rect.w + 0.2f * FontSize;
 }
 
-float CRenderTools::GetClientIdRectSize(float FontSize)
+float CRenderTools::GetClientIdRectSize(float FontSize, bool Nameplate)
 {
+	if(Nameplate && m_pConfig->m_ClShowUserId == 2) return 0;
 	if(!m_pConfig->m_ClShowUserId) return 0;
 	return 1.4f * FontSize + 0.2f * FontSize;
 }

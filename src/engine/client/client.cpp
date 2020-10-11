@@ -1415,17 +1415,23 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_CMD_ADD)
 		{
-			const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-			const char *pHelp = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-			const char *pParams = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-			if(Unpacker.Error() == 0)
-				m_pConsole->RegisterTemp(pName, pParams, CFGFLAG_SERVER, pHelp);
+			if (!Config()->m_ClDummy)
+			{
+				const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				const char *pHelp = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				const char *pParams = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				if(Unpacker.Error() == 0)
+					m_pConsole->RegisterTemp(pName, pParams, CFGFLAG_SERVER, pHelp);
+			}
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_CMD_REM)
 		{
-			const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-			if(Unpacker.Error() == 0)
-				m_pConsole->DeregisterTemp(pName);
+			if (!Config()->m_ClDummy)
+			{
+				const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				if(Unpacker.Error() == 0)
+					m_pConsole->DeregisterTemp(pName);
+			}
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MAPLIST_ENTRY_ADD)
 		{
@@ -1713,6 +1719,26 @@ void CClient::ProcessServerPacketDummy(CNetChunk *pPacket)
 			}
 			if (m_RconAuthed[CLIENT_MAIN])
 				RconAuth("", m_RconPassword);
+		}
+		else if(Msg == NETMSG_RCON_CMD_ADD)
+		{
+			if(Config()->m_ClDummy)
+			{
+				const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				const char *pHelp = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				const char *pParams = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				if(Unpacker.Error() == 0)
+					m_pConsole->RegisterTemp(pName, pParams, CFGFLAG_SERVER, pHelp);
+			}
+		}
+		else if(Msg == NETMSG_RCON_CMD_REM)
+		{
+			if(Config()->m_ClDummy)
+			{
+				const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				if(Unpacker.Error() == 0)
+					m_pConsole->DeregisterTemp(pName);
+			}
 		}
 		else if(Msg == NETMSG_SNAP || Msg == NETMSG_SNAPSINGLE || Msg == NETMSG_SNAPEMPTY)
 		{

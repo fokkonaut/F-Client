@@ -379,14 +379,13 @@ int CCollision::IntersectLineTeleHook(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision,
 
 int CCollision::IntersectLineTeleWeapon(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *pOutBeforeCollision, int *pTeleNr)
 {
-	float Distance = distance(Pos0, Pos1);
-	int End(Distance+1);
+	const int End = distance(Pos0, Pos1)+1;
+	const float InverseEnd = 1.0f/End;
 	vec2 Last = Pos0;
 	int ix = 0, iy = 0; // Temporary position for checking collision
 	for(int i = 0; i <= End; i++)
 	{
-		float a = i/(float)End;
-		vec2 Pos = mix(Pos0, Pos1, a);
+		vec2 Pos = mix(Pos0, Pos1, i*InverseEnd);
 		ix = round_to_int(Pos.x);
 		iy = round_to_int(Pos.y);
 

@@ -305,7 +305,7 @@ void CServer::SetClientName(int ClientID, const char *pName)
 
 	const char *pDefaultName = "(1)";
 	pName = str_utf8_skip_whitespaces(pName);
-	str_copy(m_aClients[ClientID].m_aName, *pName ? pName : pDefaultName, MAX_NAME_LENGTH);
+	str_utf8_copy_num(m_aClients[ClientID].m_aName, *pName ? pName : pDefaultName, sizeof(m_aClients[ClientID].m_aName), MAX_NAME_LENGTH);
 }
 
 void CServer::SetClientClan(int ClientID, const char *pClan)
@@ -313,7 +313,7 @@ void CServer::SetClientClan(int ClientID, const char *pClan)
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY || !pClan)
 		return;
 
-	str_copy(m_aClients[ClientID].m_aClan, pClan, MAX_CLAN_LENGTH);
+	str_utf8_copy_num(m_aClients[ClientID].m_aClan, pClan, sizeof(m_aClients[ClientID].m_aClan), MAX_CLAN_LENGTH);
 }
 
 void CServer::SetClientCountry(int ClientID, int Country)
@@ -1046,8 +1046,10 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					if(m_aClients[ClientID].m_Version >= MIN_MAPLIST_CLIENTVERSION)
 						m_aClients[ClientID].m_pMapListEntryToSend = m_pFirstMapEntry;
 					SendRconLine(ClientID, "Admin authentication successful. Full remote console access granted.");
+					char aAddrStr[NETADDR_MAXSTRSIZE];
+					net_addr_str(m_NetServer.ClientAddr(ClientID), aAddrStr, sizeof(aAddrStr), true);
 					char aBuf[256];
-					str_format(aBuf, sizeof(aBuf), "ClientID=%d authed (admin)", ClientID);
+					str_format(aBuf, sizeof(aBuf), "ClientID=%d addr=%s authed (admin)", ClientID, aAddrStr);
 					Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 				}
 				else if(Config()->m_SvRconModPassword[0] && str_comp(pPw, Config()->m_SvRconModPassword) == 0)
@@ -1061,8 +1063,10 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					const IConsole::CCommandInfo *pInfo = Console()->GetCommandInfo("sv_map", CFGFLAG_SERVER, false);
 					if(pInfo && pInfo->GetAccessLevel() == IConsole::ACCESS_LEVEL_MOD && m_aClients[ClientID].m_Version >= MIN_MAPLIST_CLIENTVERSION)
 						m_aClients[ClientID].m_pMapListEntryToSend = m_pFirstMapEntry;
+					char aAddrStr[NETADDR_MAXSTRSIZE];
+					net_addr_str(m_NetServer.ClientAddr(ClientID), aAddrStr, sizeof(aAddrStr), true);
 					char aBuf[256];
-					str_format(aBuf, sizeof(aBuf), "ClientID=%d authed (moderator)", ClientID);
+					str_format(aBuf, sizeof(aBuf), "ClientID=%d addr=%s authed (moderator)", ClientID, aAddrStr);
 					Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 				}
 				else if(Config()->m_SvRconMaxTries && m_ServerBan.IsBannable(m_NetServer.ClientAddr(ClientID)))
@@ -1170,8 +1174,8 @@ void CServer::GenerateServerInfo(CPacker *pPacker, int Token)
 		{
 			if(m_aClients[i].m_State != CClient::STATE_EMPTY)
 			{
-				pPacker->AddString(ClientName(i), MAX_NAME_LENGTH); // client name
-				pPacker->AddString(ClientClan(i), MAX_CLAN_LENGTH); // client clan
+				pPacker->AddString(ClientName(i), 0); // client name
+				pPacker->AddString(ClientClan(i), 0); // client clan
 				pPacker->AddInt(m_aClients[i].m_Country); // client country
 				pPacker->AddInt(m_aClients[i].m_Score); // client score
 				pPacker->AddInt(GameServer()->IsClientPlayer(i)?0:1); // flag spectator=1, bot=2 (player=0)

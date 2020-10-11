@@ -31,6 +31,8 @@ public:
 
 	int SnapInput(int *pData);
 	void ClampMousePos();
+	float GetMaxMouseDistance() const;
+
 	void ResetInput(int Dummy);
 
 	class CGameClient *GameClient() const { return m_pClient; }

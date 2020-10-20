@@ -302,7 +302,10 @@ void CMenus::RenderHSLPicker(CUIRect MainView)
 				*CSkins::ms_apColorVariables[m_Dummy][p] = NewVal;
 		}
 		if(UseAlpha)
-			Config()->m_PlayerColorMarking = (Alp << 24) + NewVal;
+		{
+			int *pColorMarking = m_Dummy ? &Config()->m_DummyColorMarking : &Config()->m_PlayerColorMarking;
+			*pColorMarking = (Alp << 24) + NewVal;
+		}
 		m_SkinModified[m_Dummy] = true;
 	}
 }

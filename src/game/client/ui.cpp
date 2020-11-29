@@ -13,6 +13,8 @@
  UI
 *********************************************************/
 
+IGraphics *CUIRect::m_pGraphics = 0;
+
 const vec4 CUI::ms_DefaultTextColor(1.0f, 1.0f, 1.0f, 1.0f);
 const vec4 CUI::ms_DefaultTextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 const vec4 CUI::ms_HighlightTextColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -429,4 +431,319 @@ void CUI::DoLabelHighlighted(const CUIRect *pRect, const char *pText, const char
 		TextRender()->TextDeferred(&s_Cursor, pText, -1);
 
 	TextRender()->DrawTextOutlined(&s_Cursor);
+}
+
+void CUIRect::Draw(const vec4 &Color, float Rounding, int Corners) const
+{
+	m_pGraphics->TextureClear();
+
+	// TODO: FIX US
+	m_pGraphics->QuadsBegin();
+	m_pGraphics->SetColor(Color.r*Color.a, Color.g*Color.a, Color.b*Color.a, Color.a);
+
+	const float r = Rounding;
+
+	IGraphics::CFreeformItem a_FreeformItems[NUM_ROUND_CORNER_SEGMENTS/2*8];
+	int NumFreeformItems = 0;
+	for(int i = 0; i < NUM_ROUND_CORNER_SEGMENTS; i += 2)
+	{
+		float a1 = i/(float)NUM_ROUND_CORNER_SEGMENTS * pi/2;
+		float a2 = (i+1)/(float)NUM_ROUND_CORNER_SEGMENTS * pi/2;
+		float a3 = (i+2)/(float)NUM_ROUND_CORNER_SEGMENTS * pi/2;
+		float Ca1 = cosf(a1);
+		float Ca2 = cosf(a2);
+		float Ca3 = cosf(a3);
+		float Sa1 = sinf(a1);
+		float Sa2 = sinf(a2);
+		float Sa3 = sinf(a3);
+
+		if(Corners&CORNER_TL)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x+r, y+r,
+				x+(1-Ca1)*r, y+(1-Sa1)*r,
+				x+(1-Ca3)*r, y+(1-Sa3)*r,
+				x+(1-Ca2)*r, y+(1-Sa2)*r);
+
+		if(Corners&CORNER_TR)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x+w-r, y+r,
+				x+w-r+Ca1*r, y+(1-Sa1)*r,
+				x+w-r+Ca3*r, y+(1-Sa3)*r,
+				x+w-r+Ca2*r, y+(1-Sa2)*r);
+
+		if(Corners&CORNER_BL)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x+r, y+h-r,
+				x+(1-Ca1)*r, y+h-r+Sa1*r,
+				x+(1-Ca3)*r, y+h-r+Sa3*r,
+				x+(1-Ca2)*r, y+h-r+Sa2*r);
+
+		if(Corners&CORNER_BR)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x+w-r, y+h-r,
+				x+w-r+Ca1*r, y+h-r+Sa1*r,
+				x+w-r+Ca3*r, y+h-r+Sa3*r,
+				x+w-r+Ca2*r, y+h-r+Sa2*r);
+
+		if(Corners&CORNER_ITL)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x, y,
+				x+(1-Ca1)*r, y-r+Sa1*r,
+				x+(1-Ca3)*r, y-r+Sa3*r,
+				x+(1-Ca2)*r, y-r+Sa2*r);
+
+		if(Corners&CORNER_ITR)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x+w, y,
+				x+w-r+Ca1*r, y-r+Sa1*r,
+				x+w-r+Ca3*r, y-r+Sa3*r,
+				x+w-r+Ca2*r, y-r+Sa2*r);
+
+		if(Corners&CORNER_IBL)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x, y+h,
+				x+(1-Ca1)*r, y+h+(1-Sa1)*r,
+				x+(1-Ca3)*r, y+h+(1-Sa3)*r,
+				x+(1-Ca2)*r, y+h+(1-Sa2)*r);
+
+		if(Corners&CORNER_IBR)
+			a_FreeformItems[NumFreeformItems++] = IGraphics::CFreeformItem(
+				x+w, y+h,
+				x+w-r+Ca1*r, y+h+(1-Sa1)*r,
+				x+w-r+Ca3*r, y+h+(1-Sa3)*r,
+				x+w-r+Ca2*r, y+h+(1-Sa2)*r);
+	}
+	m_pGraphics->QuadsDrawFreeform(a_FreeformItems, NumFreeformItems);
+
+	IGraphics::CQuadItem a_QuadItems[9];
+	int NumQuadItems = 0;
+	a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x+r, y+r, w-r*2, h-r*2); // center
+	a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x+r, y, w-r*2, r); // top
+	a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x+r, y+h-r, w-r*2, r); // bottom
+	a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x, y+r, r, h-r*2); // left
+	a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x+w-r, y+r, r, h-r*2); // right
+
+	if(!(Corners&CORNER_TL)) a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x, y, r, r);
+	if(!(Corners&CORNER_TR)) a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x+w, y, -r, r);
+	if(!(Corners&CORNER_BL)) a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x, y+h, r, -r);
+	if(!(Corners&CORNER_BR)) a_QuadItems[NumQuadItems++] = IGraphics::CQuadItem(x+w, y+h, -r, -r);
+
+	m_pGraphics->QuadsDrawTL(a_QuadItems, NumQuadItems);
+	m_pGraphics->QuadsEnd();
+}
+
+void CUIRect::Draw4(const vec4 &ColorTopLeft, const vec4 &ColorTopRight, const vec4 &ColorBottomLeft, const vec4 &ColorBottomRight, float Rounding, int Corners) const
+{
+	m_pGraphics->TextureClear();
+	m_pGraphics->QuadsBegin();
+
+	const float r = Rounding;
+
+	for(int i = 0; i < NUM_ROUND_CORNER_SEGMENTS; i+=2)
+	{
+		float a1 = i/(float)NUM_ROUND_CORNER_SEGMENTS * pi/2;
+		float a2 = (i+1)/(float)NUM_ROUND_CORNER_SEGMENTS * pi/2;
+		float a3 = (i+2)/(float)NUM_ROUND_CORNER_SEGMENTS * pi/2;
+		float Ca1 = cosf(a1);
+		float Ca2 = cosf(a2);
+		float Ca3 = cosf(a3);
+		float Sa1 = sinf(a1);
+		float Sa2 = sinf(a2);
+		float Sa3 = sinf(a3);
+
+		if(Corners&CORNER_TL)
+		{
+			m_pGraphics->SetColor(ColorTopLeft);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x+r, y+r,
+				x+(1-Ca1)*r, y+(1-Sa1)*r,
+				x+(1-Ca3)*r, y+(1-Sa3)*r,
+				x+(1-Ca2)*r, y+(1-Sa2)*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+
+		if(Corners&CORNER_TR)
+		{
+			m_pGraphics->SetColor(ColorTopRight);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x+w-r, y+r,
+				x+w-r+Ca1*r, y+(1-Sa1)*r,
+				x+w-r+Ca3*r, y+(1-Sa3)*r,
+				x+w-r+Ca2*r, y+(1-Sa2)*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+
+		if(Corners&CORNER_BL)
+		{
+			m_pGraphics->SetColor(ColorBottomLeft);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x+r, y+h-r,
+				x+(1-Ca1)*r, y+h-r+Sa1*r,
+				x+(1-Ca3)*r, y+h-r+Sa3*r,
+				x+(1-Ca2)*r, y+h-r+Sa2*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+
+		if(Corners&CORNER_BR)
+		{
+			m_pGraphics->SetColor(ColorBottomRight);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x+w-r, y+h-r,
+				x+w-r+Ca1*r, y+h-r+Sa1*r,
+				x+w-r+Ca3*r, y+h-r+Sa3*r,
+				x+w-r+Ca2*r, y+h-r+Sa2*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+
+		if(Corners&CORNER_ITL)
+		{
+			m_pGraphics->SetColor(ColorTopLeft);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x, y,
+				x+(1-Ca1)*r, y-r+Sa1*r,
+				x+(1-Ca3)*r, y-r+Sa3*r,
+				x+(1-Ca2)*r, y-r+Sa2*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+
+		if(Corners&CORNER_ITR)
+		{
+			m_pGraphics->SetColor(ColorTopRight);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x+w, y,
+				x+w-r+Ca1*r, y-r+Sa1*r,
+				x+w-r+Ca3*r, y-r+Sa3*r,
+				x+w-r+Ca2*r, y-r+Sa2*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+
+		if(Corners&CORNER_IBL)
+		{
+			m_pGraphics->SetColor(ColorBottomLeft);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x, y+h,
+				x+(1-Ca1)*r, y+h+(1-Sa1)*r,
+				x+(1-Ca3)*r, y+h+(1-Sa3)*r,
+				x+(1-Ca2)*r, y+h+(1-Sa2)*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+
+		if(Corners&CORNER_IBR)
+		{
+			m_pGraphics->SetColor(ColorBottomRight);
+			IGraphics::CFreeformItem ItemF = IGraphics::CFreeformItem(
+				x+w, y+h,
+				x+w-r+Ca1*r, y+h+(1-Sa1)*r,
+				x+w-r+Ca3*r, y+h+(1-Sa3)*r,
+				x+w-r+Ca2*r, y+h+(1-Sa2)*r);
+			m_pGraphics->QuadsDrawFreeform(&ItemF, 1);
+		}
+	}
+
+	// center
+	{
+		m_pGraphics->SetColor4(ColorTopLeft, ColorTopRight, ColorBottomLeft, ColorBottomRight);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x+r, y+r, w-r*2, h-r*2);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	// top
+	{
+		m_pGraphics->SetColor4(ColorTopLeft, ColorTopRight, ColorTopLeft, ColorTopRight);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x+r, y, w-r*2, r);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	// bottom
+	{
+		m_pGraphics->SetColor4(ColorBottomLeft, ColorBottomRight, ColorBottomLeft, ColorBottomRight);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x+r, y+h-r, w-r*2, r);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	// left
+	{
+		m_pGraphics->SetColor4(ColorTopLeft, ColorTopLeft, ColorBottomLeft, ColorBottomLeft);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x, y+r, r, h-r*2);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	// right
+	{
+		m_pGraphics->SetColor4(ColorTopRight, ColorTopRight, ColorBottomRight, ColorBottomRight);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x+w-r, y+r, r, h-r*2);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	if(!(Corners&CORNER_TL))
+	{
+		m_pGraphics->SetColor(ColorTopLeft);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x, y, r, r);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	if(!(Corners&CORNER_TR))
+	{
+		m_pGraphics->SetColor(ColorTopRight);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x+w, y, -r, r);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	if(!(Corners&CORNER_BL))
+	{
+		m_pGraphics->SetColor(ColorBottomLeft);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x, y+h, r, -r);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	if(!(Corners&CORNER_BR))
+	{
+		m_pGraphics->SetColor(ColorBottomRight);
+		IGraphics::CQuadItem ItemQ = IGraphics::CQuadItem(x+w, y+h, -r, -r);
+		m_pGraphics->QuadsDrawTL(&ItemQ, 1);
+	}
+
+	m_pGraphics->QuadsEnd();
+}
+
+float CUI::DrawClientID(float FontSize, vec2 CursorPosition, int ID,
+							const vec4& BgColor, const vec4& TextColor)
+{
+	if(!m_pConfig->m_ClShowUserId)
+		return 0;
+
+	char aBuf[4];
+	str_format(aBuf, sizeof(aBuf), "%d", ID);
+
+	static CTextCursor s_Cursor;
+	s_Cursor.Reset();
+	s_Cursor.m_FontSize = FontSize;
+	s_Cursor.m_Align = TEXTALIGN_CENTER;
+
+	vec4 OldColor = TextRender()->GetColor();
+	TextRender()->TextColor(TextColor);
+	TextRender()->TextDeferred(&s_Cursor, aBuf, -1);
+	TextRender()->TextColor(OldColor);
+
+	const float LinebaseY = CursorPosition.y + s_Cursor.BaseLineY();
+	const float Width = 1.4f * FontSize;
+
+	CUIRect Rect;
+	Rect.x = CursorPosition.x;
+	Rect.y = LinebaseY - FontSize + 0.15f * FontSize;
+	Rect.w = Width;
+	Rect.h = FontSize;
+	Rect.Draw(BgColor, 0.25f * FontSize);
+
+	s_Cursor.MoveTo(Rect.x + Rect.w / 2.0f, CursorPosition.y);
+	TextRender()->DrawTextPlain(&s_Cursor);
+
+	return Width + 0.2f * FontSize;
+}
+
+float CUI::GetClientIDRectWidth(float FontSize)
+{
+	if(!m_pConfig->m_ClShowUserId)
+		return 0;
+	return 1.4f * FontSize + 0.2f * FontSize;
 }

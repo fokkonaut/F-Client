@@ -822,7 +822,7 @@ void CChat::OnRender()
 		}
 		else if(ChatMode == CHAT_WHISPER)
 		{
-			CategoryWidth += RenderTools()->GetClientIdRectSize(CategoryFontSize);
+			CategoryWidth += UI()->GetClientIDRectWidth(CategoryFontSize);
 			str_format(aCatText, sizeof(aCatText), "%s",m_pClient->m_aClients[m_WhisperTarget].m_aName);
 		}
 		else
@@ -850,7 +850,7 @@ void CChat::OnRender()
 		CatRect.y = y;
 		CatRect.w = CategoryWidth + x + 2.0f + IconOffsetX;
 		CatRect.h = CategoryHeight;
-		RenderTools()->DrawUIRect(&CatRect, CatRectColor, CUI::CORNER_R, 2.0f);
+		CatRect.Draw(CatRectColor, 2.0f, CUIRect::CORNER_R);
 
 		// draw chat icon
 		Graphics()->WrapClamp();
@@ -883,7 +883,7 @@ void CChat::OnRender()
 		TextRender()->TextColor(1, 1, 1, Blend);
 		float ClientIDWidth = 0;
 		if(ChatMode == CHAT_WHISPER)
-			ClientIDWidth = RenderTools()->DrawClientID(TextRender(), CategoryFontSize, vec2(x + IconOffsetX, y), m_WhisperTarget);
+			ClientIDWidth = UI()->DrawClientID(CategoryFontSize, vec2(x + IconOffsetX, y), m_WhisperTarget);
 		s_CategoryCursor.MoveTo(x + IconOffsetX + ClientIDWidth, y);
 		TextRender()->DrawTextOutlined(&s_CategoryCursor);
 
@@ -1068,7 +1068,7 @@ void CChat::OnRender()
 
 			if(pLine->m_ClientID >= 0)
 			{
-				float ClientIDWidth = RenderTools()->GetClientIdRectSize(FontSize);
+				float ClientIDWidth = UI()->GetClientIDRectWidth(FontSize);
 				TextRender()->TextAdvance(&s_ChatCursor, ClientIDWidth);
 				str_format(aBuf, sizeof(aBuf), "%s: ", pLine->m_aName);
 			}
@@ -1091,14 +1091,9 @@ void CChat::OnRender()
 		Rect.w = LineWidth + x + 3.0f;
 		Rect.h = Height - HeightLimit - 22.f;
 
-		const float LeftAlpha = 0.85f;
-		const float RightAlpha = 0.05f;
-		RenderTools()->DrawUIRect4(&Rect,
-								   vec4(0, 0, 0, LeftAlpha),
-								   vec4(0, 0, 0, RightAlpha),
-								   vec4(0, 0, 0, LeftAlpha),
-								   vec4(0, 0, 0, RightAlpha),
-								   CUI::CORNER_R, 3.0f);
+		const vec4 LeftColor(0, 0, 0, 0.85f);
+		const vec4 RightColor(0, 0, 0, 0.05f);
+		Rect.Draw4(LeftColor, RightColor, LeftColor, RightColor, 3.0f, CUIRect::CORNER_R);
 	}
 
 	// compute the page index
@@ -1221,12 +1216,7 @@ void CChat::OnRender()
 			vec4 RightColor = ColorHighlightBg;
 			RightColor *= 0.1f;
 
-			RenderTools()->DrawUIRect4(&BgRect,
-									   LeftColor,
-									   RightColor,
-									   LeftColor,
-									   RightColor,
-									   CUI::CORNER_R, 2.0f);
+			BgRect.Draw4(LeftColor, RightColor, LeftColor, RightColor, 2.0f, CUIRect::CORNER_R);
 		}
 
 		char aBuf[48];
@@ -1296,7 +1286,7 @@ void CChat::OnRender()
 			vec4 IdTextColor = vec4(0.1f*Blend, 0.1f*Blend, 0.1f*Blend, 1.0f*Blend);
 			vec4 BgIdColor = TextColor;
 			BgIdColor.a = 0.5f*Blend;
-			float ClientIDWidth = RenderTools()->DrawClientID(TextRender(), FontSize, s_ChatCursor.AdvancePosition(), NameCID, BgIdColor, IdTextColor);
+			float ClientIDWidth = UI()->DrawClientID(FontSize, s_ChatCursor.AdvancePosition(), NameCID, BgIdColor, IdTextColor);
 			TextRender()->TextAdvance(&s_ChatCursor, ClientIDWidth);
 			str_format(aBuf, sizeof(aBuf), "%s: ", pLine->m_aName);
 			TextRender()->TextColor(TextColor);
@@ -1384,7 +1374,7 @@ void CChat::HandleCommands(float x, float y, float w)
 		if(DisplayCount > 0) // at least one command to display
 		{
 			CUIRect Rect = {x, y-(DisplayCount+1)*LineHeight, LineWidth, (DisplayCount+1)*LineHeight};
-			RenderTools()->DrawUIRect(&Rect,  vec4(0.125f, 0.125f, 0.125f, Alpha), CUI::CORNER_ALL, 3.0f);
+			Rect.Draw( vec4(0.125f, 0.125f, 0.125f, Alpha), 3.0f);
 
 			int End = m_CommandStart;
 			for(int i = 0; i < DisplayCount - 1; i++)
@@ -1410,12 +1400,12 @@ void CChat::HandleCommands(float x, float y, float w)
 				LineWidth -= ScrollBarW;
 
 				CUIRect Rect = {x + LineWidth, y - (DisplayCount + 1) * LineHeight, ScrollBarW, (DisplayCount+1)*LineHeight};
-				RenderTools()->DrawUIRect(&Rect,  vec4(0.125f, 0.125f, 0.125f, Alpha), CUI::CORNER_R, 3.0f);
+				Rect.Draw( vec4(0.125f, 0.125f, 0.125f, Alpha), 3.0f, CUIRect::CORNER_R);
 
 				float h = Rect.h;
 				Rect.h *= (float)DisplayCount/ActiveCount;
 				Rect.y += h * (float)(GetActiveCountRange(GetFirstActiveCommand(), m_CommandStart))/ActiveCount;
-				RenderTools()->DrawUIRect(&Rect,  vec4(0.5f, 0.5f, 0.5f, Alpha), CUI::CORNER_R, 3.0f);
+				Rect.Draw( vec4(0.5f, 0.5f, 0.5f, Alpha), 3.0f, CUIRect::CORNER_R);
 			}
 
 			y -= (DisplayCount+2)*LineHeight;
@@ -1434,11 +1424,11 @@ void CChat::HandleCommands(float x, float y, float w)
 				CUIRect HighlightRect = {Rect.x, y, LineWidth, LineHeight-1};
 
 				if(pCommand->m_pfnCallback == ServerCommandCallback)
-					RenderTools()->DrawUIRect(&HighlightRect,  vec4(0.0f, 0.6f, 0.6f, 0.2f), CUI::CORNER_ALL, 0);
+					HighlightRect.Draw( vec4(0.0f, 0.6f, 0.6f, 0.2f), 0);
 
 				// draw selection box
 				if(i == m_SelectedCommand)
-					RenderTools()->DrawUIRect(&HighlightRect,  vec4(0.25f, 0.25f, 0.6f, Alpha), CUI::CORNER_ALL, 2.0f);
+					HighlightRect.Draw( vec4(0.25f, 0.25f, 0.6f, Alpha), 2.0f);
 
 				// print command
 				static CTextCursor s_CommandCursor(5.0f);

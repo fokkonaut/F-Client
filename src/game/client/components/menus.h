@@ -365,9 +365,6 @@ private:
 
 	int64 m_LastInput;
 
-	// TODO: use CUI constants everywhere
-	static float ms_FontmodHeight;
-
 	// for settings
 	bool m_NeedRestartPlayer;
 	bool m_NeedRestartGraphics;

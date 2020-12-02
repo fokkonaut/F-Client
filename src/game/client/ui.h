@@ -3,7 +3,7 @@
 #ifndef GAME_CLIENT_UI_H
 #define GAME_CLIENT_UI_H
 
-#include <engine/input.h>
+#include "lineinput.h"
 
 class CUIRect
 {
@@ -113,6 +113,37 @@ public:
 } LogarithmicScrollbarScale(25);
 
 
+class IButtonColorFunction
+{
+public:
+	virtual vec4 GetColor(bool Active, bool Hovered) = 0;
+};
+static class CDarkButtonColorFunction : public IButtonColorFunction
+{
+public:
+	vec4 GetColor(bool Active, bool Hovered)
+	{
+		if(Active)
+			return vec4(0.15f, 0.15f, 0.15f, 0.25f);
+		else if(Hovered)
+			return vec4(0.5f, 0.5f, 0.5f, 0.25f);
+		return vec4(0.0f, 0.0f, 0.0f, 0.25f);
+	}
+} DarkButtonColorFunction;
+static class CLightButtonColorFunction : public IButtonColorFunction
+{
+public:
+	vec4 GetColor(bool Active, bool Hovered)
+	{
+		if(Active)
+			return vec4(1.0f, 1.0f, 1.0f, 0.4f);
+		else if(Hovered)
+			return vec4(1.0f, 1.0f, 1.0f, 0.6f);
+		return vec4(1.0f, 1.0f, 1.0f, 0.5f);
+	}
+} LightButtonColorFunction;
+
+
 class CUI
 {
 	enum
@@ -134,6 +165,7 @@ class CUI
 	unsigned m_LastMouseButtons;
 
 	unsigned m_HotkeysPressed;
+	CLineInput *m_pActiveInput;
 
 	CUIRect m_Screen;
 
@@ -158,7 +190,7 @@ public:
 	static const float ms_FontmodHeight;
 
 	// TODO: Refactor: Fill this in
-	void Init(class CConfig *pConfig, class IGraphics *pGraphics, class IInput *pInput, class ITextRender *pTextRender) { m_pConfig = pConfig; m_pGraphics = pGraphics; m_pInput = pInput; m_pTextRender = pTextRender; CUIRect::Init(pGraphics); }
+	void Init(class CConfig *pConfig, class IGraphics *pGraphics, class IInput *pInput, class ITextRender *pTextRender);
 	class CConfig *Config() const { return m_pConfig; }
 	class IGraphics *Graphics() const { return m_pGraphics; }
 	class IInput *Input() const { return m_pInput; }
@@ -215,7 +247,8 @@ public:
 	bool KeyIsPressed(int Key) const;
 	bool ConsumeHotkey(unsigned Hotkey);
 	void ClearHotkeys() { m_HotkeysPressed = 0; }
-	void OnInput(const IInput::CEvent &e);
+	bool OnInput(const IInput::CEvent &e);
+	bool IsInputActive() const { return m_pActiveInput != 0; }
 
 	const CUIRect *Screen();
 	float PixelSize();
@@ -232,6 +265,10 @@ public:
 	// labels
 	void DoLabel(const CUIRect *pRect, const char *pText, float FontSize, EAlignment Align, float LineWidth = -1.0f, bool MultiLine = true);
 	void DoLabelHighlighted(const CUIRect *pRect, const char *pText, const char *pHighlighted, float FontSize, const vec4 &TextColor, const vec4 &HighlightColor);
+
+	// editboxes
+	bool DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize, bool Hidden = false, int Corners = CUIRect::CORNER_ALL, IButtonColorFunction *pColorFunction = &DarkButtonColorFunction);
+	void DoEditBoxOption(CLineInput *pLineInput, const CUIRect *pRect, const char *pStr, float VSplitVal, bool Hidden = false);
 
 	// scrollbars
 	float DoScrollbarV(const void *pID, const CUIRect *pRect, float Current);

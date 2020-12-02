@@ -194,7 +194,7 @@ CMenus::CListboxItem CMenus::CListBox::DoNextItem(const void *pId, bool Selected
 		{
 			m_ListBoxDoneEvents = 1;
 
-			if(m_pMenus->UI()->ConsumeHotkey(CUI::HOTKEY_ENTER) || (s_ItemClicked && m_pInput->MouseDoubleClick()))
+			if(m_pUI->ConsumeHotkey(CUI::HOTKEY_ENTER) || (s_ItemClicked && m_pInput->MouseDoubleClick()))
 			{
 				m_ListBoxItemActivated = true;
 				m_pUI->SetActiveItem(0);

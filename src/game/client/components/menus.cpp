@@ -34,7 +34,6 @@
 #include "skins.h"
 
 // TODO: use CUI constants everywhere
-float CMenus::ms_ButtonHeight = CUI::ms_ButtonHeight;
 float CMenus::ms_ListheaderHeight = CUI::ms_ListheaderHeight;
 float CMenus::ms_FontmodHeight = CUI::ms_FontmodHeight;
 

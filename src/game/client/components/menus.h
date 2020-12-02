@@ -366,7 +366,6 @@ private:
 	int64 m_LastInput;
 
 	// TODO: use CUI constants everywhere
-	static float ms_ButtonHeight;
 	static float ms_ListheaderHeight;
 	static float ms_FontmodHeight;
 

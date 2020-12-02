@@ -15,7 +15,6 @@
 
 IGraphics *CUIRect::m_pGraphics = 0;
 
-const float CUI::ms_ButtonHeight = 25.0f;
 const float CUI::ms_ListheaderHeight = 17.0f;
 const float CUI::ms_FontmodHeight = 0.8f;
 

@@ -186,7 +186,6 @@ public:
 	static const vec4 ms_HighlightTextOutlineColor;
 	static const vec4 ms_TransparentTextColor;
 
-	static const float ms_ButtonHeight;
 	static const float ms_ListheaderHeight;
 	static const float ms_FontmodHeight;
 

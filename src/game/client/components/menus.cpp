@@ -188,7 +188,7 @@ bool CMenus::DoButton_Menu(CButtonContainer *pBC, const char *pText, bool Checke
 		TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
 		TextRender()->TextSecondaryColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
 	}
-	UI()->DoLabel(&Text, pText, Text.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&Text, pText, Text.h*ms_FontmodHeight, TEXTALIGN_CENTER);
 	if(TextFade)
 	{
 		TextRender()->TextColor(CUI::ms_DefaultTextColor);
@@ -207,7 +207,7 @@ void CMenus::DoButton_KeySelect(CButtonContainer *pBC, const char *pText, const 
 	pRect->HMargin(1.0f, &Label);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
 	TextRender()->TextSecondaryColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
-	UI()->DoLabel(&Label, pText, Label.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&Label, pText, Label.h*ms_FontmodHeight, TEXTALIGN_CENTER);
 	TextRender()->TextColor(CUI::ms_DefaultTextColor);
 	TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 }
@@ -224,13 +224,13 @@ bool CMenus::DoButton_MenuTabTop(CButtonContainer *pBC, const char *pText, bool 
 	Label.HMargin((Label.h*FontFactor)/2.0f, &Label);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, FontAlpha);
 	TextRender()->TextSecondaryColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f*FontAlpha);
-	UI()->DoLabel(&Label, pText, Label.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&Label, pText, Label.h*ms_FontmodHeight, TEXTALIGN_CENTER);
 	TextRender()->TextColor(CUI::ms_DefaultTextColor);
 	TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 	return UI()->DoButtonLogic(pBC->GetID(), pRect);
 }
 
-bool CMenus::DoButton_GridHeader(const void *pID, const char *pText, bool Checked, CUI::EAlignment Align, const CUIRect *pRect, int Corners)
+bool CMenus::DoButton_GridHeader(const void *pID, const char *pText, bool Checked, int Align, const CUIRect *pRect, int Corners)
 {
 	if(Checked)
 	{
@@ -293,7 +293,7 @@ bool CMenus::DoButton_CheckBox(const void *pID, const char *pText, bool Checked,
 	Graphics()->QuadsEnd();
 
 	Label.y += 1.0f; // lame fix
-	UI()->DoLabel(&Label, pText, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
+	UI()->DoLabel(&Label, pText, pRect->h*ms_FontmodHeight*0.8f, TEXTALIGN_LEFT);
 
 	if(Locked)
 	{
@@ -363,7 +363,7 @@ float CMenus::DoIndependentDropdownMenu(void *pID, const CUIRect *pRect, const c
 	// label
 	Label = Header;
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, pStr, Header.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&Label, pStr, Header.h*ms_FontmodHeight*0.8f, TEXTALIGN_CENTER);
 
 	if(UI()->DoButtonLogic(pID, &Header))
 		*pActive ^= 1;
@@ -387,10 +387,10 @@ void CMenus::DoInfoBox(const CUIRect *pRect, const char *pLabel, const char *pVa
 	char aBuf[32];
 	str_format(aBuf, sizeof(aBuf), "%s:", pLabel);
 	Label.y += 2.0f;
-	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, TEXTALIGN_CENTER);
 
 	Value.y += 2.0f;
-	UI()->DoLabel(&Value, pValue, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&Value, pValue, pRect->h*ms_FontmodHeight*0.8f, TEXTALIGN_CENTER);
 }
 
 void CMenus::DoJoystickBar(const CUIRect *pRect, float Current, float Tolerance, bool Active)
@@ -709,7 +709,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			Box.HMargin(2.0f, &Box);
 			TextRender()->TextColor(CUI::ms_HighlightTextColor);
 			TextRender()->TextSecondaryColor(CUI::ms_HighlightTextOutlineColor);
-			UI()->DoLabel(&Box, Localize("Demos"), Box.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
+			UI()->DoLabel(&Box, Localize("Demos"), Box.h*ms_FontmodHeight, TEXTALIGN_CENTER);
 			TextRender()->TextColor(CUI::ms_DefaultTextColor);
 			TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 		}
@@ -773,7 +773,7 @@ void CMenus::RenderLoading(int WorkedAmount)
 	Rect.y += 20;
 	TextRender()->TextColor(CUI::ms_DefaultTextColor);
 	TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
-	UI()->DoLabel(&Rect, "Teeworlds", 48.0f, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&Rect, "Teeworlds", 48.0f, TEXTALIGN_CENTER);
 
 	const float Percent = m_LoadCurrent/(float)m_LoadTotal;
 	const float Spacing = 40.0f;
@@ -793,7 +793,7 @@ void CMenus::RenderLoading(int WorkedAmount)
 	}
 	char aBuf[8];
 	str_format(aBuf, sizeof(aBuf), "%d%%", (int)(100*Percent));
-	UI()->DoLabel(&FullBar, aBuf, 20.0f, CUI::ALIGN_CENTER);
+	UI()->DoLabel(&FullBar, aBuf, 20.0f, TEXTALIGN_CENTER);
 
 	if(Percent > 0.5f)
 	{
@@ -1121,7 +1121,7 @@ void CMenus::Render()
 				// draw non-blending X
 				CUIRect XText = Button;
 
-				UI()->DoLabel(&XText, "\xE2\x9C\x95", XText.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
+				UI()->DoLabel(&XText, "\xE2\x9C\x95", XText.h*ms_FontmodHeight, TEXTALIGN_CENTER);
 				if(UI()->DoButtonLogic(s_QuitButton.GetID(), &Button))
 					m_Popup = POPUP_QUIT;
 
@@ -1265,7 +1265,7 @@ void CMenus::Render()
 		CUIRect Part;
 		Box.HSplitTop(ButtonHeight+5.0f, &Part, &Box);
 		Part.y += 3.0f;
-		UI()->DoLabel(&Part, pTitle, Part.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+		UI()->DoLabel(&Part, pTitle, Part.h*ms_FontmodHeight*0.8f, TEXTALIGN_CENTER);
 
 		// inner box
 		CUIRect BottomBar;
@@ -1280,15 +1280,15 @@ void CMenus::Render()
 			if(m_pClient->Editor()->HasUnsavedData())
 			{
 				Box.HSplitTop(12.0f, 0, &Part);
-				UI()->DoLabel(&Part, pExtraText, FontSize, CUI::ALIGN_CENTER);
+				UI()->DoLabel(&Part, pExtraText, FontSize, TEXTALIGN_CENTER);
 				Part.HSplitTop(20.0f, 0, &Part);
 				Part.VMargin(5.0f, &Part);
-				UI()->DoLabel(&Part, Localize("There's an unsaved map in the editor, you might want to save it before you quit the game."), FontSize, CUI::ALIGN_LEFT, Part.w);
+				UI()->DoLabel(&Part, Localize("There's an unsaved map in the editor, you might want to save it before you quit the game."), FontSize, TEXTALIGN_LEFT, Part.w);
 			}
 			else
 			{
 				Box.HSplitTop(27.0f, 0, &Box);
-				UI()->DoLabel(&Box, pExtraText, FontSize, CUI::ALIGN_CENTER);
+				UI()->DoLabel(&Box, pExtraText, FontSize, TEXTALIGN_CENTER);
 			}
 
 			// buttons
@@ -1309,7 +1309,7 @@ void CMenus::Render()
 
 			CUIRect Label;
 			Box.HSplitTop(20.0f, &Label, &Box);
-			UI()->DoLabel(&Label, pExtraText, FontSize, CUI::ALIGN_CENTER);
+			UI()->DoLabel(&Label, pExtraText, FontSize, TEXTALIGN_CENTER);
 
 			CUIRect EditBox;
 			Box.HSplitTop(20.0f, &EditBox, &Box);
@@ -1382,7 +1382,7 @@ void CMenus::Render()
 				Box.HSplitTop(15.f, 0, &Box);
 				Box.HSplitTop(ButtonHeight, &Part, &Box);
 				str_format(aBuf, sizeof(aBuf), "%d/%d KiB (%.1f KiB/s)", Client()->MapDownloadAmount()/1024, Client()->MapDownloadTotalsize()/1024,	m_DownloadSpeed/1024.0f);
-				UI()->DoLabel(&Part, aBuf, FontSize, CUI::ALIGN_CENTER);
+				UI()->DoLabel(&Part, aBuf, FontSize, TEXTALIGN_CENTER);
 
 				// time left
 				int SecondsLeft = max(1, m_DownloadSpeed > 0.0f ? static_cast<int>((Client()->MapDownloadTotalsize()-Client()->MapDownloadAmount())/m_DownloadSpeed) : 1);
@@ -1397,7 +1397,7 @@ void CMenus::Render()
 				}
 				Box.HSplitTop(SpacingH, 0, &Box);
 				Box.HSplitTop(ButtonHeight, &Part, &Box);
-				UI()->DoLabel(&Part, aBuf, FontSize, CUI::ALIGN_CENTER);
+				UI()->DoLabel(&Part, aBuf, FontSize, TEXTALIGN_CENTER);
 
 				// progress bar
 				Box.HSplitTop(SpacingH, 0, &Box);
@@ -1410,7 +1410,7 @@ void CMenus::Render()
 			else
 			{
 				Box.HSplitTop(27.0f, 0, &Box);
-				UI()->DoLabel(&Box, Client()->ServerAddress(), FontSize, CUI::ALIGN_CENTER);
+				UI()->DoLabel(&Box, Client()->ServerAddress(), FontSize, TEXTALIGN_CENTER);
 			}
 		}
 		else if(m_Popup == POPUP_LOADING_DEMO)
@@ -1427,7 +1427,7 @@ void CMenus::Render()
 			else
 			{
 				Box.HSplitTop(27.0f, 0, &Box);
-				UI()->DoLabel(&Box, m_aDemoLoadingFile, FontSize, CUI::ALIGN_CENTER);
+				UI()->DoLabel(&Box, m_aDemoLoadingFile, FontSize, TEXTALIGN_CENTER);
 				// wait until next frame to load the demo
 				m_DemoLoadingPopupRendered = true;
 			}
@@ -1477,7 +1477,7 @@ void CMenus::Render()
 						TextRender()->TextColor(CUI::ms_HighlightTextColor);
 						TextRender()->TextSecondaryColor(CUI::ms_HighlightTextOutlineColor);
 					}
-					UI()->DoLabel(&Label, pEntry->m_aCountryCodeString, 10.0f, CUI::ALIGN_CENTER);
+					UI()->DoLabel(&Label, pEntry->m_aCountryCodeString, 10.0f, TEXTALIGN_CENTER);
 					if(i == OldSelected)
 					{
 						TextRender()->TextColor(CUI::ms_DefaultTextColor);
@@ -1509,7 +1509,7 @@ void CMenus::Render()
 		{
 			Box.HSplitTop(27.0f, 0, &Box);
 			Box.VMargin(10.0f, &Box);
-			UI()->DoLabel(&Box, pExtraText, FontSize, CUI::ALIGN_LEFT);
+			UI()->DoLabel(&Box, pExtraText, FontSize, TEXTALIGN_LEFT);
 
 			CUIRect EditBox;
 			Box.HSplitBottom(Box.h/2.0f, 0, &Box);
@@ -1558,7 +1558,7 @@ void CMenus::Render()
 		{
 			Box.HSplitTop(24.0f, 0, &Box);
 			Box.VMargin(10.0f, &Part);
-			UI()->DoLabel(&Part, pExtraText, FontSize, CUI::ALIGN_LEFT, Box.w-20.0f);
+			UI()->DoLabel(&Part, pExtraText, FontSize, TEXTALIGN_LEFT, Box.w-20.0f);
 
 			CUIRect EditBox;
 			Box.HSplitBottom(Box.h/2.0f, 0, &Box);
@@ -1591,7 +1591,7 @@ void CMenus::Render()
 		{
 			Box.HSplitTop(20.0f, 0, &Box);
 			Box.VMargin(10.0f, &Part);
-			UI()->DoLabel(&Part, pExtraText, FontSize, CUI::ALIGN_LEFT, Box.w-20.0f);
+			UI()->DoLabel(&Part, pExtraText, FontSize, TEXTALIGN_LEFT, Box.w-20.0f);
 
 			CUIRect EditBox;
 			Box.HSplitBottom(ButtonHeight*2.0f, 0, &Box);
@@ -1615,7 +1615,7 @@ void CMenus::Render()
 			// message
 			Box.HSplitTop(27.0f, 0, &Box);
 			Box.VMargin(5.0f, &Part);
-			UI()->DoLabel(&Part, pExtraText, FontSize, CUI::ALIGN_LEFT, Part.w);
+			UI()->DoLabel(&Part, pExtraText, FontSize, TEXTALIGN_LEFT, Part.w);
 
 			if(m_Popup == POPUP_MESSAGE)
 			{

@@ -261,17 +261,9 @@ bool CUI::DoPickerLogic(const void *pID, const CUIRect *pRect, float *pX, float 
 	return true;
 }
 
-void CUI::DoLabel(const CUIRect *pRect, const char *pText, float FontSize, int Align, float LineWidth, bool MultiLine)
+void CUI::ApplyCursorAlign(class CTextCursor *pCursor, const CUIRect *pRect, int Align)
 {
-	// TODO: FIX ME!!!!
-	// Graphics()->BlendNormal();
-
-	static CTextCursor s_Cursor;
-	s_Cursor.Reset();
-	s_Cursor.m_FontSize = FontSize;
-	s_Cursor.m_MaxLines = MultiLine ? -1 : 1;
-	s_Cursor.m_MaxWidth = LineWidth;
-	s_Cursor.m_Align = Align;
+	pCursor->m_Align = Align;
 
 	float x = pRect->x;
 	if(Align&TEXTALIGN_CENTER)
@@ -285,17 +277,31 @@ void CUI::DoLabel(const CUIRect *pRect, const char *pText, float FontSize, int A
 	else if(Align&TEXTALIGN_BOTTOM)
 		y += pRect->h;
 
-	s_Cursor.MoveTo(x, y);
+	pCursor->MoveTo(x, y);
+}
+
+void CUI::DoLabel(const CUIRect *pRect, const char *pText, float FontSize, int Align, float LineWidth, bool MultiLine)
+{
+	// TODO: FIX ME!!!!
+	// Graphics()->BlendNormal();
+
+	static CTextCursor s_Cursor;
+	s_Cursor.Reset();
+	s_Cursor.m_FontSize = FontSize;
+	s_Cursor.m_MaxLines = MultiLine ? -1 : 1;
+	s_Cursor.m_MaxWidth = LineWidth;
+	ApplyCursorAlign(&s_Cursor, pRect, Align);
+
 	TextRender()->TextOutlined(&s_Cursor, pText, -1);
 }
 
-void CUI::DoLabelHighlighted(const CUIRect *pRect, const char *pText, const char *pHighlighted, float FontSize, const vec4 &TextColor, const vec4 &HighlightColor)
+void CUI::DoLabelHighlighted(const CUIRect *pRect, const char *pText, const char *pHighlighted, float FontSize, const vec4 &TextColor, const vec4 &HighlightColor, int Align)
 {
 	static CTextCursor s_Cursor;
 	s_Cursor.Reset();
 	s_Cursor.m_FontSize = FontSize;
 	s_Cursor.m_MaxWidth = pRect->w;
-	s_Cursor.MoveTo(pRect->x, pRect->y);
+	ApplyCursorAlign(&s_Cursor, pRect, Align);
 
 	TextRender()->TextColor(TextColor);
 	const char *pMatch = pHighlighted && pHighlighted[0] ? str_find_nocase(pText, pHighlighted) : 0;
@@ -311,6 +317,21 @@ void CUI::DoLabelHighlighted(const CUIRect *pRect, const char *pText, const char
 		TextRender()->TextDeferred(&s_Cursor, pText, -1);
 
 	TextRender()->DrawTextOutlined(&s_Cursor);
+}
+
+void CUI::DoLabelSelected(const CUIRect *pRect, const char *pText, bool Selected, float FontSize, int Align)
+{
+	if(Selected)
+	{
+		TextRender()->TextColor(CUI::ms_HighlightTextColor);
+		TextRender()->TextSecondaryColor(CUI::ms_HighlightTextOutlineColor);
+	}
+	DoLabel(pRect, pText, FontSize, TEXTALIGN_CENTER);
+	if(Selected)
+	{
+		TextRender()->TextColor(CUI::ms_DefaultTextColor);
+		TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
+	}
 }
 
 bool CUI::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize, bool Hidden, int Corners, IButtonColorFunction *pColorFunction)
@@ -401,7 +422,6 @@ bool CUI::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 	CUIRect Textbox = *pRect;
 	Textbox.Draw(pColorFunction->GetColor(LastActiveItem() == pLineInput, Inside), 5.0f, Corners);
 	Textbox.VMargin(Spacing, &Textbox);
-	Textbox.HMargin((Textbox.h-FontSize/CUI::ms_FontmodHeight)/2, &Textbox);
 
 	const char *pDisplayStr = pLineInput->GetString();
 	char aStars[128];
@@ -444,20 +464,26 @@ bool CUI::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 	ClipEnable(pRect);
 	Textbox.x -= ScrollOffset;
 
-	DoLabel(&Textbox, pDisplayStr, FontSize, TEXTALIGN_LEFT);
+	static CTextCursor s_TextCursor;
+	s_TextCursor.Reset();
+	s_TextCursor.m_FontSize = FontSize;
+	s_TextCursor.m_Align = TEXTALIGN_ML;
+	TextRender()->TextDeferred(&s_TextCursor, pLineInput->GetString(), -1);
+	s_TextCursor.MoveTo(Textbox.x, Textbox.y + Textbox.h/2.0f);
+	TextRender()->DrawTextOutlined(&s_TextCursor);
 
-	// render the cursor
-	if(LastActiveItem() == pLineInput && !JustGotActive)
+	if(LastActiveItem() == pLineInput && !JustGotActive && (2*time_get()/time_freq())%2)
 	{
-		if((2*time_get()/time_freq()) % 2)	// make it blink
-		{
-			float TextWidth = TextRender()->TextWidth(FontSize, pDisplayStr, pLineInput->GetCursorOffset());
-			Textbox = *pRect;
-			Textbox.VSplitLeft(Spacing, 0, &Textbox);
-			Textbox.x += TextWidth - ScrollOffset - TextRender()->TextWidth(FontSize, "|", -1)/2;
-			DoLabel(&Textbox, "|", FontSize, TEXTALIGN_LEFT);
-		}
+		static CTextCursor s_MarkerCursor;
+		s_MarkerCursor.Reset();
+		s_MarkerCursor.m_FontSize = FontSize;
+		s_MarkerCursor.m_Align = TEXTALIGN_MC;
+		TextRender()->TextDeferred(&s_MarkerCursor, "｜", -1);
+		vec2 MarkerPosition = TextRender()->CaretPosition(&s_TextCursor, pLineInput->GetCursorOffset());
+		s_MarkerCursor.MoveTo(MarkerPosition.x, MarkerPosition.y);
+		TextRender()->DrawTextOutlined(&s_MarkerCursor);
 	}
+
 	ClipDisable();
 
 	pLineInput->SetScrollOffset(ScrollOffset);
@@ -475,8 +501,7 @@ void CUI::DoEditBoxOption(CLineInput *pLineInput, const CUIRect *pRect, const ch
 	const float FontSize = pRect->h*CUI::ms_FontmodHeight*0.8f;
 	char aBuf[32];
 	str_format(aBuf, sizeof(aBuf), "%s:", pStr);
-	Label.y += 2.0f;
-	DoLabel(&Label, aBuf, FontSize, TEXTALIGN_CENTER);
+	DoLabel(&Label, aBuf, FontSize, TEXTALIGN_MC);
 
 	DoEditBox(pLineInput, &EditBox, FontSize, Hidden);
 }
@@ -646,8 +671,7 @@ void CUI::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const
 	CUIRect Label, ScrollBar;
 	pRect->VSplitLeft(pRect->h+10.0f+VSplitVal, &Label, &ScrollBar);
 	Label.VSplitLeft(Label.h+5.0f, 0, &Label);
-	Label.y += 2.0f;
-	DoLabel(&Label, aBuf, FontSize, TEXTALIGN_LEFT);
+	DoLabel(&Label, aBuf, FontSize, TEXTALIGN_ML);
 
 	ScrollBar.VMargin(4.0f, &ScrollBar);
 	Value = pScale->ToAbsolute(DoScrollbarH(pID, &ScrollBar, pScale->ToRelative(Value, Min, Max)), Min, Max);
@@ -672,8 +696,7 @@ void CUI::DoScrollbarOptionLabeled(void *pID, int *pOption, const CUIRect *pRect
 	CUIRect Label, ScrollBar;
 	pRect->VSplitLeft(pRect->h+5.0f, 0, &Label);
 	Label.VSplitRight(60.0f, &Label, &ScrollBar);
-	Label.y += 2.0f;
-	DoLabel(&Label, aBuf, FontSize, TEXTALIGN_LEFT);
+	DoLabel(&Label, aBuf, FontSize, TEXTALIGN_ML);
 
 	ScrollBar.VMargin(4.0f, &ScrollBar);
 	Value = pScale->ToAbsolute(DoScrollbarH(pID, &ScrollBar, pScale->ToRelative(Value, 0, Max)), 0, Max);

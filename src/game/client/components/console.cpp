@@ -510,7 +510,7 @@ void CGameConsole::OnRender()
 		static CTextCursor s_MarkerCursor;
 		s_MarkerCursor.Reset();
 		s_MarkerCursor.m_FontSize = FontSize;
-		TextRender()->TextDeferred(&s_MarkerCursor, "|", -1);
+		TextRender()->TextDeferred(&s_MarkerCursor, "｜", -1);
 		s_MarkerCursor.m_Align = TEXTALIGN_CENTER;
 		vec2 MarkerPosition = TextRender()->CaretPosition(&s_Cursor, pConsole->m_Input.GetCursorOffset());
 		s_MarkerCursor.MoveTo(MarkerPosition);

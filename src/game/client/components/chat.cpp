@@ -963,7 +963,7 @@ void CChat::OnRender()
 			
 			static CTextCursor s_MarkerCursor(InputFontSize);
 			s_MarkerCursor.Reset();
-			TextRender()->TextDeferred(&s_MarkerCursor, "|", -1);
+			TextRender()->TextDeferred(&s_MarkerCursor, "｜", -1);
 			s_MarkerCursor.m_Align = TEXTALIGN_CENTER;
 			vec2 MarkerPosition = TextRender()->CaretPosition(&m_InputCursor, m_Input.GetCursorOffset()-m_ChatStringOffset);
 			s_MarkerCursor.MoveTo(MarkerPosition.x, MarkerPosition.y);

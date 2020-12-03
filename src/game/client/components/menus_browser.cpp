@@ -883,12 +883,8 @@ void CMenus::RenderServerbrowserOverlay()
 				if(!(pInfo->m_aClients[i].m_PlayerType&CServerInfo::CClient::PLAYERFLAG_SPEC))
 				{
 					char aTemp[16];
-					static CTextCursor s_Cursor(FontSize);
 					FormatScore(aTemp, sizeof(aTemp), pInfo->m_Flags&IServerBrowser::FLAG_TIMESCORE, &pInfo->m_aClients[i]);
-					s_Cursor.MoveTo(Score.x, Score.y+(Score.h-FontSize)/4.0f);
-					s_Cursor.Reset();
-					s_Cursor.m_MaxWidth = Score.w;
-					TextRender()->TextOutlined(&s_Cursor, aTemp, -1);
+					UI()->DoLabel(&Score, aTemp, FontSize, TEXTALIGN_ML, Score.w);
 				}
 
 				// name

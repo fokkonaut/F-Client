@@ -59,6 +59,8 @@ public:
 
 	void DrawSprite(float x, float y, float size);
 
+	void RenderCursor(float CenterX, float CenterY, float Size);
+
 	// object render methods (gc_render_obj.cpp)
 	void RenderTee(class CAnimState *pAnim, const CTeeRenderInfo *pInfo, int Emote, vec2 Dir, vec2 Pos);
 	void RenderTeeHand(const CTeeRenderInfo *pInfo, vec2 CenterPos, vec2 Dir, float AngleOffset,

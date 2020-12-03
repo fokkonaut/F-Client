@@ -1032,11 +1032,8 @@ void CMenus::PopupCountry(int Selection, FPopupButtonCallback pfnOkButtonCallbac
 }
 
 
-void CMenus::Render()
+void CMenus::RenderMenu(CUIRect Screen)
 {
-	CUIRect Screen = *UI()->Screen();
-	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
-
 	static int s_InitTick = 5;
 	if(s_InitTick > 0)
 	{
@@ -1764,13 +1761,6 @@ void CMenus::OnRender()
 	if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 		SetActive(true);
 
-	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
-	{
-		CUIRect Screen = *UI()->Screen();
-		Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
-		RenderDemoPlayer(Screen);
-	}
-
 	if(Client()->State() == IClient::STATE_ONLINE && m_pClient->m_ServerMode == m_pClient->SERVERMODE_PUREMOD)
 	{
 		Client()->Disconnect();
@@ -1790,25 +1780,18 @@ void CMenus::OnRender()
 	float MouseY = (m_MousePos.y/(float)Graphics()->ScreenHeight())*pScreen->h;
 	UI()->Update(MouseX, MouseY, MouseX*3.0f, MouseY*3.0f);
 
-	// render
-	if(Client()->State() != IClient::STATE_DEMOPLAYBACK)
-		Render();
+	// render menu
+	Graphics()->MapScreen(pScreen->x, pScreen->y, pScreen->w, pScreen->h);
+	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+		RenderDemoPlayer(*pScreen);
+	else
+		RenderMenu(*pScreen);
 
-	// render cursor
-	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CURSOR].m_Id);
-	Graphics()->WrapClamp();
-	Graphics()->QuadsBegin();
-	Graphics()->SetColor(1,1,1,1);
-	IGraphics::CQuadItem QuadItem(MouseX, MouseY, 24, 24);
-	Graphics()->QuadsDrawTL(&QuadItem, 1);
-	Graphics()->QuadsEnd();
-	Graphics()->WrapNormal();
+	RenderTools()->RenderCursor(MouseX, MouseY, 24.0f);
 
 	// render debug information
 	if(Config()->m_Debug)
 	{
-		Graphics()->MapScreen(pScreen->x, pScreen->y, pScreen->w, pScreen->h);
-
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "%p %p %p", UI()->HotItem(), UI()->GetActiveItem(), UI()->LastActiveItem());
 		static CTextCursor s_Cursor(10, 10, 10);

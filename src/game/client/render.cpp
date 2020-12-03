@@ -72,6 +72,18 @@ void CRenderTools::DrawSprite(float x, float y, float Size)
 	Graphics()->QuadsDraw(&QuadItem, 1);
 }
 
+void CRenderTools::RenderCursor(float CenterX, float CenterY, float Size)
+{
+	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CURSOR].m_Id);
+	Graphics()->WrapClamp();
+	Graphics()->QuadsBegin();
+	Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+	IGraphics::CQuadItem QuadItem(CenterX, CenterY, Size, Size);
+	Graphics()->QuadsDrawTL(&QuadItem, 1);
+	Graphics()->QuadsEnd();
+	Graphics()->WrapNormal();
+}
+
 void CRenderTools::RenderTee(CAnimState *pAnim, const CTeeRenderInfo *pInfo, int Emote, vec2 Dir, vec2 Pos)
 {
 	vec2 Direction = Dir;

@@ -19,6 +19,9 @@ class CChat : public CComponent
 	};
 
 	char m_aInputBuf[MAX_LINE_LENGTH];
+	bool m_InputUpdate;
+	int m_ChatStringOffset;
+	int m_OldChatStringNumChars;
 	CLineInput m_Input;
 
 	struct CLine
@@ -51,9 +54,6 @@ class CChat : public CComponent
 	int m_LastWhisperFrom;
 	bool m_Show;
 	int m_BacklogPage;
-	bool m_InputUpdate;
-	int m_ChatStringOffset;
-	int m_OldChatStringLength;
 	int m_CompletionChosen;
 	int m_CompletionFav;
 	char m_aCompletionBuffer[256];

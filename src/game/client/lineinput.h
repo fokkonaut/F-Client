@@ -40,6 +40,7 @@ public:
 	int GetMaxSize() const { return m_MaxSize; }
 	int GetMaxChars() const { return m_MaxChars; }
 	int GetLength() const { return m_Len; }
+	int GetNumChars() const { return m_NumChars; }
 	int GetCursorOffset() const { return m_CursorPos; }
 	void SetCursorOffset(int Offset) { m_CursorPos = Offset > m_Len ? m_Len : Offset < 0 ? 0 : Offset; }
 	float GetScrollOffset() const { return m_ScrollOffset; }

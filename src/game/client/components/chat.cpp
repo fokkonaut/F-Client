@@ -44,7 +44,6 @@ void CChat::OnReset()
 		m_Show = false;
 		m_BacklogPage = 0;
 		m_InputUpdate = false;
-		m_ChatStringOffset = 0;
 		m_CompletionChosen = -1;
 		m_CompletionFav = -1;
 		m_aCompletionBuffer[0] = 0;
@@ -902,27 +901,29 @@ void CChat::OnRender()
 		// check if the visible text has to be moved
 		if(m_InputUpdate)
 		{
-			if(m_ChatStringOffset > 0 && m_Input.GetNumChars() < m_OldChatStringNumChars)
+			int StringOffset = m_Input.GetStringOffset();
+			if(StringOffset > 0 && m_Input.GetNumChars() < m_OldChatStringNumChars)
 			{
 				int CharsRemoved = m_OldChatStringNumChars - m_Input.GetNumChars();
 				for(int i = 0; i < CharsRemoved; i++)
-					m_ChatStringOffset = str_utf8_rewind(m_Input.GetString(), m_ChatStringOffset);
+					StringOffset = str_utf8_rewind(m_Input.GetString(), StringOffset);
 			}
 
-			if(m_ChatStringOffset > m_Input.GetCursorOffset())
-				m_ChatStringOffset = m_Input.GetCursorOffset();
+			if(StringOffset > m_Input.GetCursorOffset())
+				StringOffset = m_Input.GetCursorOffset();
 			else
 			{
 				m_InputCursor.m_Flags = TEXTFLAG_NO_RENDER | TEXTFLAG_WORD_WRAP;
-				TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+m_ChatStringOffset, m_Input.GetCursorOffset()-m_ChatStringOffset);
+				TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+StringOffset, m_Input.GetCursorOffset()-StringOffset);
 				while(m_InputCursor.IsTruncated())
 				{
-					m_ChatStringOffset = str_utf8_forward(m_Input.GetString(), m_ChatStringOffset);
+					StringOffset = str_utf8_forward(m_Input.GetString(), StringOffset);
 					m_InputCursor.Reset();
-					TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+m_ChatStringOffset, m_Input.GetCursorOffset()-m_ChatStringOffset);
+					TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+StringOffset, m_Input.GetCursorOffset()-StringOffset);
 				}
 			}
 
+			m_Input.SetStringOffset(StringOffset);
 			m_InputUpdate = false;
 		}
 
@@ -964,15 +965,8 @@ void CChat::OnRender()
 		{
 			m_InputCursor.m_Flags = TEXTFLAG_WORD_WRAP;
 
-			//Render normal text
-			TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+m_ChatStringOffset, -1);
-
-			static CTextCursor s_MarkerCursor(InputFontSize);
-			s_MarkerCursor.Reset();
-			TextRender()->TextDeferred(&s_MarkerCursor, "｜", -1);
-			s_MarkerCursor.m_Align = TEXTALIGN_CENTER;
-			vec2 MarkerPosition = TextRender()->CaretPosition(&m_InputCursor, m_Input.GetCursorOffset()-m_ChatStringOffset);
-			s_MarkerCursor.MoveTo(MarkerPosition.x, MarkerPosition.y);
+			// Render normal text
+			TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+m_Input.GetStringOffset(), -1);
 
 			//Render command autocomplete option hint
 			if(IsTypingCommand() && m_CommandManager.CommandCount() - m_FilteredCount && m_SelectedCommand >= 0)
@@ -997,10 +991,8 @@ void CChat::OnRender()
 				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.5f);
 				TextRender()->TextOutlined(&s_HelpCursor, aInfoText, -1);
 			}
-			
-			TextRender()->DrawTextOutlined(&m_InputCursor);
-			TextRender()->DrawTextOutlined(&s_MarkerCursor);
 
+			m_Input.Render(&m_InputCursor, true);
 		}
 	}
 

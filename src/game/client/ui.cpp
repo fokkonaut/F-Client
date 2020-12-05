@@ -53,7 +53,7 @@ void CUI::Init(class CConfig *pConfig, class IGraphics *pGraphics, class IInput 
 	m_pInput = pInput;
 	m_pTextRender = pTextRender;
 	CUIRect::Init(pGraphics);
-	CLineInput::Init(pInput);
+	CLineInput::Init(pInput, pTextRender);
 }
 
 void CUI::Update(float MouseX, float MouseY, float MouseWorldX, float MouseWorldY)
@@ -461,29 +461,16 @@ bool CUI::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 			while(w-ScrollOffset < 0.0f);
 		}
 	}
+
 	ClipEnable(pRect);
 	Textbox.x -= ScrollOffset;
-
 	static CTextCursor s_TextCursor;
 	s_TextCursor.Reset();
 	s_TextCursor.m_FontSize = FontSize;
 	s_TextCursor.m_Align = TEXTALIGN_ML;
-	TextRender()->TextDeferred(&s_TextCursor, pLineInput->GetString(), -1);
 	s_TextCursor.MoveTo(Textbox.x, Textbox.y + Textbox.h/2.0f);
-	TextRender()->DrawTextOutlined(&s_TextCursor);
-
-	if(LastActiveItem() == pLineInput && !JustGotActive && (2*time_get()/time_freq())%2)
-	{
-		static CTextCursor s_MarkerCursor;
-		s_MarkerCursor.Reset();
-		s_MarkerCursor.m_FontSize = FontSize;
-		s_MarkerCursor.m_Align = TEXTALIGN_MC;
-		TextRender()->TextDeferred(&s_MarkerCursor, "｜", -1);
-		vec2 MarkerPosition = TextRender()->CaretPosition(&s_TextCursor, pLineInput->GetCursorOffset());
-		s_MarkerCursor.MoveTo(MarkerPosition.x, MarkerPosition.y);
-		TextRender()->DrawTextOutlined(&s_MarkerCursor);
-	}
-
+	TextRender()->TextDeferred(&s_TextCursor, pDisplayStr, -1);
+	pLineInput->Render(&s_TextCursor, LastActiveItem() == pLineInput && !JustGotActive);
 	ClipDisable();
 
 	pLineInput->SetScrollOffset(ScrollOffset);

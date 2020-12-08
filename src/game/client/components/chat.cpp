@@ -893,46 +893,14 @@ void CChat::OnRender()
 		vec2 CursorPosition = s_CategoryCursor.CursorPosition();
 		CursorPosition.x += s_CategoryCursor.Width() + 4.0f;
 		CursorPosition.y -= (InputFontSize-CategoryFontSize)*0.5f;
-		m_InputCursor.MoveTo(CursorPosition);
 		m_InputCursor.m_MaxWidth = Width-190.0f-s_CategoryCursor.Width();
-		m_InputCursor.m_MaxLines = 2;
-		m_InputCursor.Reset();
-
-		// check if the visible text has to be moved
-		if(m_InputUpdate)
-		{
-			int StringOffset = m_Input.GetStringOffset();
-			if(StringOffset > 0 && m_Input.GetNumChars() < m_OldChatStringNumChars)
-			{
-				int CharsRemoved = m_OldChatStringNumChars - m_Input.GetNumChars();
-				for(int i = 0; i < CharsRemoved; i++)
-					StringOffset = str_utf8_rewind(m_Input.GetString(), StringOffset);
-			}
-
-			if(StringOffset > m_Input.GetCursorOffset())
-				StringOffset = m_Input.GetCursorOffset();
-			else
-			{
-				m_InputCursor.m_Flags = TEXTFLAG_NO_RENDER | TEXTFLAG_WORD_WRAP;
-				TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+StringOffset, m_Input.GetCursorOffset()-StringOffset);
-				while(m_InputCursor.IsTruncated())
-				{
-					StringOffset = str_utf8_forward(m_Input.GetString(), StringOffset);
-					m_InputCursor.Reset();
-					TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+StringOffset, m_Input.GetCursorOffset()-StringOffset);
-				}
-			}
-
-			m_Input.SetStringOffset(StringOffset);
-			m_InputUpdate = false;
-		}
-
 		m_InputCursor.Reset();
 
 		//render buffered text
 		if(m_Mode == CHAT_NONE)
 		{
 			//calculate WidthLimit
+			m_InputCursor.MoveTo(CursorPosition);
 			m_InputCursor.m_MaxWidth = LineWidth+x+3.0f-s_CategoryCursor.Width();
 			m_InputCursor.m_MaxLines = 1;
 			m_InputCursor.m_Flags = TEXTFLAG_ELLIPSIS;
@@ -942,7 +910,7 @@ void CChat::OnRender()
 			TextRender()->TextOutlined(&m_InputCursor, m_Input.GetString(), -1);
 
 			//render helper annotation
-			static CTextCursor s_InfoCursor(CategoryFontSize*0.75);
+			static CTextCursor s_InfoCursor(CategoryFontSize*0.75f);
 			s_InfoCursor.MoveTo(2.0f, y+12.0f);
 			s_InfoCursor.Reset();
 
@@ -963,10 +931,13 @@ void CChat::OnRender()
 		}
 		else
 		{
+			float ScrollOffset = m_Input.GetScrollOffset();
+			m_InputCursor.MoveTo(CursorPosition.x, CursorPosition.y - ScrollOffset);
+			m_InputCursor.m_MaxLines = -1;
 			m_InputCursor.m_Flags = TEXTFLAG_WORD_WRAP;
 
 			// Render normal text
-			TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString()+m_Input.GetStringOffset(), -1);
+			TextRender()->TextDeferred(&m_InputCursor, m_Input.GetString(), -1);
 
 			//Render command autocomplete option hint
 			if(IsTypingCommand() && m_CommandManager.CommandCount() - m_FilteredCount && m_SelectedCommand >= 0)
@@ -982,17 +953,28 @@ void CChat::OnRender()
 			if(ChatMode == CHAT_WHISPER)
 			{
 				//render helper annotation
-				static CTextCursor s_HelpCursor(CategoryFontSize*0.75);
+				static CTextCursor s_HelpCursor(CategoryFontSize*0.75f);
 				s_HelpCursor.Reset();
 				s_HelpCursor.MoveTo(2.0f, y+12.0f);
 
-				char aInfoText[128];
-				str_format(aInfoText, sizeof(aInfoText), Localize("Press Tab to cycle chat recipients"));
 				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 0.5f);
-				TextRender()->TextOutlined(&s_HelpCursor, aInfoText, -1);
+				TextRender()->TextOutlined(&s_HelpCursor, Localize("Press Tab to cycle chat recipients"), -1);
 			}
 
+			const float Spacing = 1.0f;
+			const CUIRect ClippingRect = { CursorPosition.x-Spacing, CursorPosition.y-Spacing, m_InputCursor.m_MaxWidth+2*Spacing, 2*InputFontSize+3*Spacing };
+			const float XScale = Graphics()->ScreenWidth()/Width;
+			const float YScale = Graphics()->ScreenHeight()/Height;
+			Graphics()->ClipEnable((int)(ClippingRect.x*XScale), (int)(ClippingRect.y*YScale), (int)(ClippingRect.w*XScale), (int)(ClippingRect.h*YScale));
 			m_Input.Render(&m_InputCursor, true);
+			Graphics()->ClipDisable();
+
+			// scroll to keep the caret inside the clipping rect
+			float CaretPositionY = TextRender()->CaretPosition(&m_InputCursor, m_Input.GetCursorOffset()).y+InputFontSize/2.0f;
+			if(CaretPositionY < ClippingRect.y)
+				m_Input.SetScrollOffset(max(0.0f, ScrollOffset-InputFontSize));
+			else if(CaretPositionY > ClippingRect.y+ClippingRect.h)
+				m_Input.SetScrollOffset(ScrollOffset+InputFontSize);
 		}
 	}
 

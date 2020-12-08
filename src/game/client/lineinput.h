@@ -17,7 +17,6 @@ class CLineInput
 	int m_CursorPos;
 
 	float m_ScrollOffset;
-	int m_StringOffset;
 
 	bool m_WasChanged;
 
@@ -50,13 +49,9 @@ public:
 	int GetCursorOffset() const { return m_CursorPos; }
 	void SetCursorOffset(int Offset) { m_CursorPos = Offset > m_Len ? m_Len : Offset < 0 ? 0 : Offset; }
 
-	// used by CUI::DoEditBox
+	// used either for vertical or horizontal scrolling
 	float GetScrollOffset() const { return m_ScrollOffset; }
 	void SetScrollOffset(float ScrollOffset) { m_ScrollOffset = ScrollOffset; }
-
-	// used by CChat
-	int GetStringOffset() const { return m_StringOffset; }
-	void SetStringOffset(int StringOffset) { m_StringOffset = StringOffset; }
 
 	bool ProcessInput(const IInput::CEvent &Event);
 	bool WasChanged() { bool Changed = m_WasChanged; m_WasChanged = false; return Changed; }

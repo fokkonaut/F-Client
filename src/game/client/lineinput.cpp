@@ -21,7 +21,6 @@ void CLineInput::SetBuffer(char *pStr, int MaxSize, int MaxChars)
 	if(!pLastStr)
 	{
 		m_ScrollOffset = 0;
-		m_StringOffset = 0;
 	}
 	if(m_pStr && m_pStr != pLastStr)
 	{
@@ -185,7 +184,7 @@ void CLineInput::Render(CTextCursor *pCursor, bool Active)
 		s_MarkerCursor.m_FontSize = pCursor->m_FontSize;
 		s_MarkerCursor.m_Align = (pCursor->m_Align&TEXTALIGN_MASK_VERT) | TEXTALIGN_CENTER;
 		s_pTextRender->TextDeferred(&s_MarkerCursor, "｜", -1);
-		s_MarkerCursor.MoveTo(s_pTextRender->CaretPosition(pCursor, GetCursorOffset()-GetStringOffset()));
+		s_MarkerCursor.MoveTo(s_pTextRender->CaretPosition(pCursor, GetCursorOffset()));
 		s_pTextRender->DrawTextOutlined(&s_MarkerCursor);
 	}
 }

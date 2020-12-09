@@ -195,13 +195,13 @@ bool CMenus::DoButton_Menu(CButtonContainer *pBC, const char *pText, bool Checke
 	if(TextFade)
 	{
 		TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
-		TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
+		TextRender()->TextSecondaryColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
 	}
 	UI()->DoLabel(&Text, pText, Text.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	if(TextFade)
 	{
 		TextRender()->TextColor(CUI::ms_DefaultTextColor);
-		TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+		TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 	}
 	return UI()->DoButtonLogic(pBC->GetID(), pRect);
 }
@@ -215,10 +215,10 @@ void CMenus::DoButton_KeySelect(CButtonContainer *pBC, const char *pText, const 
 	CUIRect Label;
 	pRect->HMargin(1.0f, &Label);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
-	TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
+	TextRender()->TextSecondaryColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
 	UI()->DoLabel(&Label, pText, Label.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	TextRender()->TextColor(CUI::ms_DefaultTextColor);
-	TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+	TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 }
 
 bool CMenus::DoButton_MenuTabTop(CButtonContainer *pBC, const char *pText, bool Checked, const CUIRect *pRect, float Alpha, float FontAlpha, int Corners, float Rounding, float FontFactor)
@@ -232,10 +232,10 @@ bool CMenus::DoButton_MenuTabTop(CButtonContainer *pBC, const char *pText, bool 
 	pRect->HMargin(pRect->h >= 20.0f ? 2.0f : 1.0f, &Label);
 	Label.HMargin((Label.h*FontFactor)/2.0f, &Label);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, FontAlpha);
-	TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f*FontAlpha);
+	TextRender()->TextSecondaryColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f*FontAlpha);
 	UI()->DoLabel(&Label, pText, Label.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	TextRender()->TextColor(CUI::ms_DefaultTextColor);
-	TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+	TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 	return UI()->DoButtonLogic(pBC->GetID(), pRect);
 }
 
@@ -245,7 +245,7 @@ bool CMenus::DoButton_GridHeader(const void *pID, const char *pText, bool Checke
 	{
 		RenderTools()->DrawUIRect(pRect, vec4(0.9f, 0.9f, 0.9f, 0.5f), Corners, 5.0f);
 		TextRender()->TextColor(CUI::ms_HighlightTextColor);
-		TextRender()->TextOutlineColor(CUI::ms_HighlightTextOutlineColor);
+		TextRender()->TextSecondaryColor(CUI::ms_HighlightTextOutlineColor);
 	}
 	else if(UI()->HotItem() == pID)
 	{
@@ -260,7 +260,7 @@ bool CMenus::DoButton_GridHeader(const void *pID, const char *pText, bool Checke
 	if(Checked)
 	{
 		TextRender()->TextColor(CUI::ms_DefaultTextColor);
-		TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+		TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 	}
 
 	return UI()->DoButtonLogic(pID, pRect);
@@ -345,6 +345,11 @@ bool CMenus::DoButton_SpriteID(CButtonContainer *pBC, int ImageID, int SpriteID,
 
 bool CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrSize, float FontSize, float *pOffset, bool Hidden, int Corners)
 {
+	return DoEditBoxUTF8(pID, pRect, pStr, StrSize, StrSize, FontSize, pOffset, Hidden, Corners);
+}
+
+bool CMenus::DoEditBoxUTF8(void *pID, const CUIRect *pRect, char *pStr, unsigned StrSize, unsigned MaxLength, float FontSize, float *pOffset, bool Hidden, int Corners)
+{
 	bool Inside = UI()->MouseHovered(pRect);
 	bool Changed = false;
 	bool UpdateOffset = false;
@@ -367,7 +372,7 @@ bool CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned Str
 
 			for(int i = 1; i <= Len; i++)
 			{
-				if(TextRender()->TextWidth(0, FontSize, pStr, i, -1.0f) - *pOffset > MxRel)
+				if(TextRender()->TextWidth(FontSize, pStr, i) - *pOffset > MxRel)
 				{
 					s_AtIndex = i - 1;
 					break;
@@ -409,7 +414,7 @@ bool CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned Str
 			{
 				Len = str_length(pStr);
 				int NumChars = Len;
-				Changed |= CLineInput::Manipulate(Input()->GetEvent(i), pStr, StrSize, StrSize, &Len, &s_AtIndex, &NumChars, Input());
+				Changed |= CLineInput::Manipulate(Input()->GetEvent(i), pStr, StrSize, MaxLength, &Len, &s_AtIndex, &NumChars, Input());
 			}
 		}
 	}
@@ -466,11 +471,11 @@ bool CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned Str
 	// check if the text has to be moved
 	if(UI()->LastActiveItem() == pID && !JustGotActive && (UpdateOffset || Input()->NumEvents()))
 	{
-		float w = TextRender()->TextWidth(0, FontSize, pDisplayStr, s_AtIndex, -1.0f);
+		float w = TextRender()->TextWidth(FontSize, pDisplayStr, s_AtIndex);
 		if(w-*pOffset > Textbox.w)
 		{
 			// move to the left
-			float wt = TextRender()->TextWidth(0, FontSize, pDisplayStr, -1, -1.0f);
+			float wt = TextRender()->TextWidth(FontSize, pDisplayStr, -1);
 			do
 			{
 				*pOffset += min(wt-*pOffset-Textbox.w, Textbox.w/3);
@@ -500,10 +505,10 @@ bool CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned Str
 
 		if((2*time_get()/time_freq()) % 2)	// make it blink
 		{
-			float TextWidth = TextRender()->TextWidth(0, FontSize, pDisplayStr, s_AtIndex, -1.0f);
+			float TextWidth = TextRender()->TextWidth(FontSize, pDisplayStr, s_AtIndex);
 			Textbox = *pRect;
 			Textbox.VSplitLeft(2.0f, 0, &Textbox);
-			Textbox.x += TextWidth - *pOffset - TextRender()->TextWidth(0, FontSize, "|", -1, -1.0f)/2;
+			Textbox.x += TextWidth - *pOffset - TextRender()->TextWidth(FontSize, "|", -1)/2;
 			UI()->DoLabel(&Textbox, "|", FontSize, CUI::ALIGN_LEFT);
 		}
 	}
@@ -512,7 +517,12 @@ bool CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned Str
 	return Changed;
 }
 
-void CMenus::DoEditBoxOption(void *pID, char *pOption, int OptionLength, const CUIRect *pRect, const char *pStr,  float VSplitVal, float *pOffset, bool Hidden)
+void CMenus::DoEditBoxOption(void *pID, char *pOption, unsigned OptionSize, const CUIRect *pRect, const char *pStr, float VSplitVal, float *pOffset, bool Hidden)
+{
+	DoEditBoxOptionUTF8(pID, pOption, OptionSize, OptionSize, pRect, pStr, VSplitVal, pOffset, Hidden);
+}
+
+void CMenus::DoEditBoxOptionUTF8(void *pID, char *pOption, unsigned OptionSize, unsigned OptionMaxLength, const CUIRect *pRect, const char *pStr, float VSplitVal, float *pOffset, bool Hidden)
 {
 	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
@@ -524,7 +534,7 @@ void CMenus::DoEditBoxOption(void *pID, char *pOption, int OptionLength, const C
 	Label.y += 2.0f;
 	UI()->DoLabel(&Label, aBuf, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
-	DoEditBox(pID, &EditBox, pOption, OptionLength, pRect->h*ms_FontmodHeight*0.8f, pOffset, Hidden);
+	DoEditBoxUTF8(pID, &EditBox, pOption, OptionSize, OptionMaxLength, pRect->h*ms_FontmodHeight*0.8f, pOffset, Hidden);
 }
 
 void CMenus::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, IScrollbarScale *pScale, bool Infinite)
@@ -547,7 +557,7 @@ void CMenus::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, co
 		str_format(aBuf, sizeof(aBuf), "%s: \xe2\x88\x9e", pStr);
 
 	float FontSize = pRect->h*ms_FontmodHeight*0.8f;
-	float VSplitVal = max(TextRender()->TextWidth(0, FontSize, aBuf, -1, -1.0f), TextRender()->TextWidth(0, FontSize, aBufMax, -1, -1.0f));
+	float VSplitVal = max(TextRender()->TextWidth(FontSize, aBuf, -1), TextRender()->TextWidth(FontSize, aBufMax, -1));
 
 	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
@@ -1114,10 +1124,10 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			RenderTools()->DrawUIRect(&Box, vec4(1.0f, 1.0f, 1.0f, 0.75f), CUI::CORNER_ALL, 5.0f);
 			Box.HMargin(2.0f, &Box);
 			TextRender()->TextColor(CUI::ms_HighlightTextColor);
-			TextRender()->TextOutlineColor(CUI::ms_HighlightTextOutlineColor);
+			TextRender()->TextSecondaryColor(CUI::ms_HighlightTextOutlineColor);
 			UI()->DoLabel(&Box, Localize("Demos"), Box.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 			TextRender()->TextColor(CUI::ms_DefaultTextColor);
-			TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+			TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 		}
 	}
 
@@ -1178,7 +1188,7 @@ void CMenus::RenderLoading(int WorkedAmount)
 
 	Rect.y += 20;
 	TextRender()->TextColor(CUI::ms_DefaultTextColor);
-	TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+	TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 	UI()->DoLabel(&Rect, "F-Client", 48.0f, CUI::ALIGN_CENTER);
 
 	const float Percent = m_LoadCurrent/(float)m_LoadTotal;
@@ -1194,7 +1204,7 @@ void CMenus::RenderLoading(int WorkedAmount)
 
 	if(Percent > 0.5f)
 	{
-		TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.7f);
+		TextRender()->TextSecondaryColor(1.0f, 1.0f, 1.0f, 0.7f);
 		TextRender()->TextColor(0.2f, 0.2f, 0.2f, 1.0f);
 	}
 	char aBuf[8];
@@ -1204,7 +1214,7 @@ void CMenus::RenderLoading(int WorkedAmount)
 	if(Percent > 0.5f)
 	{
 		TextRender()->TextColor(CUI::ms_DefaultTextColor);
-		TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+		TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 	}
 
 	Graphics()->Swap();
@@ -1617,7 +1627,7 @@ void CMenus::Render()
 		}
 		else if(m_Popup == POPUP_COUNTRY)
 		{
-			pTitle = Localize("Country");
+			pTitle = Localize("Flag");
 			NumOptions = 8;
 		}
 		else if(m_Popup == POPUP_RENAME_DEMO)
@@ -1635,7 +1645,7 @@ void CMenus::Render()
 		else if(m_Popup == POPUP_PASSWORD)
 		{
 			pTitle = Localize("Password incorrect");
-			pExtraText = "Please enter the password.";
+			pExtraText = Localize("Please enter the password.");
 		}
 		else if(m_Popup == POPUP_QUIT)
 		{
@@ -1857,13 +1867,13 @@ void CMenus::Render()
 					if(i == OldSelected)
 					{
 						TextRender()->TextColor(CUI::ms_HighlightTextColor);
-						TextRender()->TextOutlineColor(CUI::ms_HighlightTextOutlineColor);
+						TextRender()->TextSecondaryColor(CUI::ms_HighlightTextOutlineColor);
 					}
 					UI()->DoLabel(&Label, pEntry->m_aCountryCodeString, 10.0f, CUI::ALIGN_CENTER);
 					if(i == OldSelected)
 					{
 						TextRender()->TextColor(CUI::ms_DefaultTextColor);
-						TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+						TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 					}
 				}
 			}
@@ -1980,7 +1990,7 @@ void CMenus::Render()
 			Box.HSplitTop(ButtonHeight, &EditBox, &Box);
 
 			static float s_OffsetName = 0.0f;
-			DoEditBoxOption(Config()->m_PlayerName, Config()->m_PlayerName, sizeof(Config()->m_PlayerName), &EditBox, Localize("Nickname"), ButtonWidth, &s_OffsetName);
+			DoEditBoxOptionUTF8(Config()->m_PlayerName, Config()->m_PlayerName, sizeof(Config()->m_PlayerName), MAX_NAME_LENGTH, &EditBox, Localize("Nickname"), ButtonWidth, &s_OffsetName);
 
 			// button
 			static CButtonContainer s_EnterButton;
@@ -2251,9 +2261,9 @@ void CMenus::OnRender()
 
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "%p %p %p", UI()->HotItem(), UI()->GetActiveItem(), UI()->LastActiveItem());
-		CTextCursor Cursor;
-		TextRender()->SetCursor(&Cursor, 10, 10, 10, TEXTFLAG_RENDER);
-		TextRender()->TextEx(&Cursor, aBuf, -1);
+		static CTextCursor s_Cursor(10, 10, 10);
+		s_Cursor.Reset();
+		TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
 	}
 
 	UI()->FinishCheck();

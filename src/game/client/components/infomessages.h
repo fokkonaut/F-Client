@@ -14,13 +14,13 @@ class CInfoMessages : public CComponent
 	
 		// victim / finishing player
 		int m_Player1ID;
-		char m_aPlayer1Name[MAX_NAME_LENGTH*UTF8_BYTE_LENGTH];
+		CTextCursor m_Player1NameCursor;
 		CTeeRenderInfo m_Player1RenderInfo;
 		int m_VictimDDTeam;
 
 		// killer
 		int m_Player2ID;
-		char m_aPlayer2Name[MAX_NAME_LENGTH*UTF8_BYTE_LENGTH];
+		CTextCursor m_Player2NameCursor;
 		CTeeRenderInfo m_Player2RenderInfo;
 
 		// kill msg
@@ -31,6 +31,8 @@ class CInfoMessages : public CComponent
 		// finish msg
 		int m_Time;
 		int m_Diff;
+		CTextCursor m_TimeCursor;
+		CTextCursor m_DiffCursor;
 		int m_RecordPersonal;
 		int m_RecordServer;
 	};
@@ -48,8 +50,8 @@ class CInfoMessages : public CComponent
 
 	void AddInfoMsg(int Type, CInfoMsg NewMsg);
 
-	void RenderKillMsg(const CInfoMsg *pInfoMsg, float x, float y) const;
-	void RenderFinishMsg(const CInfoMsg *pInfoMsg, float x, float y) const;
+	void RenderKillMsg(CInfoMsg *pInfoMsg, float x, float y) const;
+	void RenderFinishMsg(CInfoMsg *pInfoMsg, float x, float y) const;
 
 public:
 	virtual void OnReset();

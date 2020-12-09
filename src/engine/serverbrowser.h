@@ -19,8 +19,8 @@ public:
 	class CClient
 	{
 	public:
-		char m_aName[MAX_NAME_LENGTH*UTF8_BYTE_LENGTH];
-		char m_aClan[MAX_CLAN_LENGTH*UTF8_BYTE_LENGTH];
+		char m_aName[MAX_NAME_ARRAY_SIZE];
+		char m_aClan[MAX_CLAN_ARRAY_SIZE];
 		int m_Country;
 		int m_Score;
 		int m_PlayerType;
@@ -172,6 +172,7 @@ public:
 	virtual void Refresh(int RefreshFlags) = 0;
 	virtual bool IsRefreshing() const = 0;
 	virtual bool IsRefreshingMasters() const = 0;
+	virtual bool WasUpdated(bool Purge) = 0;
 	virtual int LoadingProgression() const = 0;
 
 	virtual int NumServers() const = 0;

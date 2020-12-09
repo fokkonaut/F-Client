@@ -20,10 +20,10 @@
 #include "maplayers.h"
 #include "menus.h"
 
-CMenus::CColumn CMenus::ms_aDemoCols[] = {
-	{COL_DEMO_NAME,		CMenus::SORT_DEMONAME, Localize("Name"), 0, 100.0f, 0, {0}, {0}, CUI::ALIGN_CENTER},
-	{COL_DEMO_LENGTH,	CMenus::SORT_LENGTH, Localize("Length"), 1, 80.0f, 0, {0}, {0}, CUI::ALIGN_CENTER},
-	{COL_DEMO_DATE,		CMenus::SORT_DATE, Localize("Date"), 1, 170.0f, 0, {0}, {0}, CUI::ALIGN_CENTER},
+CMenus::CColumn CMenus::ms_aDemoCols[] = { // Localize("Name"); Localize("Length"); Localize("Date"); - these strings are localized within CLocConstString
+	{COL_DEMO_NAME,		CMenus::SORT_DEMONAME, "Name", 0, 100.0f, 0, {0}, {0}, CUI::ALIGN_CENTER},
+	{COL_DEMO_LENGTH,	CMenus::SORT_LENGTH, "Length", 1, 80.0f, 0, {0}, {0}, CUI::ALIGN_CENTER},
+	{COL_DEMO_DATE,		CMenus::SORT_DATE, "Date", 1, 170.0f, 0, {0}, {0}, CUI::ALIGN_CENTER},
 };
 
 void CMenus::RenderDemoPlayer(CUIRect MainView)
@@ -309,10 +309,12 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		DemoPlayer()->GetDemoName(aDemoName, sizeof(aDemoName));
 		char aBuf[128];
 		str_format(aBuf, sizeof(aBuf), Localize("Demofile: %s"), aDemoName);
-		CTextCursor Cursor;
-		TextRender()->SetCursor(&Cursor, NameBar.x, NameBar.y, Button.h*0.5f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
-		Cursor.m_LineWidth = MainView.w;
-		TextRender()->TextEx(&Cursor, aBuf, -1);
+		static CTextCursor s_Cursor;
+		s_Cursor.m_FontSize = Button.h*0.5f;
+		s_Cursor.MoveTo(NameBar.x, NameBar.y);
+		s_Cursor.Reset();
+		s_Cursor.m_MaxWidth = MainView.w;
+		TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
 	}
 
 	if(IncreaseDemoSpeed)
@@ -500,7 +502,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	// do headers
 	for(int i = 0; i < NumCols; i++)
 	{
-		if(DoButton_GridHeader(ms_aDemoCols[i].m_Caption, ms_aDemoCols[i].m_Caption, Config()->m_BrDemoSort == ms_aDemoCols[i].m_Sort, ms_aDemoCols[i].m_Align, &ms_aDemoCols[i].m_Rect, CUI::CORNER_T))
+		if(DoButton_GridHeader(ms_aDemoCols[i].m_Caption, ms_aDemoCols[i].m_Caption, Config()->m_BrDemoSort == ms_aDemoCols[i].m_Sort, ms_aDemoCols[i].m_Align, &ms_aDemoCols[i].m_Rect, CUI::CORNER_ALL))
 		{
 			if(ms_aDemoCols[i].m_Sort != -1)
 			{
@@ -519,7 +521,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		}
 	}
 
-	s_ListBox.DoSubHeader(GetListHeaderHeight(), 0.0f);
+	s_ListBox.DoSpacing(GetListHeaderHeight());
 
 	s_ListBox.DoStart(20.0f, m_lDemos.size(), 1, 3, m_DemolistSelectedIndex);
 	for(sorted_array<CDemoItem>::range r = m_lDemos.all(); !r.empty(); r.pop_front())
@@ -560,7 +562,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 				if(Item.m_Selected)
 				{
 					TextRender()->TextColor(CUI::ms_HighlightTextColor);
-					TextRender()->TextOutlineColor(CUI::ms_HighlightTextOutlineColor);
+					TextRender()->TextSecondaryColor(CUI::ms_HighlightTextOutlineColor);
 				}
 				if(ID == COL_DEMO_NAME)
 				{
@@ -587,7 +589,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 				}
 				TextRender()->TextColor(CUI::ms_DefaultTextColor);
 				if(Item.m_Selected)
-					TextRender()->TextOutlineColor(CUI::ms_DefaultTextOutlineColor);
+					TextRender()->TextSecondaryColor(CUI::ms_DefaultTextOutlineColor);
 			}
 		}
 	}

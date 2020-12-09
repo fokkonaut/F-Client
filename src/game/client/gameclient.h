@@ -77,6 +77,8 @@ class CGameClient : public IGameClient
 
 	void EvolveCharacter(CNetObj_Character *pCharacter, int Tick);
 
+	void LoadFonts();
+
 public:
 	IKernel *Kernel() { return IInterface::Kernel(); }
 	IEngine *Engine() const { return m_pEngine; }
@@ -203,10 +205,10 @@ public:
 	// client data
 	struct CClientData
 	{
-		char m_aName[MAX_NAME_LENGTH*UTF8_BYTE_LENGTH];
-		char m_aClan[MAX_CLAN_LENGTH*UTF8_BYTE_LENGTH];
+		char m_aName[MAX_NAME_ARRAY_SIZE];
+		char m_aClan[MAX_CLAN_ARRAY_SIZE];
 		int m_Country;
-		char m_aaSkinPartNames[NUM_SKINPARTS][MAX_SKIN_LENGTH];
+		char m_aaSkinPartNames[NUM_SKINPARTS][MAX_SKIN_ARRAY_SIZE];
 		int m_aUseCustomColors[NUM_SKINPARTS];
 		int m_aSkinPartColors[NUM_SKINPARTS];
 		int m_SkinPartIDs[NUM_SKINPARTS];
@@ -238,7 +240,6 @@ public:
 	CClientData m_aClientsDummy[MAX_CLIENTS];
 	int m_LocalClientID[NUM_CLIENTS];
 	int m_TeamCooldownTick[NUM_CLIENTS];
-	bool m_MuteServerBroadcast;
 	float m_TeamChangeTime[NUM_CLIENTS];
 	bool m_IsXmasDay;
 	float m_LastSkinChangeTime[NUM_CLIENTS];

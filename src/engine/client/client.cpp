@@ -529,15 +529,18 @@ void CClient::OnEnterGame()
 	m_CurrentInput[CLIENT_DUMMY] = 0;
 
 	// reset snapshots
-	m_aSnapshots[Config()->m_ClDummy][SNAP_CURRENT] = 0;
-	m_aSnapshots[Config()->m_ClDummy][SNAP_PREV] = 0;
-	m_SnapshotStorage[Config()->m_ClDummy].PurgeAll();
-	m_ReceivedSnapshots[Config()->m_ClDummy] = 0;
-	m_SnapshotParts[Config()->m_ClDummy] = 0;
-	m_PredTick[Config()->m_ClDummy] = 0;
-	m_CurrentRecvTick[Config()->m_ClDummy] = 0;
-	m_CurGameTick[Config()->m_ClDummy] = 0;
-	m_PrevGameTick[Config()->m_ClDummy] = 0;
+	for (int i = 0; i < NUM_CLIENTS; i++)
+	{
+		m_aSnapshots[i][SNAP_CURRENT] = 0;
+		m_aSnapshots[i][SNAP_PREV] = 0;
+		m_SnapshotStorage[i].PurgeAll();
+		m_ReceivedSnapshots[i] = 0;
+		m_SnapshotParts[i] = 0;
+		m_PredTick[i] = 0;
+		m_CurrentRecvTick[i] = 0;
+		m_CurGameTick[i] = 0;
+		m_PrevGameTick[i] = 0;
+	}
 	m_CurMenuTick = 0;
 
 	if (Config()->m_ClDummy == 0)
@@ -718,6 +721,9 @@ void CClient::DummyDisconnect(const char *pReason)
 
 	m_NetClient[CLIENT_DUMMY].Disconnect(pReason);
 	m_RconAuthed[CLIENT_DUMMY] = 0;
+	m_aSnapshots[CLIENT_DUMMY][SNAP_CURRENT] = 0;
+	m_aSnapshots[CLIENT_DUMMY][SNAP_PREV] = 0;
+	m_ReceivedSnapshots[CLIENT_DUMMY] = 0;
 	m_DummyConnected = false;
 	GameClient()->OnDummyDisconnect();
 }
@@ -1941,6 +1947,14 @@ void CClient::PumpNetwork()
 			DisconnectWithReason(m_NetClient[CLIENT_MAIN].ErrorString());
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "offline error='%s'", m_NetClient[CLIENT_MAIN].ErrorString());
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
+		}
+
+		if(m_DummyConnected && State() != IClient::STATE_OFFLINE && State() != IClient::STATE_QUITING && m_NetClient[CLIENT_DUMMY].State() == NETSTATE_OFFLINE)
+		{
+			DummyDisconnect(0);
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "offline dummy error='%s'", m_NetClient[CLIENT_DUMMY].ErrorString());
 			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
 		}
 

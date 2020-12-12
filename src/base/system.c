@@ -2739,6 +2739,21 @@ void str_utf8_copy_num(char *dst, const char *src, int dst_size, int num)
 	str_copy(dst, src, cursor < dst_size ? cursor+1 : dst_size);
 }
 
+void str_utf8_stats(const char *str, int max_size, int *size, int *count)
+{
+	*size = 0;
+	*count = 0;
+	while(str[*size] && *size < max_size)
+	{
+		int new_size = str_utf8_forward(str, *size);
+		if(new_size != *size)
+		{
+			++(*count);
+			*size = new_size;
+		}
+	}
+}
+
 unsigned str_quickhash(const char *str)
 {
 	unsigned hash = 5381;

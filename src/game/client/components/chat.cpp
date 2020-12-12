@@ -43,7 +43,6 @@ void CChat::OnReset()
 		m_ReverseCompletion = false;
 		m_Show = false;
 		m_BacklogPage = 0;
-		m_InputUpdate = false;
 		m_CompletionChosen = -1;
 		m_CompletionFav = -1;
 		m_aCompletionBuffer[0] = 0;
@@ -406,21 +405,15 @@ bool CChat::OnInput(IInput::CEvent Event)
 				str_append(aBuf, m_Input.GetString()+m_PlaceholderOffset+m_PlaceholderLength, sizeof(aBuf));
 
 				m_PlaceholderLength = str_length(pSeparator)+str_length(pCompletionString);
-				m_OldChatStringNumChars = m_Input.GetNumChars();
 				m_Input.Set(aBuf);
 				m_Input.SetCursorOffset(m_PlaceholderOffset+m_PlaceholderLength);
-				m_InputUpdate = true;
 			}
 		}
 	}
 	else
 	{
-		int OldChatStringNumChars = m_Input.GetNumChars();
 		if(m_Input.ProcessInput(Event))
 		{
-			m_OldChatStringNumChars = OldChatStringNumChars;
-			m_InputUpdate = true;
-
 			// reset name completion process
 			m_CompletionChosen = -1;
 		}
@@ -503,17 +496,9 @@ void CChat::EnableMode(int Mode, const char* pText)
 	m_Mode = Mode;
 
 	if(pText) // optional text to initalize with
-	{
 		m_Input.Set(pText);
-		m_Input.SetCursorOffset(str_length(pText));
-		m_InputUpdate = true;
-	}
 	else if(m_Mode == m_ChatBufferMode)
-	{
 		m_Input.Set(m_ChatBuffer);
-		m_Input.SetCursorOffset(str_length(m_ChatBuffer));
-		m_InputUpdate = true;
-	}
 }
 
 void CChat::ClearInput()
@@ -1461,8 +1446,6 @@ bool CChat::CompleteCommand()
 	str_format(aBuf, sizeof(aBuf), "/%s ", pCommand->m_aName);
 
 	m_Input.Set(aBuf);
-	m_Input.SetCursorOffset(str_length(aBuf));
-	m_InputUpdate = true;
 	return true;
 }
 

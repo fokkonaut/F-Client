@@ -19,8 +19,6 @@ class CChat : public CComponent
 	};
 
 	char m_aInputBuf[MAX_LINE_LENGTH];
-	bool m_InputUpdate;
-	int m_OldChatStringNumChars;
 	CLineInput m_Input;
 
 	struct CLine

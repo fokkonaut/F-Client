@@ -1787,6 +1787,8 @@ void CMenus::OnRender()
 	else
 		RenderMenu(*pScreen);
 
+	UI()->RenderTooltip();
+
 	RenderTools()->RenderCursor(MouseX, MouseY, 24.0f);
 
 	// render debug information

@@ -89,6 +89,7 @@ void CInput::Init()
 {
 	// enable system messages
 	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+	SDL_StopTextInput();
 
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pConfig = Kernel()->RequestInterface<IConfigManager>()->Values();
@@ -321,6 +322,16 @@ void CInput::SetClipboardText(const char *pText)
 	SDL_SetClipboardText(pText);
 }
 
+void CInput::StartTextInput()
+{
+	SDL_StartTextInput();
+}
+
+void CInput::StopTextInput()
+{
+	SDL_StopTextInput();
+}
+
 void CInput::Clear()
 {
 	mem_zero(m_aInputState, sizeof(m_aInputState));
@@ -358,6 +369,8 @@ int CInput::Update()
 	if(i&SDL_BUTTON(8)) m_aInputState[KEY_MOUSE_8] = 1;
 	if(i&SDL_BUTTON(9)) m_aInputState[KEY_MOUSE_9] = 1;
 
+	bool isCompositionBreaking = false;	
+
 	{
 		SDL_Event Event;
 
@@ -384,6 +397,7 @@ int CInput::Update()
 						for(int i = 0; i < Event.edit.start; i++)
 							m_CompositionCursor = str_utf8_forward(m_aComposition, m_CompositionCursor);
 						m_CompositionSelectedLength = Event.edit.length;
+						AddEvent(0, 0, IInput::FLAG_TEXT);
 					}
 					else
 					{
@@ -408,6 +422,8 @@ int CInput::Update()
 				// handle keys
 				case SDL_KEYDOWN:
 					Key = KeycodeToKey(Event.key.keysym.sym);
+					if (Key == KEY_BACKSPACE)
+						isCompositionBreaking = true;
 					Scancode = Event.key.keysym.scancode;
 					break;
 				case SDL_KEYUP:
@@ -535,7 +551,7 @@ int CInput::Update()
 		}
 	}
 
-	if(m_CompositionCursor == 0)
+	if(m_CompositionCursor == 0 || isCompositionBreaking)
 		m_CompositionCursor = COMP_CURSOR_INACTIVE;
 
 	return 0;

@@ -491,8 +491,7 @@ bool CUI::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 	}
 
 	pLineInput->SetScrollOffset(ScrollOffset);
-	if(Enabled() && Active && !JustGotActive)
-		pLineInput->SetActive(true);
+	pLineInput->SetActive(Enabled() && Active && !JustGotActive);
 
 	// render
 	pRect->Draw(pColorFunction->GetColor(Active, Inside), 5.0f, Corners);

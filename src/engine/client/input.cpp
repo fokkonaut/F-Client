@@ -70,7 +70,8 @@ CInput::CInput()
 
 	m_NumEvents = 0;
 	
-	m_CompositionCursor = COMP_CURSOR_INACTIVE;
+	m_CompositionLength = COMP_LENGTH_INACTIVE;
+	m_CompositionCursor = 0;
 	m_CompositionSelectedLength = 0;
 	m_CandidateCount = 0;
 	m_CandidateSelectedIndex = -1;
@@ -94,7 +95,6 @@ void CInput::Init()
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pConfig = Kernel()->RequestInterface<IConfigManager>()->Values();
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
-	SDL_StopTextInput();
 
 	MouseModeRelative();
 
@@ -331,6 +331,11 @@ void CInput::StartTextInput()
 void CInput::StopTextInput()
 {
 	SDL_StopTextInput();
+	m_CompositionLength = COMP_LENGTH_INACTIVE;
+	m_CompositionCursor = 0;
+	m_aComposition[0] = 0;
+	m_CompositionSelectedLength = 0;
+	m_CandidateCount = 0;
 }
 
 void CInput::Clear()
@@ -345,20 +350,13 @@ bool CInput::KeyState(int Key) const
 	return m_aInputState[Key>=KEY_MOUSE_1 ? Key : SDL_GetScancodeFromKey(KeyToKeycode(Key))];
 }
 
-void CInput::SetTextCompositionWindowPosition(float X, float Y)
+void CInput::SetCompositionWindowPosition(float X, float Y)
 {
-	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
-	int ScreenWidth = Graphics()->ScreenWidth();
-	int ScreenHeight = Graphics()->ScreenHeight();
-	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
-
-	vec2 ScreenScale = vec2(ScreenWidth / (ScreenX1 - ScreenX0), ScreenHeight / (ScreenY1 - ScreenY0));
-
 	SDL_Rect Rect;
-	Rect.x = X * ScreenScale.x;
-	Rect.y = Y * ScreenScale.y;
-	Rect.h = ScreenHeight / 2;		// unused by SDL2
-	Rect.w = ScreenWidth;			// unused by SDL2
+	Rect.x = X;
+	Rect.y = Y;
+	Rect.h = Graphics()->ScreenHeight() / 2;  // unused by SDL2
+	Rect.w = Graphics()->ScreenWidth();	      // unused by SDL2
 
 	// TODO: use window coordinate instead of canvas coordinate (requires #2827)
 	SDL_SetTextInputRect(&Rect);
@@ -389,8 +387,6 @@ int CInput::Update()
 	if(i&SDL_BUTTON(8)) m_aInputState[KEY_MOUSE_8] = 1;
 	if(i&SDL_BUTTON(9)) m_aInputState[KEY_MOUSE_9] = 1;
 
-	bool isCompositionBreaking = false;	
-
 	{
 		SDL_Event Event;
 
@@ -409,41 +405,40 @@ int CInput::Update()
 				// handle on the spot text editing
 				case SDL_TEXTEDITING:
 				{
-					const int CompositionLength = str_length(Event.edit.text);
-					if(CompositionLength)
+					m_CompositionLength = str_length(Event.edit.text);
+					if(m_CompositionLength)
 					{
 						str_copy(m_aComposition, Event.edit.text, sizeof(m_aComposition));
 						m_CompositionCursor = 0;
 						for(int i = 0; i < Event.edit.start; i++)
 							m_CompositionCursor = str_utf8_forward(m_aComposition, m_CompositionCursor);
-						m_CompositionSelectedLength = Event.edit.length;
+						int m_CompositionEnd = m_CompositionCursor;
+						for(int i = 0; i < Event.edit.length; i++)
+							m_CompositionEnd = str_utf8_forward(m_aComposition, m_CompositionEnd);
+						m_CompositionSelectedLength = m_CompositionEnd - m_CompositionCursor;
 						AddEvent(0, 0, IInput::FLAG_TEXT);
 					}
 					else
 					{
 						m_aComposition[0] = '\0';
+						m_CompositionLength = 0;
 						m_CompositionCursor = 0;
 						m_CompositionSelectedLength = 0;
-
-						// close candidate window as well
-						m_CandidateCount = 0;
-						m_CandidateSelectedIndex = -1;
 					}
+					dbg_msg("text", "edit: %d, %d, %d", m_CompositionLength, m_CompositionCursor, m_CompositionSelectedLength);
 					break;
 				}
 				case SDL_TEXTINPUT:
 					m_aComposition[0] = 0;
-					m_CandidateCount = 0;
-					m_CandidateSelectedIndex = -1;
-					m_CompositionCursor = COMP_CURSOR_INACTIVE;
+					m_CompositionLength = COMP_LENGTH_INACTIVE;
+					m_CompositionCursor = 0;
+					m_CompositionSelectedLength = 0;
 					AddEvent(Event.text.text, 0, IInput::FLAG_TEXT);
 					break;
 
 				// handle keys
 				case SDL_KEYDOWN:
 					Key = KeycodeToKey(Event.key.keysym.sym);
-					if (Key == KEY_BACKSPACE)
-						isCompositionBreaking = true;
 					Scancode = Event.key.keysym.scancode;
 					break;
 				case SDL_KEYUP:
@@ -559,7 +554,7 @@ int CInput::Update()
 					return 1;
 			}
 
-			if(Key != -1 && m_CompositionCursor == COMP_CURSOR_INACTIVE)
+			if(Key != -1 && !HasComposition())
 			{
 				if(Action&IInput::FLAG_PRESS)
 				{
@@ -571,10 +566,8 @@ int CInput::Update()
 		}
 	}
 
-	if(m_CompositionCursor == 0 || isCompositionBreaking)
-	{
-		m_CompositionCursor = COMP_CURSOR_INACTIVE;
-		AddEvent(0, 0, IInput::FLAG_TEXT);
+	if(m_CompositionLength == 0) {
+		m_CompositionLength = COMP_LENGTH_INACTIVE;
 	}
 
 	return 0;
@@ -614,7 +607,7 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 						m_aaCandidates[m_CandidateCount][MAX_CANDIDATE_ARRAY_SIZE-1] = '\0';
 						m_CandidateCount++;
 					}
-					m_CandidateSelectedIndex = CandidateList->dwSelection;
+					m_CandidateSelectedIndex = CandidateList->dwSelection - CandidateList->dwPageStart;
 				}
 				else
 				{

@@ -10,21 +10,21 @@
 class IScrollbarScale
 {
 public:
-	virtual float ToRelative(int AbsoluteValue, int Min, int Max) = 0;
-	virtual int ToAbsolute(float RelativeValue, int Min, int Max) = 0;
+	virtual float ToRelative(int AbsoluteValue, int Min, int Max) const = 0;
+	virtual int ToAbsolute(float RelativeValue, int Min, int Max) const = 0;
 };
 static class CLinearScrollbarScale : public IScrollbarScale
 {
 public:
-	float ToRelative(int AbsoluteValue, int Min, int Max)
+	float ToRelative(int AbsoluteValue, int Min, int Max) const
 	{
 		return (AbsoluteValue - Min) / (float)(Max - Min);
 	}
-	int ToAbsolute(float RelativeValue, int Min, int Max)
+	int ToAbsolute(float RelativeValue, int Min, int Max) const
 	{
 		return round_to_int(RelativeValue*(Max - Min) + Min + 0.1f);
 	}
-} LinearScrollbarScale;
+} const LinearScrollbarScale;
 static class CLogarithmicScrollbarScale : public IScrollbarScale
 {
 private:
@@ -34,7 +34,7 @@ public:
 	{
 		m_MinAdjustment = max(MinAdjustment, 1); // must be at least 1 to support Min == 0 with logarithm
 	}
-	float ToRelative(int AbsoluteValue, int Min, int Max)
+	float ToRelative(int AbsoluteValue, int Min, int Max) const
 	{
 		if(Min < m_MinAdjustment)
 		{
@@ -44,7 +44,7 @@ public:
 		}
 		return (log(AbsoluteValue) - log(Min)) / (float)(log(Max) - log(Min));
 	}
-	int ToAbsolute(float RelativeValue, int Min, int Max)
+	int ToAbsolute(float RelativeValue, int Min, int Max) const
 	{
 		int ResultAdjustment = 0;
 		if(Min < m_MinAdjustment)
@@ -55,18 +55,18 @@ public:
 		}
 		return round_to_int(exp(RelativeValue*(log(Max) - log(Min)) + log(Min))) + ResultAdjustment;
 	}
-} LogarithmicScrollbarScale(25);
+} const LogarithmicScrollbarScale(25);
 
 
 class IButtonColorFunction
 {
 public:
-	virtual vec4 GetColor(bool Active, bool Hovered) = 0;
+	virtual vec4 GetColor(bool Active, bool Hovered) const = 0;
 };
 static class CDarkButtonColorFunction : public IButtonColorFunction
 {
 public:
-	vec4 GetColor(bool Active, bool Hovered)
+	vec4 GetColor(bool Active, bool Hovered) const
 	{
 		if(Active)
 			return vec4(0.15f, 0.15f, 0.15f, 0.25f);
@@ -74,11 +74,11 @@ public:
 			return vec4(0.5f, 0.5f, 0.5f, 0.25f);
 		return vec4(0.0f, 0.0f, 0.0f, 0.25f);
 	}
-} DarkButtonColorFunction;
+} const DarkButtonColorFunction;
 static class CLightButtonColorFunction : public IButtonColorFunction
 {
 public:
-	vec4 GetColor(bool Active, bool Hovered)
+	vec4 GetColor(bool Active, bool Hovered) const
 	{
 		if(Active)
 			return vec4(1.0f, 1.0f, 1.0f, 0.4f);
@@ -86,7 +86,7 @@ public:
 			return vec4(1.0f, 1.0f, 1.0f, 0.6f);
 		return vec4(1.0f, 1.0f, 1.0f, 0.5f);
 	}
-} LightButtonColorFunction;
+} const LightButtonColorFunction;
 
 
 class CUI
@@ -205,19 +205,19 @@ public:
 	bool DoPickerLogic(const void *pID, const CUIRect *pRect, float *pX, float *pY);
 
 	// labels
-	void DoLabel(const CUIRect *pRect, const char *pText, float FontSize, int Align = TEXTALIGN_LEFT|TEXTALIGN_TOP, float LineWidth = -1.0f, bool MultiLine = true);
-	void DoLabelHighlighted(const CUIRect *pRect, const char *pText, const char *pHighlighted, float FontSize, const vec4 &TextColor, const vec4 &HighlightColor, int Align = TEXTALIGN_LEFT|TEXTALIGN_TOP);
-	void DoLabelSelected(const CUIRect *pRect, const char *pText, bool Selected, float FontSize, int Align = TEXTALIGN_LEFT|TEXTALIGN_TOP);
+	void DoLabel(const CUIRect *pRect, const char *pText, float FontSize, int Align = TEXTALIGN_TL, float LineWidth = -1.0f, bool MultiLine = true);
+	void DoLabelHighlighted(const CUIRect *pRect, const char *pText, const char *pHighlighted, float FontSize, const vec4 &TextColor, const vec4 &HighlightColor, int Align = TEXTALIGN_TL);
+	void DoLabelSelected(const CUIRect *pRect, const char *pText, bool Selected, float FontSize, int Align = TEXTALIGN_TL);
 
 	// editboxes
-	bool DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize, bool Hidden = false, int Corners = CUIRect::CORNER_ALL, IButtonColorFunction *pColorFunction = &DarkButtonColorFunction);
+	bool DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize, bool Hidden = false, int Corners = CUIRect::CORNER_ALL, const IButtonColorFunction *pColorFunction = &DarkButtonColorFunction);
 	void DoEditBoxOption(CLineInput *pLineInput, const CUIRect *pRect, const char *pStr, float VSplitVal, bool Hidden = false);
 
 	// scrollbars
 	float DoScrollbarV(const void *pID, const CUIRect *pRect, float Current);
 	float DoScrollbarH(const void *pID, const CUIRect *pRect, float Current);
-	void DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, IScrollbarScale *pScale = &LinearScrollbarScale, bool Infinite = false);
-	void DoScrollbarOptionLabeled(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, const char *apLabels[], int Num, IScrollbarScale *pScale = &LinearScrollbarScale);
+	void DoScrollbarOption(const void *pID, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, const IScrollbarScale *pScale = &LinearScrollbarScale, bool Infinite = false);
+	void DoScrollbarOptionLabeled(const void *pID, int *pOption, const CUIRect *pRect, const char *pStr, const char *apLabels[], int NumLabels, const IScrollbarScale *pScale = &LinearScrollbarScale);
 
 	// tooltips
 	void DoTooltip(const void *pID, const CUIRect *pRect, const char *pText);

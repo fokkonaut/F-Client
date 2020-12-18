@@ -274,15 +274,15 @@ void CUI::ApplyCursorAlign(class CTextCursor *pCursor, const CUIRect *pRect, int
 	pCursor->m_Align = Align;
 
 	float x = pRect->x;
-	if(Align&TEXTALIGN_CENTER)
+	if((Align & TEXTALIGN_MASK_HORI) == TEXTALIGN_CENTER)
 		x += pRect->w / 2.0f;
-	else if(Align&TEXTALIGN_RIGHT)
+	else if((Align & TEXTALIGN_MASK_HORI) == TEXTALIGN_RIGHT)
 		x += pRect->w;
 
 	float y = pRect->y;
-	if(Align&TEXTALIGN_MIDDLE)
+	if((Align & TEXTALIGN_MASK_VERT) == TEXTALIGN_MIDDLE)
 		y += pRect->h / 2.0f;
-	else if(Align&TEXTALIGN_BOTTOM)
+	else if((Align & TEXTALIGN_MASK_VERT) == TEXTALIGN_BOTTOM)
 		y += pRect->h;
 
 	pCursor->MoveTo(x, y);
@@ -343,7 +343,7 @@ void CUI::DoLabelSelected(const CUIRect *pRect, const char *pText, bool Selected
 	}
 }
 
-bool CUI::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize, bool Hidden, int Corners, IButtonColorFunction *pColorFunction)
+bool CUI::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize, bool Hidden, int Corners, const IButtonColorFunction *pColorFunction)
 {
 	const bool Inside = MouseHovered(pRect);
 	const bool Active = LastActiveItem() == pLineInput;
@@ -663,7 +663,7 @@ float CUI::DoScrollbarH(const void *pID, const CUIRect *pRect, float Current)
 	return ReturnValue;
 }
 
-void CUI::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, IScrollbarScale *pScale, bool Infinite)
+void CUI::DoScrollbarOption(const void *pID, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, const IScrollbarScale *pScale, bool Infinite)
 {
 	int Value = *pOption;
 	if(Infinite)
@@ -700,10 +700,10 @@ void CUI::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const
 	*pOption = Value;
 }
 
-void CUI::DoScrollbarOptionLabeled(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, const char* aLabels[], int Num, IScrollbarScale *pScale)
+void CUI::DoScrollbarOptionLabeled(const void *pID, int *pOption, const CUIRect *pRect, const char *pStr, const char* aLabels[], int NumLabels, const IScrollbarScale *pScale)
 {
-	int Value = clamp(*pOption, 0, Num - 1);
-	const int Max = Num - 1;
+	int Value = clamp(*pOption, 0, NumLabels - 1);
+	const int Max = NumLabels - 1;
 
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf), "%s: %s", pStr, aLabels[Value]);
@@ -721,7 +721,7 @@ void CUI::DoScrollbarOptionLabeled(void *pID, int *pOption, const CUIRect *pRect
 	Value = pScale->ToAbsolute(DoScrollbarH(pID, &ScrollBar, pScale->ToRelative(Value, 0, Max)), 0, Max);
 
 	if(HotItem() != pID && MouseHovered(pRect) && MouseButtonClicked(0))
-		Value = (Value + 1) % Num;
+		Value = (Value + 1) % NumLabels;
 
 	*pOption = clamp(Value, 0, Max);
 }

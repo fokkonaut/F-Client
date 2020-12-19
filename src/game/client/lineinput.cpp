@@ -49,12 +49,15 @@ void CLineInput::Set(const char *pString)
 void CLineInput::SetRange(const char *pString, int Begin, int End)
 {
 	int RemovedCharSize, RemovedCharCount;
-	str_utf8_stats(m_pStr+Begin, End-Begin, &RemovedCharSize, &RemovedCharCount);
+	str_utf8_stats(m_pStr+Begin, End-Begin+1, &RemovedCharSize, &RemovedCharCount);
 
 	int AddedCharSize, AddedCharCount;
 	str_utf8_stats(pString, m_MaxSize, &AddedCharSize, &AddedCharCount);
 
-	if((RemovedCharSize || AddedCharSize) && m_Len + AddedCharSize - RemovedCharSize < m_MaxSize && m_NumChars + AddedCharCount - RemovedCharCount <= m_MaxChars)
+	if(m_Len + AddedCharSize - RemovedCharSize >= m_MaxSize || m_NumChars + AddedCharCount - RemovedCharCount > m_MaxChars)
+		str_utf8_stats(pString, m_MaxSize - m_Len + RemovedCharSize, &AddedCharSize, &AddedCharCount);
+
+	if(RemovedCharSize || AddedCharSize)
 	{
 		if(AddedCharSize < RemovedCharSize)
 		{

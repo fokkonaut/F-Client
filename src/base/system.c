@@ -2748,8 +2748,10 @@ void str_utf8_stats(const char *str, int max_size, int *size, int *count)
 		int new_size = str_utf8_forward(str, *size);
 		if(new_size != *size)
 		{
-			++(*count);
+			if(new_size >= max_size)
+				break;
 			*size = new_size;
+			++(*count);
 		}
 	}
 }

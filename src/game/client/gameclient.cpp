@@ -1449,14 +1449,15 @@ void CGameClient::OnNewSnapshot()
 					m_Snap.m_paPlayerInfosRace[ClientID] = pInfo;
 				}
 			}
-			else if (Item.m_Type == NETOBJTYPE_EXPLAYERINFO)
+			else if(Item.m_Type == NETOBJTYPE_DDNETPLAYER)
 			{
-				const CNetObj_ExPlayerInfo *pInfo = (const CNetObj_ExPlayerInfo*)pData;
-				int ClientID = Item.m_ID;
-				if (ClientID < MAX_CLIENTS && m_aClients[ClientID].m_Active)
+				const CNetObj_DDNetPlayer *pInfo = (const CNetObj_DDNetPlayer *)pData;
+				if(Item.m_ID < MAX_CLIENTS)
 				{
-					m_aClients[Item.m_ID].m_Aim = pInfo->m_Flags&EXPLAYERFLAG_AIM;
+					m_aClients[Item.m_ID].m_AuthLevel = pInfo->m_AuthLevel;
 					m_aClients[Item.m_ID].m_Afk = pInfo->m_Flags&EXPLAYERFLAG_AFK;
+					m_aClients[Item.m_ID].m_Paused = pInfo->m_Flags&EXPLAYERFLAG_PAUSED;
+					m_aClients[Item.m_ID].m_Spec = pInfo->m_Flags&EXPLAYERFLAG_SPEC;
 				}
 			}
 			else if(Item.m_Type == NETOBJTYPE_CHARACTER)
@@ -1686,17 +1687,17 @@ void CGameClient::OnNewSnapshot()
 		}
 	}
 
-	// ex playerinfo
+	// ex playerflags
 	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != (int)m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)
 	{
-		CMsgPacker Msg(NETMSGTYPE_CL_EXPLAYERINFO, false);
-		Msg.AddInt(m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
-		Client()->SendMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
+		CNetMsg_Cl_ExPlayerFlags Msg;
+		Msg.m_Flags |= EXPLAYERFLAG_AIM;
+		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
 		m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim = (bool)m_pControls->m_ShowHookColl[Config()->m_ClDummy];
 
 		if (Config()->m_ClDummyCopyMoves)
 		{
-			Client()->SendMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
+			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
 			m_aClients[m_LocalClientID[!Config()->m_ClDummy]].m_Aim = (bool)(m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
 		}
 	}
@@ -1715,14 +1716,14 @@ void CGameClient::OnNewSnapshot()
 		RenderTools()->CalcScreenParams(Graphics()->ScreenAspect(), ZoomToSend, &x, &y);
 		Msg.m_X = x;
 		Msg.m_Y = y;
-		if(ZoomToSend != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
+		if(ZoomToSend != LastZoom)
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_MAIN);
 		if(Client()->DummyConnected())
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_DUMMY);
 		LastZoom = ZoomToSend;
 		LastScreenAspect = Graphics()->ScreenAspect();
 	}
-	LastDummyConnected = Client()->DummyConnected();;
+	LastDummyConnected = Client()->DummyConnected();
 }
 
 void CGameClient::OnDemoRecSnap()
@@ -2063,7 +2064,10 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient, int ClientID)
 	m_ChatIgnore = false;
 	m_Friend = false;
 	m_Aim = false;
+	m_AuthLevel = AUTHED_NO;
 	m_Afk = false;
+	m_Paused = false;
+	m_Spec = false;
 	m_Evolved.m_Tick = -1;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{

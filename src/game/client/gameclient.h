@@ -229,7 +229,10 @@ public:
 		bool m_Friend;
 
 		bool m_Aim;
+		int m_AuthLevel;
 		bool m_Afk;
+		bool m_Paused;
+		bool m_Spec;
 
 		void UpdateRenderInfo(CGameClient *pGameClient, int ClientID, bool UpdateSkinInfo);
 		void UpdateBotRenderInfo(CGameClient *pGameClient, int ClientID);

@@ -20,7 +20,9 @@ GameMsgIDs = Enum("GAMEMSG", ["TEAM_SWAP", "SPEC_INVALIDID", "TEAM_SHUFFLE", "TE
 
 							"GAME_PAUSED"]) # todo 0.8: sort (1 para)
 
-ExPlayerFlags = Flags("EXPLAYERFLAG", ["AIM", "AFK"])
+ExPlayerFlags = Flags("EXPLAYERFLAG", ["AFK", "PAUSED", "SPEC", "AIM"])
+
+Authed = Enum("AUTHED", ["NO", "HELPER", "MOD", "ADMIN"])
 
 
 RawHeader = '''
@@ -76,6 +78,7 @@ Enums = [
 	Votes,
 	ChatModes,
 	GameMsgIDs,
+	Authed,
 ]
 
 Flags = [
@@ -235,8 +238,9 @@ Objects = [
 		NetIntAny("m_Test"),
 	]),
 
-	NetObjectEx("ExPlayerInfo", "player@netobj.ddnet.tw", [
+	NetObjectEx("DDNetPlayer", "player@netobj.ddnet.tw", [
 		NetIntAny("m_Flags"),
+		NetIntRange("m_AuthLevel", "AUTHED_NO", "AUTHED_ADMIN"),
 	]),
 
 	## Events
@@ -506,11 +510,11 @@ Messages = [
 		NetIntAny("m_Y"),
 	]),
 
-	NetMessageEx("Cl_ExPlayerInfo", "explayerinfo@ddnet.tw", [
+	NetMessageEx("Sv_TeamsState", "teamstate@ddnet7.tw", []),
+
+	NetMessageEx("Cl_ExPlayerFlags", "explayerflags@ddnet7.tw", [
 		NetIntAny("m_Flags"),
 	]),
 
-	NetMessageEx("Cl_IsDDrace", "isddrace@ddnet.tw", []),
-
-	NetMessageEx("Sv_TeamsState", "teamstate@ddnet.tw", []),
+	NetMessageEx("Cl_IsDDrace", "isddrace@ddnet7.tw", []),
 ]

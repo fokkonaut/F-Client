@@ -442,7 +442,7 @@ void CSkins::RandomizeSkin(int Dummy)
 		const CSkins::CSkinPart *s = GetSkinPart(p, random_int() % NumSkinPart(p));
 		while(s->m_Flags&CSkins::SKINFLAG_SPECIAL)
 			s = GetSkinPart(p, random_int() % NumSkinPart(p));
-		mem_copy(CSkins::ms_apSkinVariables[p], s->m_aName, MAX_SKIN_ARRAY_SIZE);
+		mem_copy(CSkins::ms_apSkinVariables[Dummy][p], s->m_aName, MAX_SKIN_ARRAY_SIZE);
 	}
 }
 

@@ -918,7 +918,7 @@ void CHud::RenderCheckpoint()
 			TextRender()->TextColor(1,1,1,a); // white
 
 		float Half = 300.0f*Graphics()->ScreenAspect()/2.0f;
-		
+
 		static CTextCursor s_Cursor(10);
 		s_Cursor.m_Align = TEXTALIGN_TC;
 		s_Cursor.Reset();

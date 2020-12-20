@@ -414,10 +414,10 @@ int CInput::Update()
 						m_CompositionCursor = 0;
 						for(int i = 0; i < Event.edit.start; i++)
 							m_CompositionCursor = str_utf8_forward(m_aComposition, m_CompositionCursor);
-						int m_CompositionEnd = m_CompositionCursor;
+						int CompositionEnd = m_CompositionCursor;
 						for(int i = 0; i < Event.edit.length; i++)
-							m_CompositionEnd = str_utf8_forward(m_aComposition, m_CompositionEnd);
-						m_CompositionSelectedLength = m_CompositionEnd - m_CompositionCursor;
+							CompositionEnd = str_utf8_forward(m_aComposition, CompositionEnd);
+						m_CompositionSelectedLength = CompositionEnd - m_CompositionCursor;
 						AddEvent(0, 0, IInput::FLAG_TEXT);
 					}
 					else
@@ -427,7 +427,6 @@ int CInput::Update()
 						m_CompositionCursor = 0;
 						m_CompositionSelectedLength = 0;
 					}
-					dbg_msg("text", "edit: %d, %d, %d", m_CompositionLength, m_CompositionCursor, m_CompositionSelectedLength);
 					break;
 				}
 				case SDL_TEXTINPUT:

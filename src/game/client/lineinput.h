@@ -19,6 +19,12 @@ class CLineInput
 	static CLineInput *s_apActiveInputs[MAX_ACTIVE_INPUTS];
 	static unsigned s_NumActiveInputs;
 
+	static vec2 s_CompositionWindowPosition;
+	static float s_CompositionLineHeight;
+
+	class CTextCursor m_TextCursor;
+	unsigned int m_TextVersion;
+
 	char *m_pStr;
 	int m_MaxSize;
 	int m_MaxChars;
@@ -35,12 +41,15 @@ class CLineInput
 
 	void UpdateStrData();
 	static bool MoveWordStop(char c);
+	void DrawSelection(float HeightWeight, int Start, int End, vec4 Color);
 
 	void OnActivate();
 	void OnDeactivate();
 
 public:
 	static void Init(class IInput *pInput, class ITextRender *pTextRender, class IGraphics *pGraphics) { s_pInput = pInput; s_pTextRender = pTextRender; s_pGraphics = pGraphics; }
+	static void RenderCandidates();
+	static void SetCompositionWindowPosition(vec2 Anchor, float LineHeight);
 
 	static CLineInput *GetActiveInput() { return s_NumActiveInputs ? s_apActiveInputs[s_NumActiveInputs-1] : 0; }
 
@@ -56,6 +65,7 @@ public:
 	void SetRange(const char *pString, int Begin, int End);
 	void Append(const char *pString) { SetRange(pString, m_CursorPos, m_CursorPos); }
 
+	class CTextCursor *GetCursor() { return &m_TextCursor; }
 	const char *GetString() const { return m_pStr; }
 	int GetMaxSize() const { return m_MaxSize; }
 	int GetMaxChars() const { return m_MaxChars; }
@@ -76,7 +86,7 @@ public:
 	bool ProcessInput(const IInput::CEvent &Event);
 	bool WasChanged() { bool Changed = m_WasChanged; m_WasChanged = false; return Changed; }
 
-	void Render(class CTextCursor *pCursor);
+	void Render();
 	bool IsActive() const { return GetActiveInput() == this; }
 	void SetActive(bool Active);
 };

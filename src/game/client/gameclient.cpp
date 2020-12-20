@@ -440,6 +440,28 @@ void CGameClient::OnInit()
 	m_DDraceMsgSent[CLIENT_MAIN] = false;
 	m_DDraceMsgSent[CLIENT_DUMMY] = false;
 
+	if(Config()->m_ClTimeoutCode[0] == '\0' || str_comp(Config()->m_ClTimeoutCode, "hGuEYnfxicsXGwFq") == 0)
+	{
+		for(unsigned int i = 0; i < 16; i++)
+		{
+			if(rand() % 2)
+				Config()->m_ClTimeoutCode[i] = (char)((rand() % 26) + 97);
+			else
+				Config()->m_ClTimeoutCode[i] = (char)((rand() % 26) + 65);
+		}
+	}
+
+	if(Config()->m_ClDummyTimeoutCode[0] == '\0' || str_comp(Config()->m_ClDummyTimeoutCode, "hGuEYnfxicsXGwFq") == 0)
+	{
+		for(unsigned int i = 0; i < 16; i++)
+		{
+			if(rand() % 2)
+				Config()->m_ClDummyTimeoutCode[i] = (char)((rand() % 26) + 97);
+			else
+				Config()->m_ClDummyTimeoutCode[i] = (char)((rand() % 26) + 65);
+		}
+	}
+
 	m_InitComplete = true;
 
 	int64 End = time_get();

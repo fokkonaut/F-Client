@@ -7,6 +7,7 @@
 
 #include <base/math.h>
 #include <base/system.h>
+#include <base/hash_ctxt.h>
 
 #include <engine/client.h>
 #include <engine/config.h>
@@ -38,6 +39,7 @@
 #include <engine/shared/uuid_manager.h>
 
 #include <game/version.h>
+#include <generated/protocol.h>
 
 #include <mastersrv/mastersrv.h>
 #include <versionsrv/versionsrv.h>
@@ -319,9 +321,9 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	m_LastDummy = 0;
 	m_LastDummy2 = 0;
+	m_LastDummyConnectTime = 0;
 
-	//if (Config()->m_ClDummy == 0)
-		m_LastDummyConnectTime = 0;
+	m_GenerateTimeoutSeed = true;
 }
 
 // ----- send functions -----
@@ -562,6 +564,49 @@ void CClient::EnterGame()
 	// to finish the connection
 	SendEnterGame();
 	OnEnterGame();
+
+	m_aTimeoutCodeSent[CLIENT_MAIN] = false;
+	m_aTimeoutCodeSent[CLIENT_DUMMY] = false;
+}
+
+void GenerateTimeoutCode(char *pBuffer, unsigned Size, char *pSeed, const NETADDR &Addr, bool Dummy)
+{
+	MD5_CTX Md5;
+	md5_init(&Md5);
+	const char *pDummy = Dummy ? "dummy" : "normal";
+	md5_update(&Md5, (unsigned char *)pDummy, str_length(pDummy) + 1);
+	md5_update(&Md5, (unsigned char *)pSeed, str_length(pSeed) + 1);
+	md5_update(&Md5, (unsigned char *)&Addr, sizeof(Addr));
+	MD5_DIGEST Digest = md5_finish(&Md5);
+
+	unsigned short Random[8];
+	mem_copy(Random, Digest.data, sizeof(Random));
+	generate_password(pBuffer, Size, Random, 8);
+}
+
+void CClient::GenerateTimeoutSeed()
+{
+	secure_random_password(Config()->m_ClTimeoutSeed, sizeof(Config()->m_ClTimeoutSeed), 16);
+}
+
+void CClient::GenerateTimeoutCodes()
+{
+	if(Config()->m_ClTimeoutSeed[0])
+	{
+		for(int i = 0; i < NUM_CLIENTS; i++)
+		{
+			GenerateTimeoutCode(m_aTimeoutCodes[i], sizeof(m_aTimeoutCodes[i]), Config()->m_ClTimeoutSeed, m_ServerAddress, i);
+
+			char aBuf[64];
+			str_format(aBuf, sizeof(aBuf), "timeout code '%s' (%s)", m_aTimeoutCodes[i], i == 0 ? "normal" : "dummy");
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
+		}
+	}
+	else
+	{
+		str_copy(m_aTimeoutCodes[CLIENT_MAIN], Config()->m_ClTimeoutCode, sizeof(m_aTimeoutCodes[CLIENT_MAIN]));
+		str_copy(m_aTimeoutCodes[CLIENT_DUMMY], Config()->m_ClDummyTimeoutCode, sizeof(m_aTimeoutCodes[CLIENT_DUMMY]));
+	}
 }
 
 void CClient::OnClientOnline()
@@ -612,6 +657,8 @@ void CClient::Connect(const char *pAddress)
 
 	m_InputtimeMarginGraph.Init(-150.0f, 150.0f);
 	m_GametimeMarginGraph.Init(-150.0f, 150.0f);
+
+	GenerateTimeoutCodes();
 }
 
 void CClient::DisconnectWithReason(const char *pReason)
@@ -1683,6 +1730,22 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 
 					// ack snapshot
 					m_AckGameTick[Config()->m_ClDummy] = GameTick;
+
+					// send timeout codes
+					if(m_ReceivedSnapshots[Config()->m_ClDummy] > 50 && !m_aTimeoutCodeSent[Config()->m_ClDummy])
+					{
+						if(IsRace(&m_CurrentServerInfo))
+						{
+							m_aTimeoutCodeSent[Config()->m_ClDummy] = true;
+							CNetMsg_Cl_Say Msg;
+							Msg.m_Mode = CHAT_ALL;
+							Msg.m_Target = -1;
+							char aBuf[256];
+							str_format(aBuf, sizeof(aBuf), "/timeout %s", m_aTimeoutCodes[Config()->m_ClDummy]);
+							Msg.m_pMessage = aBuf;
+							SendPackMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
+						}
+					}
 				}
 			}
 		}
@@ -2359,6 +2422,11 @@ void CClient::Run()
 	m_SnapshotParts[CLIENT_MAIN] = 0;
 	m_SnapshotParts[CLIENT_DUMMY] = 0;
 
+	if (m_GenerateTimeoutSeed)
+	{
+		GenerateTimeoutSeed();
+	}
+
 	if(Config()->m_Debug)
 	{
 		g_UuidManager.DebugDump();
@@ -2982,12 +3050,21 @@ void CClient::ConchainWindowVSync(IConsole::IResult *pResult, void *pUserData, I
 		pfnCallback(pResult, pCallbackUserData);
 }
 
+void CClient::ConchainTimeoutSeed(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	CClient *pSelf = (CClient *)pUserData;
+	pfnCallback(pResult, pCallbackUserData);
+	if(pResult->NumArguments())
+		pSelf->m_GenerateTimeoutSeed = false;
+}
+
 void CClient::RegisterCommands()
 {
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 
 	m_pConsole->Register("dummy_connect", "", CFGFLAG_CLIENT, Con_DummyConnect, this, "Connect dummy");
 	m_pConsole->Register("dummy_disconnect", "", CFGFLAG_CLIENT, Con_DummyDisconnect, this, "Disconnect dummy");
+	m_pConsole->Chain("cl_timeout_seed", ConchainTimeoutSeed, this);
 
 	m_pConsole->Register("quit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds");
 	m_pConsole->Register("exit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds");

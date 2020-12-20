@@ -109,6 +109,9 @@ public:
 	virtual bool DummyConnected() = 0;
 	virtual bool DummyConnecting() = 0;
 
+	// timeout
+	virtual void GenerateTimeoutSeed() = 0;
+
 	// gfx
 	virtual void SwitchWindowScreen(int Index) = 0;
 	virtual bool ToggleFullscreen() = 0;

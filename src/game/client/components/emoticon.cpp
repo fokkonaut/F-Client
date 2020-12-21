@@ -172,9 +172,7 @@ void CEmoticon::OnRender()
 
 	Graphics()->QuadsEnd();
 
-	CServerInfo Info;
-	Client()->GetServerInfo(&Info);
-	if(IsRace(&Info) && Config()->m_ClEyeWheel)
+	if(GameClient()->m_GameInfoEx.m_AllowEyeWheel && Config()->m_ClEyeWheel)
 	{
 		Graphics()->TextureClear();
 		Graphics()->QuadsBegin();

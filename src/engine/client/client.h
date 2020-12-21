@@ -50,6 +50,11 @@ public:
 	void Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustDirection);
 };
 
+class CServerCapabilities
+{
+public:
+	bool m_ChatTimeoutCode;
+};
 
 class CClient : public IClient, public CDemoPlayer::IListener
 {
@@ -182,6 +187,13 @@ class CClient : public IClient, public CDemoPlayer::IListener
 
 	class CSnapshotDelta m_SnapshotDelta;
 
+	// server capabilities
+	bool m_CanReceiveServerCapabilities;
+	bool m_ServerSentCapabilities;
+	CServerCapabilities m_ServerCapabilities;
+
+	bool ShouldSendChatTimeoutCodeHeuristic();
+
 	//
 	class CServerInfo m_CurrentServerInfo;
 
@@ -269,6 +281,7 @@ public:
 	// ---
 
 	const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem);
+	int SnapItemSize(int SnapID, int Index);
 	void SnapInvalidateItem(int SnapID, int Index);
 	const void *SnapFindItem(int SnapID, int Type, int ID);
 	int SnapNumItems(int SnapID);

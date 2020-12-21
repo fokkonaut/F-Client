@@ -681,6 +681,8 @@ void CClient::DisconnectWithReason(const char *pReason)
 
 	//
 	m_RconAuthed[CLIENT_MAIN] = 0;
+	m_CanReceiveServerCapabilities = true;
+	m_ServerSentCapabilities = false;
 	m_UseTempRconCommands = 0;
 	m_pConsole->DeregisterTempAll();
 	m_NetClient[CLIENT_MAIN].Disconnect(pReason);
@@ -791,6 +793,12 @@ const void *CClient::SnapGetItem(int SnapID, int Index, CSnapItem *pItem)
 	pItem->m_Type = m_aSnapshots[Config()->m_ClDummy][SnapID]->m_pAltSnap->GetItemType(Index);
 	pItem->m_ID = i->ID();
 	return i->Data();
+}
+
+int CClient::SnapItemSize(int SnapID, int Index)
+{
+	dbg_assert(SnapID >= 0 && SnapID < NUM_SNAPSHOT_TYPES, "invalid SnapID");
+	return m_aSnapshots[Config()->m_ClDummy][SnapID]->m_pAltSnap->GetItemSize(Index);
 }
 
 void CClient::SnapInvalidateItem(int SnapID, int Index)
@@ -1015,6 +1023,14 @@ const char *CClient::LoadMap(const char *pName, const char *pFilename, const SHA
 	return 0x0;
 }
 
+bool CClient::ShouldSendChatTimeoutCodeHeuristic()
+{
+	if(m_ServerSentCapabilities)
+	{
+		return false;
+	}
+	return IsDDNet(&m_CurrentServerInfo);
+}
 
 static void FormatMapDownloadFilename(const char *pName, const SHA256_DIGEST *pSha256, int Crc, bool Temp, char *pBuffer, int BufferSize)
 {
@@ -1298,6 +1314,22 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 	}
 }
 
+static CServerCapabilities GetServerCapabilities(int Version, int Flags)
+{
+	CServerCapabilities Result;
+	bool DDNet = false;
+	if(Version >= 1)
+	{
+		DDNet = Flags&SERVERCAPFLAG_DDNET;
+	}
+	Result.m_ChatTimeoutCode = DDNet;
+	if(Version >= 1)
+	{
+		Result.m_ChatTimeoutCode = Flags&SERVERCAPFLAG_CHATTIMEOUTCODE;
+	}
+	return Result;
+}
+
 void CClient::ProcessServerPacket(CNetChunk *pPacket)
 {
 	CUnpacker Unpacker;
@@ -1322,8 +1354,30 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 	if(Sys)
 	{
 		// system message
-		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MAP_CHANGE)
+		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_CAPABILITIES)
 		{
+			if(!m_CanReceiveServerCapabilities)
+			{
+				return;
+			}
+			int Version = Unpacker.GetInt();
+			int Flags = Unpacker.GetInt();
+			if(Version <= 0)
+			{
+				return;
+			}
+			m_ServerCapabilities = GetServerCapabilities(Version, Flags);
+			m_CanReceiveServerCapabilities = false;
+			m_ServerSentCapabilities = true;
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MAP_CHANGE)
+		{
+			if(m_CanReceiveServerCapabilities)
+			{
+				m_ServerCapabilities = GetServerCapabilities(0, 0);
+				m_CanReceiveServerCapabilities = false;
+			}
+
 			const char *pMap = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
 			int MapCrc = Unpacker.GetInt();
 			int MapSize = Unpacker.GetInt();
@@ -1734,7 +1788,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 					// send timeout codes
 					if(m_ReceivedSnapshots[Config()->m_ClDummy] > 50 && !m_aTimeoutCodeSent[Config()->m_ClDummy])
 					{
-						if(IsRace(&m_CurrentServerInfo))
+						if(m_ServerCapabilities.m_ChatTimeoutCode || ShouldSendChatTimeoutCodeHeuristic())
 						{
 							m_aTimeoutCodeSent[Config()->m_ClDummy] = true;
 							CNetMsg_Cl_Say Msg;

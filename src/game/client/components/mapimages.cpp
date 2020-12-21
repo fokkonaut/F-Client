@@ -141,24 +141,21 @@ void CMapImages::LoadBackground(class IMap *pMap)
 
 IGraphics::CTextureHandle CMapImages::GetEntities()
 {
-	CServerInfo Info;
-	Client()->GetServerInfo(&Info);
-
 	// DDNet default to prevent delay in seeing entities
 	const char *pEntities = "ddnet";
-	if (IsFDDrace(&Info))
+	if (GameClient()->m_GameInfoEx.m_EntitiesFDDrace)
 		pEntities = "f-ddrace";
-	else if(IsDDNet(&Info))
+	else if(GameClient()->m_GameInfoEx.m_EntitiesDDNet)
 		pEntities = "ddnet";
 	// commented out because fokkonaut ported DDNet server to 0.7 and we basically
 	// dont have any old ddrace servers, only the ones that use DDNet entities
-	else if(IsDDRace(&Info))
+	else if(GameClient()->m_GameInfoEx.m_EntitiesDDRace)
 		pEntities = "ddnet"; // pEntities = "ddrace";
-	else if(IsRace(&Info))
+	else if(GameClient()->m_GameInfoEx.m_EntitiesRace)
 		pEntities = "race";
-	else if(IsFNG(&Info))
+	else if(GameClient()->m_GameInfoEx.m_EntitiesFNG)
 		pEntities = "fng";
-	else if(IsVanilla(&Info))
+	else if(GameClient()->m_GameInfoEx.m_EntitiesVanilla)
 		pEntities = "vanilla";
 
 	if (!m_EntitiesIsLoaded || m_pEntitiesGameType != pEntities)

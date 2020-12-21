@@ -98,7 +98,7 @@ void CCamera::OnRender()
 
 		CServerInfo Info;
 		Client()->GetServerInfo(&Info);
-		if(!(m_pClient->m_Snap.m_SpecInfo.m_Active || IsRace(&Info) || Client()->State() == IClient::STATE_DEMOPLAYBACK))
+		if(!(m_pClient->m_Snap.m_SpecInfo.m_Active || GameClient()->m_GameInfoEx.m_AllowZoom || Client()->State() == IClient::STATE_DEMOPLAYBACK))
 		{
 			m_ZoomSet = false;
 			m_Zoom = 1.0f;
@@ -266,7 +266,7 @@ void CCamera::ConZoomPlus(IConsole::IResult *pResult, void *pUserData)
 	CCamera *pSelf = (CCamera *)pUserData;
 	CServerInfo Info;
 	pSelf->Client()->GetServerInfo(&Info);
-	if(pSelf->m_pClient->m_Snap.m_SpecInfo.m_Active || IsRace(&Info) || pSelf->Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	if(pSelf->m_pClient->m_Snap.m_SpecInfo.m_Active || pSelf->GameClient()->m_GameInfoEx.m_AllowZoom || pSelf->Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		pSelf->ScaleZoom(ZoomStep);
 }
 void CCamera::ConZoomMinus(IConsole::IResult *pResult, void *pUserData)
@@ -274,7 +274,7 @@ void CCamera::ConZoomMinus(IConsole::IResult *pResult, void *pUserData)
 	CCamera *pSelf = (CCamera *)pUserData;
 	CServerInfo Info;
 	pSelf->Client()->GetServerInfo(&Info);
-	if(pSelf->m_pClient->m_Snap.m_SpecInfo.m_Active || IsRace(&Info) || pSelf->Client()->State() == IClient::STATE_DEMOPLAYBACK)
+	if(pSelf->m_pClient->m_Snap.m_SpecInfo.m_Active || pSelf->GameClient()->m_GameInfoEx.m_AllowZoom || pSelf->Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		pSelf->ScaleZoom(1 / ZoomStep);
 }
 void CCamera::ConZoomReset(IConsole::IResult *pResult, void *pUserData)

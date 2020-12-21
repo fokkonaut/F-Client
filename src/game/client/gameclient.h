@@ -12,6 +12,43 @@
 
 #include <game/teamscore.h>
 
+class CGameInfoEx
+{
+public:
+	bool m_FlagStartsRace;
+	bool m_TimeScore;
+	bool m_UnlimitedAmmo;
+	bool m_DDRaceRecordMessage;
+	bool m_RaceRecordMessage;
+
+	bool m_AllowEyeWheel;
+	bool m_AllowHookColl;
+	bool m_AllowZoom;
+
+	bool m_BugDDRaceGhost;
+	bool m_BugDDRaceInput;
+	bool m_BugFNGLaserRange;
+	bool m_BugVanillaBounce;
+
+	bool m_PredictFNG;
+	bool m_PredictDDRace;
+	bool m_PredictDDRaceTiles;
+	bool m_PredictVanilla;
+
+	bool m_EntitiesDDNet;
+	bool m_EntitiesDDRace;
+	bool m_EntitiesRace;
+	bool m_EntitiesFNG;
+	bool m_EntitiesVanilla;
+	bool m_EntitiesBW;
+	bool m_EntitiesFDDrace;
+
+	bool m_Race;
+
+	bool m_DontMaskEntities;
+	bool m_AllowXSkins;
+};
+
 class CGameClient : public IGameClient
 {
 	class CStack
@@ -263,6 +300,8 @@ public:
 	};
 
 	CGameInfo m_GameInfo;
+
+	CGameInfoEx m_GameInfoEx;
 
 	struct CServerSettings
 	{

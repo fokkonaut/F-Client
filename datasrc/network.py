@@ -21,8 +21,22 @@ GameMsgIDs = Enum("GAMEMSG", ["TEAM_SWAP", "SPEC_INVALIDID", "TEAM_SHUFFLE", "TE
 							"GAME_PAUSED"]) # todo 0.8: sort (1 para)
 
 ExPlayerFlags = Flags("EXPLAYERFLAG", ["AFK", "PAUSED", "SPEC", "AIM"])
-
 Authed = Enum("AUTHED", ["NO", "HELPER", "MOD", "ADMIN"])
+GameInfoFlags = Flags("GAMEINFOFLAG", [
+	"TIMESCORE", "GAMETYPE_RACE", "GAMETYPE_FASTCAP", "GAMETYPE_FNG",
+	"GAMETYPE_DDRACE", "GAMETYPE_DDNET", "GAMETYPE_BLOCK_WORLDS",
+	"GAMETYPE_VANILLA", "GAMETYPE_PLUS", "FLAG_STARTS_RACE", "RACE",
+	"UNLIMITED_AMMO", "DDRACE_RECORD_MESSAGE", "RACE_RECORD_MESSAGE",
+	"ALLOW_EYE_WHEEL", "ALLOW_HOOK_COLL", "ALLOW_ZOOM", "BUG_DDRACE_GHOST",
+	"BUG_DDRACE_INPUT", "BUG_FNG_LASER_RANGE", "BUG_VANILLA_BOUNCE",
+	"PREDICT_FNG", "PREDICT_DDRACE", "PREDICT_DDRACE_TILES", "PREDICT_VANILLA",
+	"ENTITIES_DDNET", "ENTITIES_DDRACE", "ENTITIES_RACE", "ENTITIES_FNG",
+	"ENTITIES_VANILLA", "DONT_MASK_ENTITIES", "ENTITIES_BW"
+	# Full, use GameInfoFlags2 for more flags
+])
+GameInfoFlags2 = Flags("GAMEINFOFLAG2", [
+	"ALLOW_X_SKINS", "GAMETYPE_CITY", "GAMETYPE_FDDRACE", "ENTITIES_FDDRACE",
+])
 
 
 RawHeader = '''
@@ -64,6 +78,11 @@ enum
 	VOTE_CHOICE_PASS = 0,
 	VOTE_CHOICE_YES = 1
 };
+
+enum
+{
+	GAMEINFO_CURVERSION=6,
+};
 '''
 
 RawSource = '''
@@ -88,6 +107,8 @@ Flags = [
 	CoreEventFlags,
 	RaceFlags,
 	ExPlayerFlags,
+	GameInfoFlags,
+	GameInfoFlags2,
 ]
 
 Objects = [
@@ -242,6 +263,12 @@ Objects = [
 		NetIntAny("m_Flags"),
 		NetIntRange("m_AuthLevel", "AUTHED_NO", "AUTHED_ADMIN"),
 	]),
+
+	NetObjectEx("GameInfoEx", "gameinfo@netobj.ddnet.tw", [
+		NetIntAny("m_Flags"),
+		NetIntAny("m_Version"),
+		NetIntAny("m_Flags2"),
+	], fixup=False),
 
 	## Events
 

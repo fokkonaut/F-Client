@@ -109,6 +109,9 @@ public:
 	virtual bool DummyConnected() = 0;
 	virtual bool DummyConnecting() = 0;
 
+	// timeout
+	virtual void GenerateTimeoutSeed() = 0;
+
 	// gfx
 	virtual void SwitchWindowScreen(int Index) = 0;
 	virtual bool ToggleFullscreen() = 0;
@@ -152,6 +155,7 @@ public:
 	virtual int SnapNumItems(int SnapID) = 0;
 	virtual const void *SnapFindItem(int SnapID, int Type, int ID) = 0;
 	virtual const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem) = 0;
+	virtual int SnapItemSize(int SnapID, int Index) = 0;
 	virtual void SnapInvalidateItem(int SnapID, int Index) = 0;
 
 	virtual void *SnapNewItem(int Type, int ID, int Size) = 0;

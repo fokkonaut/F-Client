@@ -50,6 +50,11 @@ public:
 	void Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustDirection);
 };
 
+class CServerCapabilities
+{
+public:
+	bool m_ChatTimeoutCode;
+};
 
 class CClient : public IClient, public CDemoPlayer::IListener
 {
@@ -111,6 +116,11 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	int m_RconAuthed[NUM_CLIENTS];
 	char m_RconPassword[32];
 	int m_UseTempRconCommands;
+
+	// timeout
+	char m_aTimeoutCodes[NUM_CLIENTS][32];
+	bool m_aTimeoutCodeSent[NUM_CLIENTS];
+	bool m_GenerateTimeoutSeed;
 
 	// version-checking
 	char m_aVersionStr[10];
@@ -176,6 +186,13 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	class CSnapshotBuilder m_DemoRecSnapshotBuilder;
 
 	class CSnapshotDelta m_SnapshotDelta;
+
+	// server capabilities
+	bool m_CanReceiveServerCapabilities;
+	bool m_ServerSentCapabilities;
+	CServerCapabilities m_ServerCapabilities;
+
+	bool ShouldSendChatTimeoutCodeHeuristic();
 
 	//
 	class CServerInfo m_CurrentServerInfo;
@@ -256,11 +273,15 @@ public:
 	int m_DummyConnected;
 	int m_LastDummyConnectTime;
 
+	virtual void GenerateTimeoutSeed();
+	void GenerateTimeoutCodes();
+
 	virtual void GetServerInfo(CServerInfo *pServerInfo);
 
 	// ---
 
 	const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem);
+	int SnapItemSize(int SnapID, int Index);
 	void SnapInvalidateItem(int SnapID, int Index);
 	const void *SnapFindItem(int SnapID, int Type, int ID);
 	int SnapNumItems(int SnapID);
@@ -309,6 +330,7 @@ public:
 
 	static void Con_Connect(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Disconnect(IConsole::IResult *pResult, void *pUserData);
+	static void ConchainTimeoutSeed(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void Con_Quit(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Minimize(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Ping(IConsole::IResult *pResult, void *pUserData);
@@ -317,7 +339,6 @@ public:
 	static void Con_RconAuth(IConsole::IResult *pResult, void *pUserData);
 	static void Con_AddFavorite(IConsole::IResult *pResult, void *pUserData);
 	static void Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData);
-	static void Con_Play(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Record(IConsole::IResult *pResult, void *pUserData);
 	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData);
 	static void Con_AddDemoMarker(IConsole::IResult *pResult, void *pUserData);

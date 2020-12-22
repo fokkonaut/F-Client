@@ -58,6 +58,11 @@ bool IsBlockWorlds(const CServerInfo *pInfo)
 	    || (str_comp_nocase(pInfo->m_aGameType, "bw") == 0);
 }
 
+bool IsCity(const CServerInfo *pInfo)
+{
+	return str_find_nocase(pInfo->m_aGameType, "city");
+}
+
 bool IsDDNet(const CServerInfo *pInfo)
 {
 	return str_find_nocase(pInfo->m_aGameType, "ddracenet")

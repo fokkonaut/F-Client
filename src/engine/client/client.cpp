@@ -7,6 +7,7 @@
 
 #include <base/math.h>
 #include <base/system.h>
+#include <base/hash_ctxt.h>
 
 #include <engine/client.h>
 #include <engine/config.h>
@@ -38,6 +39,7 @@
 #include <engine/shared/uuid_manager.h>
 
 #include <game/version.h>
+#include <generated/protocol.h>
 
 #include <mastersrv/mastersrv.h>
 #include <versionsrv/versionsrv.h>
@@ -319,9 +321,9 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	m_LastDummy = 0;
 	m_LastDummy2 = 0;
+	m_LastDummyConnectTime = 0;
 
-	//if (Config()->m_ClDummy == 0)
-		m_LastDummyConnectTime = 0;
+	m_GenerateTimeoutSeed = true;
 }
 
 // ----- send functions -----
@@ -562,6 +564,49 @@ void CClient::EnterGame()
 	// to finish the connection
 	SendEnterGame();
 	OnEnterGame();
+
+	m_aTimeoutCodeSent[CLIENT_MAIN] = false;
+	m_aTimeoutCodeSent[CLIENT_DUMMY] = false;
+}
+
+void GenerateTimeoutCode(char *pBuffer, unsigned Size, char *pSeed, const NETADDR &Addr, bool Dummy)
+{
+	MD5_CTX Md5;
+	md5_init(&Md5);
+	const char *pDummy = Dummy ? "dummy" : "normal";
+	md5_update(&Md5, (unsigned char *)pDummy, str_length(pDummy) + 1);
+	md5_update(&Md5, (unsigned char *)pSeed, str_length(pSeed) + 1);
+	md5_update(&Md5, (unsigned char *)&Addr, sizeof(Addr));
+	MD5_DIGEST Digest = md5_finish(&Md5);
+
+	unsigned short Random[8];
+	mem_copy(Random, Digest.data, sizeof(Random));
+	generate_password(pBuffer, Size, Random, 8);
+}
+
+void CClient::GenerateTimeoutSeed()
+{
+	secure_random_password(Config()->m_ClTimeoutSeed, sizeof(Config()->m_ClTimeoutSeed), 16);
+}
+
+void CClient::GenerateTimeoutCodes()
+{
+	if(Config()->m_ClTimeoutSeed[0])
+	{
+		for(int i = 0; i < NUM_CLIENTS; i++)
+		{
+			GenerateTimeoutCode(m_aTimeoutCodes[i], sizeof(m_aTimeoutCodes[i]), Config()->m_ClTimeoutSeed, m_ServerAddress, i);
+
+			char aBuf[64];
+			str_format(aBuf, sizeof(aBuf), "timeout code '%s' (%s)", m_aTimeoutCodes[i], i == 0 ? "normal" : "dummy");
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
+		}
+	}
+	else
+	{
+		str_copy(m_aTimeoutCodes[CLIENT_MAIN], Config()->m_ClTimeoutCode, sizeof(m_aTimeoutCodes[CLIENT_MAIN]));
+		str_copy(m_aTimeoutCodes[CLIENT_DUMMY], Config()->m_ClDummyTimeoutCode, sizeof(m_aTimeoutCodes[CLIENT_DUMMY]));
+	}
 }
 
 void CClient::OnClientOnline()
@@ -612,6 +657,8 @@ void CClient::Connect(const char *pAddress)
 
 	m_InputtimeMarginGraph.Init(-150.0f, 150.0f);
 	m_GametimeMarginGraph.Init(-150.0f, 150.0f);
+
+	GenerateTimeoutCodes();
 }
 
 void CClient::DisconnectWithReason(const char *pReason)
@@ -634,6 +681,8 @@ void CClient::DisconnectWithReason(const char *pReason)
 
 	//
 	m_RconAuthed[CLIENT_MAIN] = 0;
+	m_CanReceiveServerCapabilities = true;
+	m_ServerSentCapabilities = false;
 	m_UseTempRconCommands = 0;
 	m_pConsole->DeregisterTempAll();
 	m_NetClient[CLIENT_MAIN].Disconnect(pReason);
@@ -744,6 +793,12 @@ const void *CClient::SnapGetItem(int SnapID, int Index, CSnapItem *pItem)
 	pItem->m_Type = m_aSnapshots[Config()->m_ClDummy][SnapID]->m_pAltSnap->GetItemType(Index);
 	pItem->m_ID = i->ID();
 	return i->Data();
+}
+
+int CClient::SnapItemSize(int SnapID, int Index)
+{
+	dbg_assert(SnapID >= 0 && SnapID < NUM_SNAPSHOT_TYPES, "invalid SnapID");
+	return m_aSnapshots[Config()->m_ClDummy][SnapID]->m_pAltSnap->GetItemSize(Index);
 }
 
 void CClient::SnapInvalidateItem(int SnapID, int Index)
@@ -968,6 +1023,14 @@ const char *CClient::LoadMap(const char *pName, const char *pFilename, const SHA
 	return 0x0;
 }
 
+bool CClient::ShouldSendChatTimeoutCodeHeuristic()
+{
+	if(m_ServerSentCapabilities)
+	{
+		return false;
+	}
+	return IsDDNet(&m_CurrentServerInfo);
+}
 
 static void FormatMapDownloadFilename(const char *pName, const SHA256_DIGEST *pSha256, int Crc, bool Temp, char *pBuffer, int BufferSize)
 {
@@ -1251,6 +1314,22 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 	}
 }
 
+static CServerCapabilities GetServerCapabilities(int Version, int Flags)
+{
+	CServerCapabilities Result;
+	bool DDNet = false;
+	if(Version >= 1)
+	{
+		DDNet = Flags&SERVERCAPFLAG_DDNET;
+	}
+	Result.m_ChatTimeoutCode = DDNet;
+	if(Version >= 1)
+	{
+		Result.m_ChatTimeoutCode = Flags&SERVERCAPFLAG_CHATTIMEOUTCODE;
+	}
+	return Result;
+}
+
 void CClient::ProcessServerPacket(CNetChunk *pPacket)
 {
 	CUnpacker Unpacker;
@@ -1275,8 +1354,30 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 	if(Sys)
 	{
 		// system message
-		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MAP_CHANGE)
+		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_CAPABILITIES)
 		{
+			if(!m_CanReceiveServerCapabilities)
+			{
+				return;
+			}
+			int Version = Unpacker.GetInt();
+			int Flags = Unpacker.GetInt();
+			if(Version <= 0)
+			{
+				return;
+			}
+			m_ServerCapabilities = GetServerCapabilities(Version, Flags);
+			m_CanReceiveServerCapabilities = false;
+			m_ServerSentCapabilities = true;
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MAP_CHANGE)
+		{
+			if(m_CanReceiveServerCapabilities)
+			{
+				m_ServerCapabilities = GetServerCapabilities(0, 0);
+				m_CanReceiveServerCapabilities = false;
+			}
+
 			const char *pMap = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
 			int MapCrc = Unpacker.GetInt();
 			int MapSize = Unpacker.GetInt();
@@ -1683,6 +1784,22 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 
 					// ack snapshot
 					m_AckGameTick[Config()->m_ClDummy] = GameTick;
+
+					// send timeout codes
+					if(m_ReceivedSnapshots[Config()->m_ClDummy] > 50 && !m_aTimeoutCodeSent[Config()->m_ClDummy])
+					{
+						if(m_ServerCapabilities.m_ChatTimeoutCode || ShouldSendChatTimeoutCodeHeuristic())
+						{
+							m_aTimeoutCodeSent[Config()->m_ClDummy] = true;
+							CNetMsg_Cl_Say Msg;
+							Msg.m_Mode = CHAT_ALL;
+							Msg.m_Target = -1;
+							char aBuf[256];
+							str_format(aBuf, sizeof(aBuf), "/timeout %s", m_aTimeoutCodes[Config()->m_ClDummy]);
+							Msg.m_pMessage = aBuf;
+							SendPackMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
+						}
+					}
 				}
 			}
 		}
@@ -2359,6 +2476,11 @@ void CClient::Run()
 	m_SnapshotParts[CLIENT_MAIN] = 0;
 	m_SnapshotParts[CLIENT_DUMMY] = 0;
 
+	if (m_GenerateTimeoutSeed)
+	{
+		GenerateTimeoutSeed();
+	}
+
 	if(Config()->m_Debug)
 	{
 		g_UuidManager.DebugDump();
@@ -2770,8 +2892,6 @@ void CClient::Con_RconAuth(IConsole::IResult *pResult, void *pUserData)
 
 const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 {
-	int Crc;
-
 	Disconnect();
 	m_NetClient[CLIENT_MAIN].ResetErrorString();
 
@@ -2783,10 +2903,7 @@ const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 		return pError;
 
 	// load map
-	Crc = (m_DemoPlayer.Info()->m_Header.m_aMapCrc[0]<<24)|
-		(m_DemoPlayer.Info()->m_Header.m_aMapCrc[1]<<16)|
-		(m_DemoPlayer.Info()->m_Header.m_aMapCrc[2]<<8)|
-		(m_DemoPlayer.Info()->m_Header.m_aMapCrc[3]);
+	const unsigned Crc = bytes_be_to_uint(m_DemoPlayer.Info()->m_Header.m_aMapCrc);
 	pError = LoadMapSearch(m_DemoPlayer.Info()->m_Header.m_aMapName, 0, Crc);
 	if(pError)
 	{
@@ -2819,12 +2936,6 @@ const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 	GameClient()->OnEnterGame();
 
 	return 0;
-}
-
-void CClient::Con_Play(IConsole::IResult *pResult, void *pUserData)
-{
-	CClient *pSelf = (CClient *)pUserData;
-	pSelf->DemoPlayer_Play(pResult->GetString(0), IStorage::TYPE_ALL);
 }
 
 void CClient::DemoRecorder_Start(const char *pFilename, bool WithTimestamp)
@@ -2993,12 +3104,21 @@ void CClient::ConchainWindowVSync(IConsole::IResult *pResult, void *pUserData, I
 		pfnCallback(pResult, pCallbackUserData);
 }
 
+void CClient::ConchainTimeoutSeed(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	CClient *pSelf = (CClient *)pUserData;
+	pfnCallback(pResult, pCallbackUserData);
+	if(pResult->NumArguments())
+		pSelf->m_GenerateTimeoutSeed = false;
+}
+
 void CClient::RegisterCommands()
 {
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 
 	m_pConsole->Register("dummy_connect", "", CFGFLAG_CLIENT, Con_DummyConnect, this, "Connect dummy");
 	m_pConsole->Register("dummy_disconnect", "", CFGFLAG_CLIENT, Con_DummyDisconnect, this, "Disconnect dummy");
+	m_pConsole->Chain("cl_timeout_seed", ConchainTimeoutSeed, this);
 
 	m_pConsole->Register("quit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds");
 	m_pConsole->Register("exit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds");
@@ -3009,7 +3129,6 @@ void CClient::RegisterCommands()
 	m_pConsole->Register("screenshot", "", CFGFLAG_CLIENT, Con_Screenshot, this, "Take a screenshot");
 	m_pConsole->Register("rcon", "r[command]", CFGFLAG_CLIENT, Con_Rcon, this, "Send specified command to rcon");
 	m_pConsole->Register("rcon_auth", "s[password]", CFGFLAG_CLIENT, Con_RconAuth, this, "Authenticate to rcon");
-	m_pConsole->Register("play", "r[file]", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Play, this, "Play the file specified");
 	m_pConsole->Register("record", "?s[file]", CFGFLAG_CLIENT, Con_Record, this, "Record to the file");
 	m_pConsole->Register("stoprecord", "", CFGFLAG_CLIENT, Con_StopRecord, this, "Stop recording");
 	m_pConsole->Register("add_demomarker", "", CFGFLAG_CLIENT, Con_AddDemoMarker, this, "Add demo timeline marker");

@@ -143,7 +143,7 @@ void CDebugHud::RenderTuning()
 	TextRender()->DrawTextOutlined(&s_CursorCurrent);
 	TextRender()->DrawTextOutlined(&s_CursorLabels);
 
-	float y = 50.0f+m_pClient->m_Tuning.Num()*6;
+	float y = 50.0f+m_pClient->m_Tuning[Config()->m_ClDummy].Num()*6;
 
 	Graphics()->TextureClear();
 	Graphics()->BlendNormal();

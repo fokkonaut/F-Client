@@ -52,6 +52,14 @@ void CInfoMessages::OnMessage(int MsgType, void *pRawMsg)
 		Kill.m_Player1ID = pMsg->m_Victim;
 		if(Config()->m_ClShowsocial)
 		{
+			vec4 BgIdColor = vec4(1.0f, 1.0f, 1.0f, 0.5f);
+			const int VictimTeam = m_pClient->m_Teams.Team(pMsg->m_Victim);
+			if(Kill.m_Player1ID >= 0 && Config()->m_ClChatTeamColors && VictimTeam)
+			{
+				vec3 rgb = HslToRgb(vec3(VictimTeam / 64.0f, 1.0f, 0.75f));
+				TextRender()->TextColor(rgb.r, rgb.g, rgb.b, 1.0f);
+				BgIdColor = vec4(rgb.r, rgb.g, rgb.b, 0.5f);
+			}
 			Kill.m_Player1NameCursor.m_FontSize = 36.0f;
 			TextRender()->TextDeferred(&Kill.m_Player1NameCursor, m_pClient->m_aClients[Kill.m_Player1ID].m_aName, -1);
 		}
@@ -96,7 +104,6 @@ void CInfoMessages::OnMessage(int MsgType, void *pRawMsg)
 		Kill.m_Weapon = pMsg->m_Weapon;
 		Kill.m_ModeSpecial = pMsg->m_ModeSpecial;
 		Kill.m_FlagCarrierBlue = m_pClient->m_Snap.m_pGameDataFlag ? m_pClient->m_Snap.m_pGameDataFlag->m_FlagCarrierBlue : -1;
-		Kill.m_VictimDDTeam = m_pClient->m_Teams.Team(pMsg->m_Victim);
 
 		AddInfoMsg(INFOMSG_KILL, Kill);
 	}
@@ -215,26 +222,9 @@ void CInfoMessages::RenderKillMsg(CInfoMsg *pInfoMsg, float x, float y) const
 
 	// render victim name
 	x -= VictimNameW;
-<<<<<<< HEAD
-	CTextCursor Cursor;
-	TextRender()->SetCursor(&Cursor, x, y, FontSize, TEXTFLAG_RENDER);
-
-	vec4 BgIdColor = vec4(1.0f, 1.0f, 1.0f, 0.5f);
-	if(pInfoMsg->m_Player1ID >= 0 && Config()->m_ClChatTeamColors && pInfoMsg->m_VictimDDTeam)
-	{
-		vec3 rgb = HslToRgb(vec3(pInfoMsg->m_VictimDDTeam / 64.0f, 1.0f, 0.75f));
-		TextRender()->TextColor(rgb.r, rgb.g, rgb.b, 1.0f);
-		BgIdColor = vec4(rgb.r, rgb.g, rgb.b, 0.5f);
-	}
-
-	RenderTools()->DrawClientID(TextRender(), &Cursor, pInfoMsg->m_Player1ID, BgIdColor);
-	TextRender()->TextEx(&Cursor, pInfoMsg->m_aPlayer1Name, -1);
-	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-=======
 	float AdvanceID = RenderTools()->DrawClientID(TextRender(), pInfoMsg->m_Player1NameCursor.m_FontSize, vec2(x, y), pInfoMsg->m_Player1ID);
 	pInfoMsg->m_Player1NameCursor.MoveTo(x + AdvanceID, y);
 	TextRender()->DrawTextOutlined(&pInfoMsg->m_Player1NameCursor);
->>>>>>> master
 
 	// render victim tee
 	x -= 24.0f;

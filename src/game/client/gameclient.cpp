@@ -440,6 +440,28 @@ void CGameClient::OnInit()
 	m_DDraceMsgSent[CLIENT_MAIN] = false;
 	m_DDraceMsgSent[CLIENT_DUMMY] = false;
 
+	if(Config()->m_ClTimeoutCode[0] == '\0' || str_comp(Config()->m_ClTimeoutCode, "hGuEYnfxicsXGwFq") == 0)
+	{
+		for(unsigned int i = 0; i < 16; i++)
+		{
+			if(rand() % 2)
+				Config()->m_ClTimeoutCode[i] = (char)((rand() % 26) + 97);
+			else
+				Config()->m_ClTimeoutCode[i] = (char)((rand() % 26) + 65);
+		}
+	}
+
+	if(Config()->m_ClDummyTimeoutCode[0] == '\0' || str_comp(Config()->m_ClDummyTimeoutCode, "hGuEYnfxicsXGwFq") == 0)
+	{
+		for(unsigned int i = 0; i < 16; i++)
+		{
+			if(rand() % 2)
+				Config()->m_ClDummyTimeoutCode[i] = (char)((rand() % 26) + 97);
+			else
+				Config()->m_ClDummyTimeoutCode[i] = (char)((rand() % 26) + 65);
+		}
+	}
+
 	m_InitComplete = true;
 
 	int64 End = time_get();
@@ -1304,6 +1326,147 @@ bool CompareTime(const CNetObj_PlayerInfo *Pl1, const CNetObj_PlayerInfo *Pl2)
 	return Pl1->m_Score > Pl2->m_Score;
 }
 
+static CGameInfoEx GetGameInfoEx(const CNetObj_GameInfoEx *pInfoEx, int InfoExSize, CServerInfo *pFallbackServerInfo)
+{
+	int Version = -1;
+	if(InfoExSize >= 12)
+	{
+		Version = pInfoEx->m_Version;
+	}
+	else if(InfoExSize >= 8)
+	{
+		Version = min(pInfoEx->m_Version, 4);
+	}
+	else if(InfoExSize >= 4)
+	{
+		Version = 0;
+	}
+	int Flags = 0;
+	if(Version >= 0)
+	{
+		Flags = pInfoEx->m_Flags;
+	}
+	int Flags2 = 0;
+	if(Version >= 5)
+	{
+		Flags2 = pInfoEx->m_Flags2;
+	}
+	bool Race;
+	bool FastCap;
+	bool FNG;
+	bool DDRace;
+	bool DDNet;
+	bool BlockWorlds;
+	bool City;
+	bool Vanilla;
+	bool Plus;
+	bool FDDrace;
+	if(Version < 1)
+	{
+		Race = IsRace(pFallbackServerInfo);
+		FastCap = IsFastCap(pFallbackServerInfo);
+		FNG = IsFNG(pFallbackServerInfo);
+		DDRace = IsDDRace(pFallbackServerInfo);
+		DDNet = IsDDNet(pFallbackServerInfo);
+		BlockWorlds = IsBlockWorlds(pFallbackServerInfo);
+		City = IsCity(pFallbackServerInfo);
+		Vanilla = IsVanilla(pFallbackServerInfo);
+		Plus = IsPlus(pFallbackServerInfo);
+		FDDrace = IsFDDrace(pFallbackServerInfo);
+	}
+	else
+	{
+		Race = Flags & GAMEINFOFLAG_GAMETYPE_RACE;
+		FastCap = Flags & GAMEINFOFLAG_GAMETYPE_FASTCAP;
+		FNG = Flags & GAMEINFOFLAG_GAMETYPE_FNG;
+		DDRace = Flags & GAMEINFOFLAG_GAMETYPE_DDRACE;
+		DDNet = Flags & GAMEINFOFLAG_GAMETYPE_DDNET;
+		BlockWorlds = Flags & GAMEINFOFLAG_GAMETYPE_BLOCK_WORLDS;
+		Vanilla = Flags & GAMEINFOFLAG_GAMETYPE_VANILLA;
+		Plus = Flags & GAMEINFOFLAG_GAMETYPE_PLUS;
+		City = Version >= 5 && Flags2 & GAMEINFOFLAG2_GAMETYPE_CITY;
+		FDDrace = Version >= 6 && Flags2 & GAMEINFOFLAG2_GAMETYPE_FDDRACE;
+
+		// Ensure invariants upheld by the server info parsing business.
+		DDRace = DDRace || DDNet || FDDrace;
+		Race = Race || FastCap || DDRace;
+	}
+
+	CGameInfoEx Info;
+	Info.m_FlagStartsRace = FastCap;
+	Info.m_TimeScore = Race;
+	Info.m_UnlimitedAmmo = Race;
+	Info.m_DDRaceRecordMessage = DDRace && !DDNet;
+	Info.m_RaceRecordMessage = DDNet || (Race && !DDRace);
+	Info.m_AllowEyeWheel = DDRace || BlockWorlds || City || Plus;
+	Info.m_AllowHookColl = DDRace;
+	Info.m_AllowZoom = Race || BlockWorlds || City;
+	Info.m_BugDDRaceGhost = DDRace;
+	Info.m_BugDDRaceInput = DDRace;
+	Info.m_BugFNGLaserRange = FNG;
+	Info.m_BugVanillaBounce = Vanilla;
+	Info.m_PredictFNG = FNG;
+	Info.m_PredictDDRace = DDRace;
+	Info.m_PredictDDRaceTiles = DDRace && !BlockWorlds;
+	Info.m_PredictVanilla = Vanilla || FastCap;
+	Info.m_EntitiesDDNet = DDNet;
+	Info.m_EntitiesDDRace = DDRace;
+	Info.m_EntitiesRace = Race;
+	Info.m_EntitiesFNG = FNG;
+	Info.m_EntitiesVanilla = Vanilla;
+	Info.m_EntitiesBW = BlockWorlds;
+	Info.m_Race = Race;
+	Info.m_DontMaskEntities = !DDNet;
+	Info.m_AllowXSkins = false;
+	Info.m_EntitiesFDDrace = FDDrace;
+
+	if(Version >= 0)
+	{
+		Info.m_TimeScore = Flags & GAMEINFOFLAG_TIMESCORE;
+	}
+	if(Version >= 2)
+	{
+		Info.m_FlagStartsRace = Flags & GAMEINFOFLAG_FLAG_STARTS_RACE;
+		Info.m_UnlimitedAmmo = Flags & GAMEINFOFLAG_UNLIMITED_AMMO;
+		Info.m_DDRaceRecordMessage = Flags & GAMEINFOFLAG_DDRACE_RECORD_MESSAGE;
+		Info.m_RaceRecordMessage = Flags & GAMEINFOFLAG_RACE_RECORD_MESSAGE;
+		Info.m_AllowEyeWheel = Flags & GAMEINFOFLAG_ALLOW_EYE_WHEEL;
+		Info.m_AllowHookColl = Flags & GAMEINFOFLAG_ALLOW_HOOK_COLL;
+		Info.m_AllowZoom = Flags & GAMEINFOFLAG_ALLOW_ZOOM;
+		Info.m_BugDDRaceGhost = Flags & GAMEINFOFLAG_BUG_DDRACE_GHOST;
+		Info.m_BugDDRaceInput = Flags & GAMEINFOFLAG_BUG_DDRACE_INPUT;
+		Info.m_BugFNGLaserRange = Flags & GAMEINFOFLAG_BUG_FNG_LASER_RANGE;
+		Info.m_BugVanillaBounce = Flags & GAMEINFOFLAG_BUG_VANILLA_BOUNCE;
+		Info.m_PredictFNG = Flags & GAMEINFOFLAG_PREDICT_FNG;
+		Info.m_PredictDDRace = Flags & GAMEINFOFLAG_PREDICT_DDRACE;
+		Info.m_PredictDDRaceTiles = Flags & GAMEINFOFLAG_PREDICT_DDRACE_TILES;
+		Info.m_PredictVanilla = Flags & GAMEINFOFLAG_PREDICT_VANILLA;
+		Info.m_EntitiesDDNet = Flags & GAMEINFOFLAG_ENTITIES_DDNET;
+		Info.m_EntitiesDDRace = Flags & GAMEINFOFLAG_ENTITIES_DDRACE;
+		Info.m_EntitiesRace = Flags & GAMEINFOFLAG_ENTITIES_RACE;
+		Info.m_EntitiesFNG = Flags & GAMEINFOFLAG_ENTITIES_FNG;
+		Info.m_EntitiesVanilla = Flags & GAMEINFOFLAG_ENTITIES_VANILLA;
+	}
+	if(Version >= 3)
+	{
+		Info.m_Race = Flags & GAMEINFOFLAG_RACE;
+		Info.m_DontMaskEntities = Flags & GAMEINFOFLAG_DONT_MASK_ENTITIES;
+	}
+	if(Version >= 4)
+	{
+		Info.m_EntitiesBW = Flags & GAMEINFOFLAG_ENTITIES_BW;
+	}
+	if(Version >= 5)
+	{
+		Info.m_AllowXSkins = Flags2 & GAMEINFOFLAG2_ALLOW_X_SKINS;
+	}
+	if(Version >= 6)
+	{
+		Info.m_EntitiesFDDrace = Flags2 & GAMEINFOFLAG2_ENTITIES_FDDRACE;
+	}
+	return Info;
+}
+
 void CGameClient::OnNewSnapshot()
 {
 	// clear out the invalid pointers
@@ -1355,6 +1518,8 @@ void CGameClient::OnNewSnapshot()
 		m_Tuning[Config()->m_ClDummy] = StandardTuning;
 		mem_zero(&m_GameInfo, sizeof(m_GameInfo));
 	}
+
+	bool FoundGameInfoEx = false;
 
 	// go trough all the items in the snapshot and gather the info we want
 	{
@@ -1449,14 +1614,16 @@ void CGameClient::OnNewSnapshot()
 					m_Snap.m_paPlayerInfosRace[ClientID] = pInfo;
 				}
 			}
-			else if (Item.m_Type == NETOBJTYPE_EXPLAYERINFO)
+			else if(Item.m_Type == NETOBJTYPE_DDNETPLAYER)
 			{
-				const CNetObj_ExPlayerInfo *pInfo = (const CNetObj_ExPlayerInfo*)pData;
-				int ClientID = Item.m_ID;
-				if (ClientID < MAX_CLIENTS && m_aClients[ClientID].m_Active)
+				const CNetObj_DDNetPlayer *pInfo = (const CNetObj_DDNetPlayer *)pData;
+				if(Item.m_ID < MAX_CLIENTS)
 				{
-					m_aClients[Item.m_ID].m_Aim = pInfo->m_Flags&EXPLAYERFLAG_AIM;
+					m_aClients[Item.m_ID].m_AuthLevel = pInfo->m_AuthLevel;
 					m_aClients[Item.m_ID].m_Afk = pInfo->m_Flags&EXPLAYERFLAG_AFK;
+					m_aClients[Item.m_ID].m_Paused = pInfo->m_Flags&EXPLAYERFLAG_PAUSED;
+					m_aClients[Item.m_ID].m_Spec = pInfo->m_Flags&EXPLAYERFLAG_SPEC;
+					m_aClients[Item.m_ID].m_Aim = pInfo->m_Flags&EXPLAYERFLAG_AIM;
 				}
 			}
 			else if(Item.m_Type == NETOBJTYPE_CHARACTER)
@@ -1507,6 +1674,17 @@ void CGameClient::OnNewSnapshot()
 				m_Snap.m_SpecInfo.m_Active = true;
 				m_Snap.m_SpecInfo.m_SpecMode = m_Snap.m_pSpectatorInfo->m_SpecMode;
 				m_Snap.m_SpecInfo.m_SpectatorID = m_Snap.m_pSpectatorInfo->m_SpectatorID;
+			}
+			else if(Item.m_Type == NETOBJTYPE_GAMEINFOEX)
+			{
+				if(FoundGameInfoEx)
+				{
+					continue;
+				}
+				FoundGameInfoEx = true;
+				CServerInfo ServerInfo;
+				Client()->GetServerInfo(&ServerInfo);
+				m_GameInfoEx = GetGameInfoEx((const CNetObj_GameInfoEx *)pData, Client()->SnapItemSize(IClient::SNAP_CURRENT, i), &ServerInfo);
 			}
 			else if(Item.m_Type == NETOBJTYPE_GAMEDATA)
 			{
@@ -1559,6 +1737,13 @@ void CGameClient::OnNewSnapshot()
 				m_Snap.m_paFlags[Item.m_ID%2] = (const CNetObj_Flag *)pData;
 			}
 		}
+	}
+
+	if(!FoundGameInfoEx)
+	{
+		CServerInfo ServerInfo;
+		Client()->GetServerInfo(&ServerInfo);
+		m_GameInfoEx = GetGameInfoEx(0, 0, &ServerInfo);
 	}
 
 	// setup local pointers
@@ -1686,17 +1871,23 @@ void CGameClient::OnNewSnapshot()
 		}
 	}
 
-	// ex playerinfo
+	// ex playerflags
 	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != (int)m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)
 	{
-		CMsgPacker Msg(NETMSGTYPE_CL_EXPLAYERINFO, false);
-		Msg.AddInt(m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
-		Client()->SendMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
+		CNetMsg_Cl_ExPlayerFlags Msg;
+		Msg.m_Flags = 0;
+		if (m_pControls->m_ShowHookColl[Config()->m_ClDummy])
+			Msg.m_Flags |= EXPLAYERFLAG_AIM;
+		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
+
+		// set this locally for servers that dont send us the aim flag back
 		m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim = (bool)m_pControls->m_ShowHookColl[Config()->m_ClDummy];
 
 		if (Config()->m_ClDummyCopyMoves)
 		{
-			Client()->SendMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
+			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
+
+			// set this locally for servers that dont send us the aim flag back
 			m_aClients[m_LocalClientID[!Config()->m_ClDummy]].m_Aim = (bool)(m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
 		}
 	}
@@ -1715,14 +1906,14 @@ void CGameClient::OnNewSnapshot()
 		RenderTools()->CalcScreenParams(Graphics()->ScreenAspect(), ZoomToSend, &x, &y);
 		Msg.m_X = x;
 		Msg.m_Y = y;
-		if(ZoomToSend != LastZoom || Graphics()->ScreenAspect() != LastScreenAspect)
+		if(ZoomToSend != LastZoom)
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_MAIN);
 		if(Client()->DummyConnected())
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, CLIENT_DUMMY);
 		LastZoom = ZoomToSend;
 		LastScreenAspect = Graphics()->ScreenAspect();
 	}
-	LastDummyConnected = Client()->DummyConnected();;
+	LastDummyConnected = Client()->DummyConnected();
 }
 
 void CGameClient::OnDemoRecSnap()
@@ -2063,7 +2254,10 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient, int ClientID)
 	m_ChatIgnore = false;
 	m_Friend = false;
 	m_Aim = false;
+	m_AuthLevel = AUTHED_NO;
 	m_Afk = false;
+	m_Paused = false;
+	m_Spec = false;
 	m_Evolved.m_Tick = -1;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{

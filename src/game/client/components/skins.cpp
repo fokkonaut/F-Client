@@ -422,7 +422,7 @@ int CSkins::FindSkinPart(int Part, const char *pName, bool AllowSpecialPart)
 	return -1;
 }
 
-void CSkins::RandomizeSkin()
+void CSkins::RandomizeSkin(int Dummy)
 {
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
@@ -433,8 +433,8 @@ void CSkins::RandomizeSkin()
 		if (p == 1) // SKINPART_MARKING
 			Alp = random_int() % 255;
 		int ColorVariable = (Alp << 24) | (Hue << 16) | (Sat << 8) | Lgt;
-		*CSkins::ms_apUCCVariables[p] = true;
-		*CSkins::ms_apColorVariables[p] = ColorVariable;
+		*CSkins::ms_apUCCVariables[Dummy][p] = true;
+		*CSkins::ms_apColorVariables[Dummy][p] = ColorVariable;
 	}
 
 	for(int p = 0; p < NUM_SKINPARTS; p++)
@@ -442,7 +442,7 @@ void CSkins::RandomizeSkin()
 		const CSkins::CSkinPart *s = GetSkinPart(p, random_int() % NumSkinPart(p));
 		while(s->m_Flags&CSkins::SKINFLAG_SPECIAL)
 			s = GetSkinPart(p, random_int() % NumSkinPart(p));
-		mem_copy(CSkins::ms_apSkinVariables[p], s->m_aName, MAX_SKIN_ARRAY_SIZE);
+		mem_copy(CSkins::ms_apSkinVariables[Dummy][p], s->m_aName, MAX_SKIN_ARRAY_SIZE);
 	}
 }
 

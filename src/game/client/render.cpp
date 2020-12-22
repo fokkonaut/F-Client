@@ -638,7 +638,7 @@ void CRenderTools::MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup 
 float CRenderTools::DrawClientID(ITextRender* pTextRender, float FontSize, vec2 CursorPosition, int ID,
 							const vec4& BgColor, const vec4& TextColor, bool Nameplate)
 {
-	if(Nameplate && m_pConfig->m_ClShowUserId == 2) return;
+	if(Nameplate && m_pConfig->m_ClShowUserId == 2) return 0;
 	if(!m_pConfig->m_ClShowUserId) return 0;
 
 	char aBuf[4];

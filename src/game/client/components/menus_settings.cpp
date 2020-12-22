@@ -1443,9 +1443,9 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 		static CButtonContainer s_RandomizeSkinButton;
 		if(DoButton_Menu(&s_RandomizeSkinButton, Localize("Randomize"), 0, &Button))
 		{
-			m_pClient->m_pSkins->RandomizeSkin();
+			m_pClient->m_pSkins->RandomizeSkin(m_Dummy);
 			Config()->m_PlayerSkin[0] = 0;
-			m_SkinModified = true;
+			m_SkinModified[m_Dummy] = true;
 		}
 		BottomView.VSplitLeft(SpacingW, 0, &BottomView);
 	}
@@ -1467,12 +1467,12 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 	if(DoButton_Menu(&s_CustomSwitchButton, s_CustomSkinMenu ? Localize("Basic") : Localize("Custom"), 0, &Button))
 	{
 		s_CustomSkinMenu = !s_CustomSkinMenu;
-		if(s_CustomSkinMenu && m_pSelectedSkin)
+		if(s_CustomSkinMenu && m_pSelectedSkin[m_Dummy])
 		{
-			if(m_pSelectedSkin->m_Flags&CSkins::SKINFLAG_STANDARD)
-				str_format(m_aSaveSkinName, sizeof(m_aSaveSkinName), "copy_%s", m_pSelectedSkin->m_aName);
+			if(m_pSelectedSkin[m_Dummy]->m_Flags&CSkins::SKINFLAG_STANDARD)
+				str_format(m_aSaveSkinName, sizeof(m_aSaveSkinName), "copy_%s", m_pSelectedSkin[m_Dummy]->m_aName);
 			else
-				str_copy(m_aSaveSkinName, m_pSelectedSkin->m_aName, sizeof(m_aSaveSkinName));
+				str_copy(m_aSaveSkinName, m_pSelectedSkin[m_Dummy]->m_aName, sizeof(m_aSaveSkinName));
 		}
 	}
 

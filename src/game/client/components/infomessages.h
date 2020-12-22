@@ -16,7 +16,6 @@ class CInfoMessages : public CComponent
 		int m_Player1ID;
 		CTextCursor m_Player1NameCursor;
 		CTeeRenderInfo m_Player1RenderInfo;
-		int m_VictimDDTeam;
 
 		// killer
 		int m_Player2ID;

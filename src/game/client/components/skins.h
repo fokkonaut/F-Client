@@ -68,7 +68,7 @@ public:
 	int Find(const char *pName, bool AllowSpecialSkin);
 	const CSkinPart *GetSkinPart(int Part, int Index);
 	int FindSkinPart(int Part, const char *pName, bool AllowSpecialPart);
-	void RandomizeSkin();
+	void RandomizeSkin(int Dummy);
 
 	vec3 GetColorV3(int v) const;
 	vec4 GetColorV4(int v, bool UseAlpha) const;

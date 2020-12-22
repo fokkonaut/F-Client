@@ -824,25 +824,6 @@ void CHud::RenderSpectatorHud()
 	TextRender()->TextOutlined(&s_SpectateTargetCursor, aBuf, -1);
 }
 
-void CHud::RenderLocalTime(float x)
-{
-	if(!Config()->m_ClShowLocalTimeAlways && !m_pClient->m_pScoreboard->IsActive())
-		return;
-
-	//draw the box
-	Graphics()->BlendNormal();
-	Graphics()->TextureClear();
-	Graphics()->QuadsBegin();
-	Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.4f);
-	RenderTools()->DrawRoundRectExt(x-30.0f, 0.0f, 25.0f, 12.5f, 3.75f, CUI::CORNER_B);
-	Graphics()->QuadsEnd();
-
-	//draw the text
-	char aTimeStr[6];
-	str_timestamp_format(aTimeStr, sizeof(aTimeStr), "%H:%M");
-	TextRender()->Text(0, x-25.0f, (12.5f - 5.f) / 2.f, 5.0f, aTimeStr, -1);
-}
-
 void CHud::RenderSpectatorNotification()
 {
 	if(m_pClient->m_aClients[m_pClient->m_LocalClientID[Config()->m_ClDummy]].m_Team == TEAM_SPECTATORS &&
@@ -963,8 +944,9 @@ void CHud::RenderLocalTime(float x)
 	char aTimeStr[6];
 	str_timestamp_format(aTimeStr, sizeof(aTimeStr), "%H:%M");
 	static CTextCursor s_Cursor(5.0f);
-	s_Cursor.Reset(0);
-	s_Cursor.MoveTo(x - 25.0f, (12.5f - 7.5f) / 2.f);
+	s_Cursor.m_Align = TEXTALIGN_CENTER;
+	s_Cursor.Reset(aTimeStr[4]); // last digit always indicate changes
+	s_Cursor.MoveTo(Rect.x + Rect.w / 2, (12.5f - 7.5f) / 2.f);
 	TextRender()->TextOutlined(&s_Cursor, aTimeStr, -1);
 }
 

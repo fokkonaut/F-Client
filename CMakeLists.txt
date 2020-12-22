@@ -384,7 +384,7 @@ endif()
 
 if(TARGET_OS STREQUAL "windows")
   set(PLATFORM_CLIENT)
-  set(PLATFORM_CLIENT_LIBS opengl32 winmm)
+  set(PLATFORM_CLIENT_LIBS opengl32 winmm imm32)
   set(PLATFORM_LIBS ws2_32) # Windows sockets
 elseif(TARGET_OS STREQUAL "mac")
   find_library(CARBON Carbon)
@@ -1512,6 +1512,8 @@ if(CLIENT)
     render_map.cpp
     ui.cpp
     ui.h
+    ui_rect.cpp
+    ui_rect.h
   )
   set_src(GAME_EDITOR GLOB src/game/editor
     auto_map.cpp

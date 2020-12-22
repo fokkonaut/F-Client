@@ -9,6 +9,7 @@
 #include <game/layers.h>
 #include <game/gamecore.h>
 #include "render.h"
+#include "ui.h"
 
 #include <game/teamscore.h>
 

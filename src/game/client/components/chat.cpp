@@ -394,7 +394,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 				// add the name
 				str_append(aBuf, pCompletionString, sizeof(aBuf));
 
-				// add seperator
+				// add separator
 				const char *pSeparator = "";
 				if(*(m_Input.GetString()+m_PlaceholderOffset+m_PlaceholderLength) != ' ')
 					pSeparator = m_PlaceholderOffset == 0 ? ": " : " ";

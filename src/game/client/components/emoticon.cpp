@@ -215,6 +215,7 @@ void CEmoticon::OnRender()
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
 	Graphics()->WrapNormal();
+	RenderTools()->RenderCursor(m_SelectorMouse.x + Screen.w/2, m_SelectorMouse.y + Screen.h/2, 24.0f);
 }
 
 void CEmoticon::Emote(int Emoticon)

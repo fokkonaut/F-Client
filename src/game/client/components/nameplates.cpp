@@ -37,7 +37,7 @@ void CNamePlates::RenderNameplate(
 	s_Cursor.Reset();
 	TextRender()->TextDeferred(&s_Cursor, aName, -1);
 
-	float tw = s_Cursor.Width() + RenderTools()->GetClientIdRectSize(FontSize);
+	float tw = s_Cursor.Width() + UI()->GetClientIDRectWidth(FontSize);
 
 	TextRender()->TextSecondaryColor(0.0f, 0.0f, 0.0f, 0.5f);
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -69,7 +69,8 @@ void CNamePlates::RenderNameplate(
 	if(a > 0.001f)
 	{
 		vec2 CursorPosition = vec2(Position.x-tw/2.0f, Position.y-FontSize-38.0f);
-		CursorPosition.x += RenderTools()->DrawClientID(TextRender(), s_Cursor.m_FontSize, CursorPosition, ClientID, BgIdColor, IdTextColor);
+		if(Config()->m_ClShowUserId != 2)
+			CursorPosition.x += UI()->DrawClientID(s_Cursor.m_FontSize, CursorPosition, ClientID, BgIdColor, IdTextColor);
 		s_Cursor.MoveTo(CursorPosition.x, CursorPosition.y);
 		TextRender()->DrawTextOutlined(&s_Cursor, a);
 	}

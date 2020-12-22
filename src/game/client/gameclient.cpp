@@ -17,6 +17,7 @@
 #include <generated/client_data.h>
 
 #include <game/version.h>
+#include "lineinput.h"
 #include "localization.h"
 #include "render.h"
 
@@ -380,7 +381,7 @@ void CGameClient::OnInit()
 
 	// propagate pointers
 	m_UI.Init(Config(), Graphics(), Input(), TextRender());
-	m_RenderTools.Init(Config(), Graphics(), UI());
+	m_RenderTools.Init(Config(), Graphics(), TextRender());
 
 	int64 Start = time_get();
 
@@ -729,12 +730,7 @@ void CGameClient::StartRendering()
 		Graphics()->QuadsBegin();
 		vec4 Bottom(0.45f, 0.45f, 0.45f, 1.0f);
 		vec4 Top(0.45f, 0.45f, 0.45f, 1.0f);
-		IGraphics::CColorVertex Array[4] = {
-			IGraphics::CColorVertex(0, Top.r, Top.g, Top.b, Top.a),
-			IGraphics::CColorVertex(1, Top.r, Top.g, Top.b, Top.a),
-			IGraphics::CColorVertex(2, Bottom.r, Bottom.g, Bottom.b, Bottom.a),
-			IGraphics::CColorVertex(3, Bottom.r, Bottom.g, Bottom.b, Bottom.a) };
-		Graphics()->SetColorVertex(Array, 4);
+		Graphics()->SetColor4(Top, Top, Bottom, Bottom);
 		IGraphics::CQuadItem QuadItem(0, 0, sw, sh);
 		Graphics()->QuadsDrawTL(&QuadItem, 1);
 		Graphics()->QuadsEnd();
@@ -757,6 +753,9 @@ void CGameClient::OnRender()
 
 	if(Config()->m_ClDummy && !Client()->DummyConnected())
 		Config()->m_ClDummy = 0;
+
+	// render ime candidates
+	CLineInput::RenderCandidates();
 }
 
 void CGameClient::OnRelease()

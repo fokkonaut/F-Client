@@ -592,9 +592,9 @@ void CRenderTools::RenderTeleOverlay(CTeleTile *pTele, int w, int h, float Scale
 				s_Cursor.Reset();
 				s_Cursor.m_FontSize = Size*Scale;
 				s_Cursor.MoveTo(mx*Scale - 3.f, (my+ToCenterOffset)*Scale);
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
-				UI()->TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 		}
 
@@ -659,16 +659,16 @@ void CRenderTools::RenderSpeedupOverlay(CSpeedupTile *pSpeedup, int w, int h, fl
 					// draw force
 					char aBuf[16];
 					str_format(aBuf, sizeof(aBuf), "%d", Force);
-					UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
-					UI()->TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
-					UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+					TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+					TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
+					TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 					if(MaxSpeed)
 					{
 						s_Cursor.MoveTo(mx*Scale, (my+ToCenterOffset/2)*Scale);
 						str_format(aBuf, sizeof(aBuf), "%d", MaxSpeed);
-						UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
-						UI()->TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
-						UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+						TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+						TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
+						TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 					}
 				}
 			}
@@ -723,9 +723,9 @@ void CRenderTools::RenderSwitchOverlay(CSwitchTile *pSwitch, int w, int h, float
 				s_Cursor.MoveTo(mx*Scale, (my+ToCenterOffset/2)*Scale);
 				char aBuf[16];
 				str_format(aBuf, sizeof(aBuf), "%d", Index);
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
-				UI()->TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 
 			unsigned char Delay = pSwitch[c].m_Delay;
@@ -734,9 +734,9 @@ void CRenderTools::RenderSwitchOverlay(CSwitchTile *pSwitch, int w, int h, float
 				s_Cursor.MoveTo(mx*Scale, (my+0.5f+ToCenterOffset/2)*Scale);
 				char aBuf[16];
 				str_format(aBuf, sizeof(aBuf), "%d", Delay);
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
-				UI()->TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 		}
 
@@ -788,9 +788,9 @@ void CRenderTools::RenderTuneOverlay(CTuneTile *pTune, int w, int h, float Scale
 				s_Cursor.MoveTo(mx*Scale+11.f, my*Scale+6.f);
 				char aBuf[16];
 				str_format(aBuf, sizeof(aBuf), "%d", Index);
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
-				UI()->TextRender()->TextOutlined(&s_Cursor, aBuf, -1); // numbers shouldn't be too big and in the center of the tile
-				UI()->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, Alpha);
+				TextRender()->TextOutlined(&s_Cursor, aBuf, -1); // numbers shouldn't be too big and in the center of the tile
+				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 		}
 

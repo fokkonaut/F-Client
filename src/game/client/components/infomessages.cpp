@@ -50,10 +50,10 @@ void CInfoMessages::OnMessage(int MsgType, void *pRawMsg)
 		// unpack messages
 		CInfoMsg Kill;
 		Kill.m_Player1ID = pMsg->m_Victim;
+		const int VictimTeam = m_pClient->m_Teams.Team(pMsg->m_Victim);
 		if(Config()->m_ClShowsocial)
 		{
 			vec4 BgIdColor = vec4(1.0f, 1.0f, 1.0f, 0.5f);
-			const int VictimTeam = m_pClient->m_Teams.Team(pMsg->m_Victim);
 			if(Kill.m_Player1ID >= 0 && Config()->m_ClChatTeamColors && VictimTeam)
 			{
 				vec3 rgb = HslToRgb(vec3(VictimTeam / 64.0f, 1.0f, 0.75f));
@@ -104,6 +104,7 @@ void CInfoMessages::OnMessage(int MsgType, void *pRawMsg)
 		Kill.m_Weapon = pMsg->m_Weapon;
 		Kill.m_ModeSpecial = pMsg->m_ModeSpecial;
 		Kill.m_FlagCarrierBlue = m_pClient->m_Snap.m_pGameDataFlag ? m_pClient->m_Snap.m_pGameDataFlag->m_FlagCarrierBlue : -1;
+		Kill.m_VictimDDTeam = VictimTeam;
 
 		AddInfoMsg(INFOMSG_KILL, Kill);
 	}
@@ -222,7 +223,15 @@ void CInfoMessages::RenderKillMsg(CInfoMsg *pInfoMsg, float x, float y) const
 
 	// render victim name
 	x -= VictimNameW;
-	float AdvanceID = UI()->DrawClientID(pInfoMsg->m_Player1NameCursor.m_FontSize, vec2(x, y), pInfoMsg->m_Player1ID);
+
+	vec4 BgIdColor = vec4(1.0f, 1.0f, 1.0f, 0.5f);	
+	if(pInfoMsg->m_Player1ID >= 0 && Config()->m_ClChatTeamColors && pInfoMsg->m_VictimDDTeam)
+	{
+		vec3 rgb = HslToRgb(vec3(pInfoMsg->m_VictimDDTeam / 64.0f, 1.0f, 0.75f));
+		BgIdColor = vec4(rgb.r, rgb.g, rgb.b, 0.5f);
+	}
+
+	float AdvanceID = UI()->DrawClientID(pInfoMsg->m_Player1NameCursor.m_FontSize, vec2(x, y), pInfoMsg->m_Player1ID, BgIdColor);
 	pInfoMsg->m_Player1NameCursor.MoveTo(x + AdvanceID, y);
 	TextRender()->DrawTextOutlined(&pInfoMsg->m_Player1NameCursor);
 

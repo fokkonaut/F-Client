@@ -1736,7 +1736,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
   set_src(TESTS GLOB src/test
     bezier.cpp
     datafile.cpp
-    ex.cpp
     fs.cpp
     git_revision.cpp
     hash.cpp

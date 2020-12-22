@@ -42,8 +42,8 @@ void CInfoMessages::OnMessage(int MsgType, void *pRawMsg)
 
 	if(MsgType == NETMSGTYPE_SV_KILLMSG)
 	{
-		// if(Race && m_pClient->m_Snap.m_pGameDataRace && m_pClient->m_Snap.m_pGameDataRace->m_RaceFlags&RACEFLAG_HIDE_KILLMSG)
-		// 	return;
+		if(Race && m_pClient->m_Snap.m_pGameDataRace && m_pClient->m_Snap.m_pGameDataRace->m_RaceFlags&RACEFLAG_HIDE_KILLMSG)
+			return;
 
 		CNetMsg_Sv_KillMsg *pMsg = (CNetMsg_Sv_KillMsg *)pRawMsg;
 

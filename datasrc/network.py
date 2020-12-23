@@ -537,11 +537,11 @@ Messages = [
 		NetIntAny("m_Y"),
 	]),
 
-	NetMessageEx("Sv_TeamsState", "teamstate@ddnet7.tw", []),
+	NetMessageEx("Sv_TeamsState", "teamsstate@netmsg.ddnet.tw", []),
 
-	NetMessageEx("Cl_ExPlayerFlags", "explayerflags@ddnet7.tw", [
+	NetMessageEx("Cl_ExPlayerFlags", "explayerflags@netmsg.7.ddnet.tw", [
 		NetIntAny("m_Flags"),
 	]),
 
-	NetMessageEx("Cl_IsDDrace", "isddrace@ddnet7.tw", []),
+	NetMessageEx("Cl_IsDDrace", "isddrace@netmsg.7.ddnet.tw", []),
 ]

@@ -31,14 +31,6 @@ void CNamePlates::RenderNameplate(
 	char aName[64];
 	str_format(aName, sizeof(aName), "%s", Config()->m_ClShowsocial ? m_pClient->m_aClients[ClientID].m_aName: "");
 
-	// TODO: cache nameplates
-	static CTextCursor s_Cursor;
-	s_Cursor.m_FontSize = FontSize;
-	s_Cursor.Reset();
-	TextRender()->TextDeferred(&s_Cursor, aName, -1);
-
-	float tw = s_Cursor.Width() + UI()->GetClientIDRectWidth(FontSize);
-
 	TextRender()->TextSecondaryColor(0.0f, 0.0f, 0.0f, 0.5f);
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	if(Config()->m_ClNameplatesTeamcolors && m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
@@ -62,9 +54,17 @@ void CNamePlates::RenderNameplate(
 	if (Config()->m_ClNameplatesTeamcolors && m_pClient->m_Teams.Team(ClientID))
 	{
 		vec3 rgb = HslToRgb(vec3(m_pClient->m_Teams.Team(ClientID) / 64.0f, 1.0f, 0.75f));
-		TextRender()->TextColor(rgb.r, rgb.g, rgb.b, 1.0f);
+		TextRender()->TextColor(rgb.r, rgb.g, rgb.b, a);
 		BgIdColor = vec4(rgb.r, rgb.g, rgb.b, a * 0.5f);
 	}
+
+	// TODO: cache nameplates
+	static CTextCursor s_Cursor;
+	s_Cursor.m_FontSize = FontSize;
+	s_Cursor.Reset();
+	TextRender()->TextDeferred(&s_Cursor, aName, -1);
+
+	float tw = s_Cursor.Width() + (Config()->m_ClShowUserId == 2 ? 0.f : UI()->GetClientIDRectWidth(FontSize));
 
 	if(a > 0.001f)
 	{

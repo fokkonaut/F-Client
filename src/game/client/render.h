@@ -83,8 +83,6 @@ public:
 		float OffsetX, float OffsetY, float Aspect, float Zoom, float aPoints[4]);
 	void MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup *pGroup, float Zoom);
 
-	float GetClientIdRectSize(float FontSize, bool Nameplate = false);
-
 	void RenderTeleOverlay(CTeleTile *pTele, int w, int h, float Scale, float Alpha=1.0f);
 	void RenderSpeedupOverlay(CSpeedupTile *pTele, int w, int h, float Scale, float Alpha=1.0f);
 	void RenderSwitchOverlay(CSwitchTile *pSwitch, int w, int h, float Scale, float Alpha=1.0f);

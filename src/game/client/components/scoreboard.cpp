@@ -537,6 +537,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 		bool RenderDead = pInfo->m_pPlayerInfo->m_PlayerFlags&PLAYERFLAG_DEAD;
 		float ColorAlpha = RenderDead ? 0.5f : 1.0f;
+		TextRender()->TextColor(1.0f, 1.0f, 1.0f, ColorAlpha);
 
 		int DDTeam = m_pClient->m_Teams.Team(pInfo->m_ClientID);
 		int NextDDTeam = 0;
@@ -564,6 +565,7 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 			}
 		}
 
+		const char *pTeam = "";
 		if (DDTeam != TEAM_FLOCK)
 		{
 			vec3 rgb = HslToRgb(vec3(DDTeam / 64.0f, 1.0f, 0.5f));
@@ -582,31 +584,28 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 
 			if (NextDDTeam != DDTeam)
 			{
-				char aBuf[64];
 				//if(m_pClient->m_GameInfo.m_aTeamSize[Config()->m_ClDummy][0] > 8)
 				{
+					str_format(aBuf, sizeof(aBuf), "%d", DDTeam);
+					s_Cursor.Reset();
 					s_Cursor.m_FontSize = FontSize/1.5f;
 					s_Cursor.m_MaxWidth = NameLength+3;
-					s_Cursor.MoveTo(x, y + Spacing + FontSize - (FontSize/1.5f));
-
-					str_format(aBuf, sizeof(aBuf),"%d", DDTeam);
+					s_Cursor.MoveTo(x+15.f, y + Spacing + FontSize - (FontSize/1.5f));
 				}
 				// TODO: this would work, if uncommented, but the text is under the line, since its smaller than in 0.6
 				/*else
 				{
-					str_format(aBuf, sizeof(aBuf),"Team %d", DDTeam);
-					tw = TextRender()->TextWidth(0, FontSize, aBuf, -1, -1.0f);
-					TextRender()->SetCursor(&Cursor, PingOffset+w/2.0f-tw/2.0f, y + LineHeight, FontSize/1.5f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
-					Cursor.m_LineWidth = NameLength+3;
+					str_format(aBuf, sizeof(aBuf), "Team %d", DDTeam);
+					s_Cursor.m_FontSize = FontSize/1.5f;
+					s_Cursor.m_MaxWidth = NameLength+3;
+					s_Cursor.MoveTo(PingOffset+w/2.0f, y+LineHeight);
 				}*/
 				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
-				TextRender()->TextOutlined(&s_Cursor, aBuf, -1);
+				pTeam = aBuf;
 			}
 		}
 
 		OldDDTeam = DDTeam;
-
-		TextRender()->TextColor(1.0f, 1.0f, 1.0f, ColorAlpha);
 
 		// color for text
 		vec3 TextColor = vec3(1.0f, 1.0f, 1.0f);
@@ -632,6 +631,12 @@ float CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const c
 		// set text color
 		TextRender()->TextColor(TextColor.r, TextColor.g, TextColor.b, ColorAlpha);
 		TextRender()->TextSecondaryColor(OutlineColor.r, OutlineColor.g, OutlineColor.b, OutlineColor.a);
+
+		// render team number
+		if (pTeam[0])
+			TextRender()->TextOutlined(&s_Cursor, pTeam, -1);
+		// reset fontsize again
+		s_Cursor.m_FontSize = FontSize;
 
 		// ping
 		TextRender()->TextColor(TextColor.r, TextColor.g, TextColor.b, 0.5f*ColorAlpha);

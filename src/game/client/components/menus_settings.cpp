@@ -955,11 +955,15 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	if(DoButton_CheckBox(&s_Showhud, Localize("Show ingame HUD"), Config()->m_ClShowhud, &Button))
 		Config()->m_ClShowhud ^= 1;
 
+	// show user ids
 	GameRight.HSplitTop(Spacing, 0, &GameRight);
 	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
 	static int s_ShowUserId = 0;
-	if(DoButton_CheckBox(&s_ShowUserId, Localize("Show user IDs"), Config()->m_ClShowUserId, &Button))
-		Config()->m_ClShowUserId ^= 1;
+	{
+		const int NumLabels = 3;
+		const char *aLabels[NumLabels] = { Localize("never", "Show user IDs"), Localize("always", "Show user IDs"), Localize("except nameplate", "Show user IDs")};
+		UI()->DoScrollbarOptionLabeled(&s_ShowUserId, &Config()->m_ClShowUserId, &Button, Localize("Show user IDs"), aLabels, NumLabels);
+	}
 
 	GameRight.HSplitTop(Spacing, 0, &GameRight);
 	GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);

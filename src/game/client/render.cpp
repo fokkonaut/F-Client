@@ -384,10 +384,3 @@ void CRenderTools::MapScreenToGroup(float CenterX, float CenterY, CMapItemGroup 
 		pGroup->m_OffsetX, pGroup->m_OffsetY, Graphics()->ScreenAspect(), Zoom, aPoints);
 	Graphics()->MapScreen(aPoints[0], aPoints[1], aPoints[2], aPoints[3]);
 }
-
-float CRenderTools::GetClientIdRectSize(float FontSize, bool Nameplate)
-{
-	if(Nameplate && m_pConfig->m_ClShowUserId == 2) return 0;
-	if(!m_pConfig->m_ClShowUserId) return 0;
-	return 1.4f * FontSize + 0.2f * FontSize;
-}

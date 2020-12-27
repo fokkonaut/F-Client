@@ -341,6 +341,11 @@ void CCharacterCore::Tick(bool UseInput)
 		}
 	}
 
+	// Jetpack prediction
+	if(UseInput && (m_Input.m_Fire&1) && m_Jetpack)
+		m_Vel += TargetDirection * -1.0f * (m_pWorld->m_Tuning[Config()->m_ClDummy].m_JetpackStrength / 100.0f / 6.11f);
+
+	// Speedup prediction
 	int Index = m_pCollision->GetPureMapIndex(m_Pos);
 	if(Config()->m_ClPredictDDRace && m_pCollision->IsSpeedup(Index))
 	{
@@ -399,6 +404,7 @@ void CCharacterCore::Tick(bool UseInput)
 		}
 	}
 
+	// stopper prediction
 	if(Config()->m_ClPredictDDRace)
 		m_Vel = ClampVel(m_MoveRestrictions, m_Vel);
 
@@ -504,6 +510,11 @@ void CCharacterCore::Read(const CNetObj_CharacterCore *pObjCore)
 	m_Jumped = pObjCore->m_Jumped;
 	m_Direction = pObjCore->m_Direction;
 	m_Angle = pObjCore->m_Angle;
+}
+
+void CCharacterCore::ReadDDNet(const CNetObj_DDNetCharacter *pObjDDNet)
+{
+	m_Jetpack = pObjDDNet->m_Flags & CHARACTERFLAG_JETPACK;
 }
 
 void CCharacterCore::Quantize()

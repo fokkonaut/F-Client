@@ -37,6 +37,10 @@ GameInfoFlags = Flags("GAMEINFOFLAG", [
 GameInfoFlags2 = Flags("GAMEINFOFLAG2", [
 	"ALLOW_X_SKINS", "GAMETYPE_CITY", "GAMETYPE_FDDRACE", "ENTITIES_FDDRACE",
 ])
+CharacterFlags = Flags("CHARACTERFLAG", ["SOLO", "JETPACK", "NO_COLLISION", "ENDLESS_HOOK", "ENDLESS_JUMP", "SUPER",
+                  "NO_HAMMER_HIT", "NO_SHOTGUN_HIT", "NO_GRENADE_HIT", "NO_LASER_HIT", "NO_HOOK",
+                  "TELEGUN_GUN", "TELEGUN_GRENADE", "TELEGUN_LASER",
+                  "WEAPON_HAMMER", "WEAPON_GUN", "WEAPON_SHOTGUN", "WEAPON_GRENADE", "WEAPON_LASER", "WEAPON_NINJA"])
 
 
 RawHeader = '''
@@ -109,6 +113,7 @@ Flags = [
 	ExPlayerFlags,
 	GameInfoFlags,
 	GameInfoFlags2,
+	CharacterFlags,
 ]
 
 Objects = [
@@ -262,6 +267,14 @@ Objects = [
 	NetObjectEx("DDNetPlayer", "player@netobj.ddnet.tw", [
 		NetIntAny("m_Flags"),
 		NetIntRange("m_AuthLevel", "AUTHED_NO", "AUTHED_ADMIN"),
+	]),
+
+	NetObjectEx("DDNetCharacter", "character@netobj.ddnet.tw", [
+		NetIntAny("m_Flags"),
+		NetTick("m_FreezeEnd"),
+		NetIntRange("m_Jumps", 0, 255),
+		NetIntAny("m_TeleCheckpoint"),
+		NetIntRange("m_StrongWeakID", 0, 'MAX_CLIENTS-1'),
 	]),
 
 	NetObjectEx("GameInfoEx", "gameinfo@netobj.ddnet.tw", [

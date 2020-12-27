@@ -778,12 +778,19 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker, bool IsDummy)
 		// unpack the new tuning
 		CTuningParams NewTuning;
 		int *pParams = (int *)&NewTuning;
-		for(unsigned i = 0; i < sizeof(CTuningParams)/sizeof(int); i++)
-			pParams[i] = pUnpacker->GetInt();
 
-		// check for unpacking errors
-		if(pUnpacker->Error())
-			return;
+		// No jetpack on DDNet incompatible servers:
+		NewTuning.m_JetpackStrength = 0;
+		for(unsigned i = 0; i < sizeof(CTuningParams)/sizeof(int); i++)
+		{
+			int Value = pUnpacker->GetInt();
+
+			// check for unpacking errors
+			if(pUnpacker->Error())
+				break;
+
+			pParams[i] = Value;
+		}
 
 		m_ServerMode = SERVERMODE_PURE;
 
@@ -1623,6 +1630,19 @@ void CGameClient::OnNewSnapshot()
 					m_aClients[Item.m_ID].m_Paused = pInfo->m_Flags&EXPLAYERFLAG_PAUSED;
 					m_aClients[Item.m_ID].m_Spec = pInfo->m_Flags&EXPLAYERFLAG_SPEC;
 					m_aClients[Item.m_ID].m_Aim = pInfo->m_Flags&EXPLAYERFLAG_AIM;
+				}
+			}
+			else if(Item.m_Type == NETOBJTYPE_DDNETCHARACTER)
+			{
+				const CNetObj_DDNetCharacter *pCharacterData = (const CNetObj_DDNetCharacter *)pData;
+
+				if(Item.m_ID < MAX_CLIENTS)
+				{
+					m_Snap.m_aCharacters[Item.m_ID].m_ExtendedData = *pCharacterData;
+					m_Snap.m_aCharacters[Item.m_ID].m_HasExtendedData = true;
+
+					CClientData *pClient = &m_aClients[Item.m_ID];
+					pClient->m_Predicted.ReadDDNet(pCharacterData);
 				}
 			}
 			else if(Item.m_Type == NETOBJTYPE_CHARACTER)

@@ -231,6 +231,9 @@ public:
 			CNetObj_Character m_Prev;
 			CNetObj_Character m_Cur;
 
+			CNetObj_DDNetCharacter m_ExtendedData;
+			bool m_HasExtendedData;
+
 			// interpolated position
 			vec2 m_Position;
 		};

@@ -195,6 +195,10 @@ public:
 	vec2 LimitVel(vec2 Vel);
 	void ApplyForce(vec2 Force);
 
+	// DDNet character
+	void ReadDDNet(const CNetObj_DDNetCharacter *pObjDDNet);
+	bool m_Jetpack;
+
 private:
 
 	int m_MoveRestrictions;

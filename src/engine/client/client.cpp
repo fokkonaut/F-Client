@@ -1330,9 +1330,14 @@ static CServerCapabilities GetServerCapabilities(int Version, int Flags)
 		DDNet = Flags&SERVERCAPFLAG_DDNET;
 	}
 	Result.m_ChatTimeoutCode = DDNet;
+	Result.m_AnyPlayerFlag = false; // 0.7 can not have any flags, they are checked
 	if(Version >= 1)
 	{
 		Result.m_ChatTimeoutCode = Flags&SERVERCAPFLAG_CHATTIMEOUTCODE;
+	}
+	if(Version >= 2)
+	{
+		Result.m_AnyPlayerFlag = Flags & SERVERCAPFLAG_ANYPLAYERFLAG;
 	}
 	return Result;
 }

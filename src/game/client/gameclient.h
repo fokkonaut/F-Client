@@ -271,7 +271,6 @@ public:
 		bool m_ChatIgnore;
 		bool m_Friend;
 
-		bool m_Aim;
 		int m_AuthLevel;
 		bool m_Afk;
 		bool m_Paused;

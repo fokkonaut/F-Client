@@ -139,6 +139,9 @@ int CControls::SnapInput(int *pData)
 	if(m_pClient->m_pScoreboard->IsActive())
 		m_InputData[Config()->m_ClDummy].m_PlayerFlags |= PLAYERFLAG_SCOREBOARD;
 
+	if(m_ShowHookColl[Config()->m_ClDummy] && Client()->ServerCapAnyPlayerFlag())
+		m_InputData[Config()->m_ClDummy].m_PlayerFlags |= PLAYERFLAG_AIM;
+
 	if(m_LastData[Config()->m_ClDummy].m_PlayerFlags != m_InputData[Config()->m_ClDummy].m_PlayerFlags)
 		Send = true;
 
@@ -187,6 +190,9 @@ int CControls::SnapInput(int *pData)
 			pDummyInput->m_Fire += m_InputData[Config()->m_ClDummy].m_Fire - m_LastData[Config()->m_ClDummy].m_Fire;
 			pDummyInput->m_NextWeapon += m_InputData[Config()->m_ClDummy].m_NextWeapon - m_LastData[Config()->m_ClDummy].m_NextWeapon;
 			pDummyInput->m_PrevWeapon += m_InputData[Config()->m_ClDummy].m_PrevWeapon - m_LastData[Config()->m_ClDummy].m_PrevWeapon;
+
+			// if the server doesnt send the ddnet capabilities dummy copy moves with hookline should still show the hookline for dummy too
+			m_ShowHookColl[!Config()->m_ClDummy] = m_ShowHookColl[Config()->m_ClDummy];
 
 			m_InputData[!Config()->m_ClDummy] = *pDummyInput;
 		}

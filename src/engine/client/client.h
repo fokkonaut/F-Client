@@ -54,6 +54,7 @@ class CServerCapabilities
 {
 public:
 	bool m_ChatTimeoutCode;
+	bool m_AnyPlayerFlag;
 };
 
 class CClient : public IClient, public CDemoPlayer::IListener
@@ -277,6 +278,8 @@ public:
 
 	virtual void GenerateTimeoutSeed();
 	void GenerateTimeoutCodes();
+
+	bool ServerCapAnyPlayerFlag() { return m_ServerCapabilities.m_AnyPlayerFlag; }
 
 	virtual void GetServerInfo(CServerInfo *pServerInfo);
 

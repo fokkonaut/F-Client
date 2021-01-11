@@ -1625,7 +1625,6 @@ void CGameClient::OnNewSnapshot()
 					m_aClients[Item.m_ID].m_Afk = pInfo->m_Flags&EXPLAYERFLAG_AFK;
 					m_aClients[Item.m_ID].m_Paused = pInfo->m_Flags&EXPLAYERFLAG_PAUSED;
 					m_aClients[Item.m_ID].m_Spec = pInfo->m_Flags&EXPLAYERFLAG_SPEC;
-					m_aClients[Item.m_ID].m_Aim = pInfo->m_Flags&EXPLAYERFLAG_AIM;
 				}
 			}
 			else if(Item.m_Type == NETOBJTYPE_DDNETCHARACTER)
@@ -1874,26 +1873,7 @@ void CGameClient::OnNewSnapshot()
 	else
 		m_ServerMode = SERVERMODE_PUREMOD;
 
-	// ex playerflags
-	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != (int)m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)
-	{
-		CNetMsg_Cl_ExPlayerFlags Msg;
-		Msg.m_Flags = 0;
-		if (m_pControls->m_ShowHookColl[Config()->m_ClDummy])
-			Msg.m_Flags |= EXPLAYERFLAG_AIM;
-		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, Config()->m_ClDummy);
-
-		// set this locally for servers that dont send us the aim flag back
-		m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim = (bool)m_pControls->m_ShowHookColl[Config()->m_ClDummy];
-
-		if (Config()->m_ClDummyCopyMoves)
-		{
-			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL, !Config()->m_ClDummy);
-
-			// set this locally for servers that dont send us the aim flag back
-			m_aClients[m_LocalClientID[!Config()->m_ClDummy]].m_Aim = (bool)(m_pControls->m_ShowHookColl[!Config()->m_ClDummy] = m_pControls->m_ShowHookColl[Config()->m_ClDummy]);
-		}
-	}
+	// F-Client
 
 	static float LastZoom = .0;
 	static float LastScreenAspect = .0;
@@ -2256,7 +2236,6 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient, int ClientID)
 	m_Active = false;
 	m_ChatIgnore = false;
 	m_Friend = false;
-	m_Aim = false;
 	m_AuthLevel = AUTHED_NO;
 	m_Afk = false;
 	m_Paused = false;

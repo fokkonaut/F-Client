@@ -112,6 +112,9 @@ public:
 	// timeout
 	virtual void GenerateTimeoutSeed() = 0;
 
+	//
+	virtual bool ServerCapAnyPlayerFlag() = 0;
+
 	// gfx
 	virtual void SwitchWindowScreen(int Index) = 0;
 	virtual bool ToggleFullscreen() = 0;
@@ -214,7 +217,6 @@ public:
 	virtual int ClientVersion() const = 0;
 	virtual int DDNetVersion() = 0;
 	virtual const char *DDNetVersionStr() = 0;
-
 };
 
 extern IGameClient *CreateGameClient();

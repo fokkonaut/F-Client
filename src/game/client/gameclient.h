@@ -117,6 +117,8 @@ class CGameClient : public IGameClient
 
 	void LoadFonts();
 
+	char m_aDDNetVersionStr[64];
+
 public:
 	IKernel *Kernel() { return IInterface::Kernel(); }
 	IEngine *Engine() const { return m_pEngine; }
@@ -346,6 +348,8 @@ public:
 	virtual const char *GetItemName(int Type) const;
 	virtual const char *Version() const;
 	virtual const char *NetVersion() const;
+	virtual int DDNetVersion();
+	virtual const char *DDNetVersionStr();
 	virtual int ClientVersion() const;
 	void GetPlayerLabel(char* aBuf, int BufferSize, int ClientID, const char* ClientName);
 	void StartRendering();
@@ -406,9 +410,6 @@ public:
 	int GetClientIconSprite(int ClientID);
 
 	class CTeamsCore m_Teams;
-
-private:
-	bool m_DDraceMsgSent[NUM_CLIENTS];
 };
 
 

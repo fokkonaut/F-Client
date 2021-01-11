@@ -212,6 +212,8 @@ public:
 	virtual const char *Version() const = 0;
 	virtual const char *NetVersion() const = 0;
 	virtual int ClientVersion() const = 0;
+	virtual int DDNetVersion() = 0;
+	virtual const char *DDNetVersionStr() = 0;
 
 };
 

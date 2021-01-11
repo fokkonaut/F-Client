@@ -131,6 +131,8 @@ void CGameClient::CStack::Add(class CComponent *pComponent) { m_paComponents[m_N
 const char *CGameClient::Version() const { return GAME_VERSION; }
 const char *CGameClient::NetVersion() const { return GAME_NETVERSION; }
 int CGameClient::ClientVersion() const { return CLIENT_VERSION; }
+int CGameClient::DDNetVersion() { return CLIENT_DDNET_VERSION; }
+const char *CGameClient::DDNetVersionStr() { return m_aDDNetVersionStr; }
 const char *CGameClient::GetItemName(int Type) const { return m_NetObjHandler.GetObjName(Type); }
 bool CGameClient::IsXmas() const { return Config()->m_ClShowXmasHats == 2 || (Config()->m_ClShowXmasHats == 1 && m_IsXmasDay); }
 bool CGameClient::IsEaster() const { return Config()->m_ClShowEasterEggs == 2 || (Config()->m_ClShowEasterEggs == 1 && m_IsEasterDay); }
@@ -438,9 +440,6 @@ void CGameClient::OnInit()
 	m_IsEasterDay = time_iseasterday();
 	m_pMenus->RenderLoading();
 
-	m_DDraceMsgSent[CLIENT_MAIN] = false;
-	m_DDraceMsgSent[CLIENT_DUMMY] = false;
-
 	if(Config()->m_ClTimeoutCode[0] == '\0' || str_comp(Config()->m_ClTimeoutCode, "hGuEYnfxicsXGwFq") == 0)
 	{
 		for(unsigned int i = 0; i < 16; i++)
@@ -517,7 +516,6 @@ void CGameClient::OnDummySwap()
 void CGameClient::OnDummyDisconnect()
 {
 	m_LocalClientID[CLIENT_DUMMY] = -1;
-	m_DDraceMsgSent[CLIENT_DUMMY] = false;
 
 	for (int i = 0; i < MAX_CLIENTS; i++)
 		m_aClientsDummy[i].Reset(this, i);
@@ -631,8 +629,6 @@ void CGameClient::OnReset()
 		m_LastFlagCarrierBlue = FLAG_MISSING;
 
 		m_Teams.Reset();
-		m_DDraceMsgSent[CLIENT_MAIN] = false;
-		m_DDraceMsgSent[CLIENT_DUMMY] = false;
 	}
 }
 
@@ -1877,18 +1873,6 @@ void CGameClient::OnNewSnapshot()
 		m_ServerMode = SERVERMODE_PURE;
 	else
 		m_ServerMode = SERVERMODE_PUREMOD;
-
-	// send the server that we are a F-Client
-	for (int i = 0; i < NUM_CLIENTS; i++)
-	{
-		if (!m_DDraceMsgSent[i] && m_Snap.m_pLocalInfo && (Client()->DummyConnected() || i != CLIENT_DUMMY))
-		{
-			CMsgPacker Msg(NETMSGTYPE_CL_ISDDRACE, false);
-			Msg.AddInt(DDRACE_VERSION);
-			Client()->SendMsg(&Msg, MSGFLAG_VITAL, i);
-			m_DDraceMsgSent[i] = true;
-		}
-	}
 
 	// ex playerflags
 	if (m_pControls->m_ShowHookColl[Config()->m_ClDummy] != (int)m_aClients[m_LocalClientID[Config()->m_ClDummy]].m_Aim)

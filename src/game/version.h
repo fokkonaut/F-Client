@@ -4,9 +4,10 @@
 #define GAME_VERSION_H
 #define GAME_VERSION "0.7.5, 3.0"
 #define GAME_NETVERSION "0.7 802f1be60a05665f"
-#define CLIENT_VERSION 0x0f2080
+#define CLIENT_VERSION 0x0f3000
 #define PREV_CLIENT_VERSION 0x0f2070
 #define CLIENT_DDNET_VERSION 15025
+#define GAME_NAME "F-Client"
 #define SETTINGS_FILENAME "settings_fclient"
 #define FCLIENT_STRING "fclient!"
 static const char GAME_RELEASE_VERSION[8] = "0.7.5";

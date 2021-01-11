@@ -310,7 +310,7 @@ void CPlayers::RenderPlayer(
 			ExDirection.y = round_to_int(ExDirection.y*256.0f) / 256.0f;
 		} while (!DoBreak);
 
-		if(Config()->m_ClShowHookCollAlways && (pPlayerInfo->m_PlayerFlags&PLAYERFLAG_AIM))
+		if(Config()->m_ClShowHookCollAlways && Aim)
 		{
 			// invert the hook coll colors when using cl_show_hook_coll_always and +showhookcoll is pressed
 			HookCollColor.r = 1.0f - HookCollColor.r;

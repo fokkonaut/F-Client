@@ -260,6 +260,30 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
 	Graphics()->BlendNormal();
 }
 
+CNetObj_Projectile ProjectileDDNetStripExtraInfo(const CNetObj_DDNetProjectile *pProj)
+{
+	CNetObj_Projectile Result = {0};
+	Result.m_X = pProj->m_X / 100.0f;
+	Result.m_Y = pProj->m_Y / 100.0f;
+	float Angle = pProj->m_Angle / 1000000.0f;
+	Result.m_VelX = sin(-Angle) * 100.0f;
+	Result.m_VelY = cos(-Angle) * 100.0f;
+	Result.m_Type = pProj->m_Type;
+	Result.m_StartTick = pProj->m_StartTick;
+	return Result;
+}
+
+CNetObj_Projectile ProjectileStripExtraInfo(const CNetObj_Projectile *pProj)
+{
+	if(!(pProj->m_VelY >= 0 && (pProj->m_VelY & PROJECTILEFLAG_IS_DDNET) != 0))
+	{
+		return *pProj;
+	}
+	CNetObj_DDNetProjectile Proj;
+	mem_copy(&Proj, pProj, sizeof(Proj));
+	return ProjectileDDNetStripExtraInfo(&Proj);
+}
+
 void CItems::OnRender()
 {
 	if(Client()->State() < IClient::STATE_ONLINE)
@@ -271,9 +295,18 @@ void CItems::OnRender()
 		IClient::CSnapItem Item;
 		const void *pData = Client()->SnapGetItem(IClient::SNAP_CURRENT, i, &Item);
 
-		if(Item.m_Type == NETOBJTYPE_PROJECTILE)
+		if(Item.m_Type == NETOBJTYPE_PROJECTILE || Item.m_Type == NETOBJTYPE_DDNETPROJECTILE)
 		{
-			RenderProjectile((const CNetObj_Projectile *)pData, Item.m_ID);
+			CNetObj_Projectile Normal;
+			if(Item.m_Type == NETOBJTYPE_PROJECTILE)
+			{
+				Normal = ProjectileStripExtraInfo((const CNetObj_Projectile *)pData);
+			}
+			else
+			{
+				Normal = ProjectileDDNetStripExtraInfo((const CNetObj_DDNetProjectile *)pData);
+			}
+			RenderProjectile(&Normal, Item.m_ID);
 		}
 		else if(Item.m_Type == NETOBJTYPE_PICKUP)
 		{

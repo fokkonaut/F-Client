@@ -389,7 +389,10 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 	{
 		s_LastSelectionTime = Client()->LocalTime();
 		m_pSelectedSkin[m_Dummy] = s_paSkinList[NewSelected];
-		mem_copy(Config()->m_PlayerSkin, m_pSelectedSkin[m_Dummy]->m_aName, sizeof(Config()->m_PlayerSkin));
+		if (m_Dummy)
+			mem_copy(Config()->m_DummySkin, m_pSelectedSkin[m_Dummy]->m_aName, sizeof(Config()->m_DummySkin));
+		else
+			mem_copy(Config()->m_PlayerSkin, m_pSelectedSkin[m_Dummy]->m_aName, sizeof(Config()->m_PlayerSkin));
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
 			mem_copy(CSkins::ms_apSkinVariables[m_Dummy][p], m_pSelectedSkin[m_Dummy]->m_apParts[p]->m_aName, MAX_SKIN_ARRAY_SIZE);
@@ -2392,6 +2395,7 @@ void CMenus::ResetSettingsFClient()
 	Config()->m_ClChatTeamColors = 0;
 	Config()->m_ClShowLocalTimeAlways = 0;
 	Config()->m_ClDefaultZoom = 10;
+	Config()->m_ClSmoothZoomTime = 250;
 	Config()->m_ClBackgroundHue = 0;
 	Config()->m_ClBackgroundSat = 0;
 	Config()->m_ClBackgroundLht = 128;

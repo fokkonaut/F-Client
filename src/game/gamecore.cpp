@@ -342,7 +342,7 @@ void CCharacterCore::Tick(bool UseInput)
 	}
 
 	// Jetpack prediction
-	if(UseInput && (m_Input.m_Fire&1) && m_Jetpack)
+	if(UseInput && (m_Input.m_Fire&1) && m_Jetpack && m_FreezeEnd == 0)
 		m_Vel += TargetDirection * -1.0f * (m_pWorld->m_Tuning[Config()->m_ClDummy].m_JetpackStrength / 100.0f / 6.11f);
 
 	// Speedup prediction
@@ -515,6 +515,7 @@ void CCharacterCore::Read(const CNetObj_CharacterCore *pObjCore)
 void CCharacterCore::ReadDDNet(const CNetObj_DDNetCharacter *pObjDDNet)
 {
 	m_Jetpack = pObjDDNet->m_Flags & CHARACTERFLAG_JETPACK;
+	m_FreezeEnd = pObjDDNet->m_FreezeEnd;
 }
 
 void CCharacterCore::Quantize()

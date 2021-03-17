@@ -198,6 +198,7 @@ public:
 	// DDNet character
 	void ReadDDNet(const CNetObj_DDNetCharacter *pObjDDNet);
 	bool m_Jetpack;
+	int m_FreezeEnd;
 
 private:
 

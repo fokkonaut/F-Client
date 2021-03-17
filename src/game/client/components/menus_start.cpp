@@ -117,7 +117,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 		UI()->DoLabel(&Version, "by fokkonaut", 14.0f, TEXTALIGN_CENTER);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	}
-	UI()->DoLabel(&Version, GAME_RELEASE_VERSION, 14.0f, TEXTALIGN_RIGHT);
+	UI()->DoLabel(&Version, GAME_VERSION, 14.0f, TEXTALIGN_RIGHT);
 
 	if(NewPage != -1)
 		SetMenuPage(NewPage);

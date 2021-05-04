@@ -1017,6 +1017,7 @@ set(EXPECTED_DATA
   skins/body/spiky.png
   skins/body/standard.png
   skins/body/x_ninja.png
+  skins/body/x_spec.png
   skins/bot.png
   skins/brownbear.json
   skins/bumbler.json
@@ -1122,6 +1123,7 @@ set(EXPECTED_DATA
   skins/warmouse.json
   skins/warpaint.json
   skins/x_ninja.json
+  skins/x_spec.json
   skins/xmas_hat.png
   ui/blob.png
   ui/console.png

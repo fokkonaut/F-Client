@@ -12,7 +12,7 @@ class CNamePlates : public CComponent
 		int ClientID
 	) const;
 
-	void CNamePlates::RenderNameplatePos(vec2 Position, int ClientID, const CNetObj_Character *pPlayerChar, float Alpha) const;
+	void RenderNameplatePos(vec2 Position, int ClientID, const CNetObj_Character *pPlayerChar, float Alpha) const;
 
 public:
 	virtual void OnRender();

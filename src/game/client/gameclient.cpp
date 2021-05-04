@@ -1525,6 +1525,11 @@ void CGameClient::OnNewSnapshot()
 
 	bool FoundGameInfoEx = false;
 
+	for (int i = 0; i < MAX_CLIENTS; i++)
+	{
+		m_aClients[i].m_SpecCharPresent = false;
+	}
+
 	// go trough all the items in the snapshot and gather the info we want
 	{
 		int Num = Client()->SnapNumItems(IClient::SNAP_CURRENT);
@@ -1682,6 +1687,13 @@ void CGameClient::OnNewSnapshot()
 					if(Item.m_ID != m_LocalClientID[Config()->m_ClDummy] || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 						ProcessTriggeredEvents(pCharInfo->m_Cur.m_TriggeredEvents, vec2(pCharInfo->m_Cur.m_X, pCharInfo->m_Cur.m_Y));
 				}
+			}
+			else if(Item.m_Type == NETOBJTYPE_SPECCHAR)
+			{
+				const CNetObj_SpecChar *pSpecCharData = (const CNetObj_SpecChar *)pData;
+				m_aClients[Item.m_ID].m_SpecCharPresent = true;
+				m_aClients[Item.m_ID].m_SpecChar.x = pSpecCharData->m_X;
+				m_aClients[Item.m_ID].m_SpecChar.y = pSpecCharData->m_Y;
 			}
 			else if(Item.m_Type == NETOBJTYPE_SPECTATORINFO)
 			{
@@ -2243,6 +2255,8 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient, int ClientID)
 	m_Paused = false;
 	m_Spec = false;
 	m_Evolved.m_Tick = -1;
+	m_SpecChar = vec2(0, 0);
+	m_SpecCharPresent = false;
 	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
 		m_SkinPartIDs[p] = 0;

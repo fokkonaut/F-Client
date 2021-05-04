@@ -1,0 +1,22 @@
+{"skin": {
+	"body": {
+		"filename": "x_spec",
+		"custom_colors": "false"
+	},
+	"marking": {
+		"filename": "",
+		"custom_colors": "false"
+	},
+	"hands": {
+		"filename": "",
+		"custom_colors": "false"
+	},
+	"feet": {
+		"filename": "",
+		"custom_colors": "false"
+	},
+	"eyes": {
+		"filename": "",
+		"custom_colors": "false"
+	}}
+}

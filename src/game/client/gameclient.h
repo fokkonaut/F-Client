@@ -276,6 +276,9 @@ public:
 		bool m_Paused;
 		bool m_Spec;
 
+		bool m_SpecCharPresent;
+		vec2 m_SpecChar;
+
 		void UpdateRenderInfo(CGameClient *pGameClient, int ClientID, bool UpdateSkinInfo);
 		void UpdateBotRenderInfo(CGameClient *pGameClient, int ClientID);
 		void Reset(CGameClient *pGameClient, int CLientID);

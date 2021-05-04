@@ -531,6 +531,7 @@ void CPlayers::OnRender()
 
 	static const CNetObj_PlayerInfo *s_apInfo[MAX_CLIENTS];
 	static CTeeRenderInfo s_aRenderInfo[MAX_CLIENTS];
+	static CTeeRenderInfo s_RenderInfoSpec;
 
 	// update RenderInfo for ninja
 	bool IsTeamplay = (m_pClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS) != 0;
@@ -572,41 +573,49 @@ void CPlayers::OnRender()
 		}
 	}
 
-	// render other players in two passes, first pass we render the other, second pass we render our self
-	for(int p = 0; p < 4; p++)
+	int Skin = m_pClient->m_pSkins->Find("x_spec", true);
+	const CSkins::CSkin *pSkin = m_pClient->m_pSkins->Get(Skin);
+	s_RenderInfoSpec.m_Size = 64.f;
+	s_RenderInfoSpec.m_aTextures[SKINPART_BODY] = pSkin->m_apParts[SKINPART_BODY]->m_OrgTexture;
+	s_RenderInfoSpec.m_aColors[SKINPART_BODY] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	// render other players in three passes, first pass we render spectees,
+	// then everyone but us, and finally we render ourselves
+	for (int p = 0; p < 6; p++)
 	{
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
+			if (p % 3 == 0 && !m_pClient->m_aClients[i].m_SpecCharPresent)
+				continue;
 			// only render active characters
-			if(!m_pClient->m_Snap.m_aCharacters[i].m_Active || !s_apInfo[i])
+			if(p % 3 != 0 && (!m_pClient->m_Snap.m_aCharacters[i].m_Active || !s_apInfo[i]))
 				continue;
 
-			//
-			bool Local = m_pClient->m_LocalClientID[Config()->m_ClDummy] == i;
-			if((p % 2) == 0 && Local) continue;
-			if((p % 2) == 1 && !Local) continue;
-
-			CNetObj_Character *pPrevChar = &m_pClient->m_Snap.m_aCharacters[i].m_Prev;
-			CNetObj_Character *pCurChar = &m_pClient->m_Snap.m_aCharacters[i].m_Cur;
-
-			if(p<2)
+			if (p % 3 == 0)
 			{
-				RenderHook(
-						pPrevChar,
-						pCurChar,
-						&s_aRenderInfo[i],
-						i
-					);
+				if (p < 3)
+					continue;
+				vec2 Pos = m_pClient->m_aClients[i].m_SpecChar;
+				RenderTools()->RenderTee(CAnimState::GetIdle(), &s_RenderInfoSpec, EMOTE_BLINK, vec2(1, 0), Pos, true);
 			}
 			else
 			{
-				RenderPlayer(
-						pPrevChar,
-						pCurChar,
-						s_apInfo[i],
-						&s_aRenderInfo[i],
-						i
-					);
+				//
+				bool Local = m_pClient->m_LocalClientID[Config()->m_ClDummy] == i;
+				if((p % 3) == 1 && Local) continue;
+				if((p % 3) == 2 && !Local) continue;
+
+				CNetObj_Character *pPrevChar = &m_pClient->m_Snap.m_aCharacters[i].m_Prev;
+				CNetObj_Character *pCurChar = &m_pClient->m_Snap.m_aCharacters[i].m_Cur;
+
+				if(p<3)
+				{
+					RenderHook(pPrevChar, pCurChar, &s_aRenderInfo[i], i);
+				}
+				else
+				{
+					RenderPlayer(pPrevChar, pCurChar, s_apInfo[i], &s_aRenderInfo[i], i);
+				}
 			}
 		}
 	}

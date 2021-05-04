@@ -21,10 +21,15 @@ void CNamePlates::RenderNameplate(
 	bool Predicted = m_pClient->ShouldUsePredicted() && m_pClient->ShouldUsePredictedChar(ClientID);
 	vec2 Position = m_pClient->GetCharPos(ClientID, Predicted);
 
+	RenderNameplatePos(Position, ClientID, pPlayerChar, 1.0f);
+}
+
+void CNamePlates::RenderNameplatePos(vec2 Position, int ClientID, const CNetObj_Character *pPlayerChar, float Alpha) const
+{
 	float FontSize = 18.0f + 20.0f * Config()->m_ClNameplatesSize / 100.0f;
 	// render name plate
 
-	float a = 1;
+	float a = Alpha;
 	if(Config()->m_ClNameplatesAlways == 0)
 		a = clamp(1-powf(distance(m_pClient->m_pControls->m_TargetPos[Config()->m_ClDummy], Position)/200.0f,16.0f), 0.0f, 1.0f);
 
@@ -86,13 +91,18 @@ void CNamePlates::OnRender()
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
-		// only render active characters
-		if(m_pClient->m_aClients[i].m_Active && m_pClient->m_Snap.m_aCharacters[i].m_Active && m_pClient->m_LocalClientID[Config()->m_ClDummy] != i)
+		if (!m_pClient->m_aClients[i].m_Active || m_pClient->m_LocalClientID[Config()->m_ClDummy] == i)
+			continue;
+
+		if (m_pClient->m_aClients[i].m_SpecCharPresent)
 		{
-			RenderNameplate(
-				&m_pClient->m_Snap.m_aCharacters[i].m_Prev,
-				&m_pClient->m_Snap.m_aCharacters[i].m_Cur,
-				i);
+			RenderNameplatePos(m_pClient->m_aClients[i].m_SpecChar, i, &m_pClient->m_Snap.m_aCharacters[i].m_Cur, 0.4f);
+		}
+
+		// only render active characters
+		if(m_pClient->m_Snap.m_aCharacters[i].m_Active)
+		{
+			RenderNameplate(&m_pClient->m_Snap.m_aCharacters[i].m_Prev, &m_pClient->m_Snap.m_aCharacters[i].m_Cur, i);
 		}
 	}
 }

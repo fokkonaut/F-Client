@@ -88,6 +88,7 @@ void CCamera::OnRender()
 			if(Time >= m_ZoomSmoothingEnd)
 			{
 				m_Zoom = m_ZoomSmoothingTarget;
+				m_ZoomSmoothingTarget = 0.f;
 				m_Zooming = false;
 			}
 			else

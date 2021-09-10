@@ -34,6 +34,7 @@ public:
 	const vec2 *GetCenter() const { return &m_Center; };
 	float GetZoom() const { return m_Zoom; };
 	float GetZoomSmoothingTarget() const { return m_ZoomSmoothingTarget; };
+	bool Zooming() { return m_Zooming; }
 
 	static void ConSetPosition(IConsole::IResult *pResult, void *pUserData);
 

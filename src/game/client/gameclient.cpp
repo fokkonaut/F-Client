@@ -1892,7 +1892,7 @@ void CGameClient::OnNewSnapshot()
 	static float LastZoom = .0;
 	static float LastScreenAspect = .0;
 	static bool LastDummyConnected = false;
-	float ZoomToSend = m_pCamera->GetZoomSmoothingTarget() == .0 ? m_pCamera->GetZoom() // Initial
+	float ZoomToSend = !m_pCamera->Zooming() ? m_pCamera->GetZoom() // Initial
 		: m_pCamera->GetZoomSmoothingTarget() > m_pCamera->GetZoom() ? m_pCamera->GetZoomSmoothingTarget() // Zooming out
 		: m_pCamera->GetZoomSmoothingTarget() < m_pCamera->GetZoom() ? LastZoom // Zooming in
 		: m_pCamera->GetZoom(); // Not zooming

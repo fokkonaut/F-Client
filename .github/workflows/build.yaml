@@ -39,7 +39,7 @@ jobs:
             LDFLAGS: /WX
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
 
@@ -54,8 +54,6 @@ jobs:
       run: |
         brew update || true
         brew install pkg-config sdl2 python3 ninja || true
-        # --overwrite for:  Target /usr/local/bin/2to3 already exists.
-        brew link --overwrite python@3.10
         brew upgrade freetype
         sudo rm -rf /Library/Developer/CommandLineTools
 
@@ -94,7 +92,7 @@ jobs:
         mv ${{ matrix.package-file }} artifacts
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: F-Client-${{ matrix.os }}
         path: release/artifacts

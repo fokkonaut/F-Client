@@ -234,6 +234,7 @@ public:
 	// ----- send functions -----
 	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int NetClient = -1);
 
+	void SendFClientInfo(int NetClient = -1);
 	void SendInfo();
 	void SendEnterGame();
 	void SendReady();

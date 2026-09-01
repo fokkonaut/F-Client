@@ -358,8 +358,18 @@ int CClient::SendMsg(CMsgPacker *pMsg, int Flags, int NetClient)
 	return 0;
 }
 
+void CClient::SendFClientInfo(int NetClient)
+{
+	CMsgPacker Msg(NETMSG_IAMFCLIENT, true);
+	Msg.AddString(GAME_VERSION " built on " __DATE__ ", " __TIME__, -1);
+	Msg.AddInt(CLIENT_VERSION);
+	SendMsg(&Msg, MSGFLAG_VITAL, NetClient);
+}
+
 void CClient::SendInfo()
 {
+	SendFClientInfo();
+
 	CMsgPacker MsgVer(NETMSG_CLIENTVER, true);
 	MsgVer.AddRaw(&m_ConnectionID, sizeof(m_ConnectionID));
 	MsgVer.AddInt(GameClient()->DDNetVersion());
@@ -2613,6 +2623,8 @@ void CClient::Run()
 		if (m_DummySendConnInfo && m_NetClient[CLIENT_DUMMY].State() == STATE_CONNECTING)
 		{
 			m_DummySendConnInfo = false;
+
+			SendFClientInfo(CLIENT_DUMMY);
 
 			// send client info
 			CMsgPacker MsgVer(NETMSG_CLIENTVER, true);

@@ -387,7 +387,14 @@ void CGameClient::OnInit()
 
 	int64 Start = time_get();
 
-	str_format(m_aDDNetVersionStr, sizeof(m_aDDNetVersionStr), "%s %s", GAME_NAME, GAME_VERSION);
+	if(GIT_SHORTREV_HASH)
+	{
+		str_format(m_aDDNetVersionStr, sizeof(m_aDDNetVersionStr), "%s %s (%s)", GAME_NAME, GAME_VERSION, GIT_SHORTREV_HASH);
+	}
+	else
+	{
+		str_format(m_aDDNetVersionStr, sizeof(m_aDDNetVersionStr), "%s %s", GAME_NAME, GAME_VERSION);
+	}
 
 	// Render load screen at 0% to get graphics sooner.
 	// Swap again to minimize initial flashing color.

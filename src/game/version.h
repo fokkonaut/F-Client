@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_VERSION_H
 #define GAME_VERSION_H
+extern const char *GIT_SHORTREV_HASH;
 #define GAME_VERSION "0.7.5, 3.4.1"
 #define GAME_NETVERSION "0.7 802f1be60a05665f"
 #define CLIENT_VERSION 0x0f3041
